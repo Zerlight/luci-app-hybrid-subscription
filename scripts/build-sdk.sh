@@ -8,6 +8,23 @@ case "$format" in ipk|apk) ;; *) exit 2 ;; esac
 
 # Release SDK images include the SDK; snapshot images download it here.
 if [[ ! -f include/toplevel.mk ]]; then bash setup.sh; fi
+# OpenWrt 25.12 can emit !(LDAP && USE_GLIBC) || USE_GLIBC for curl.
+# USE_GLIBC is boolean, so this redundant clause creates a false Kconfig cycle.
+if [[ "$format" == apk ]]; then
+ python3 - <<'PY'
+from pathlib import Path
+import re
+assert re.search(r'^config USE_GLIBC\n\s+bool\n', Path('Config-build.in').read_text(), re.M), 'Review the SDK libc configuration'
+path = Path('scripts/package-metadata.pl')
+text = path.read_text()
+needle = '\t\t\t\tnext if $dep->{"$depend if $condition"};\n'
+assert text.count(needle) == 1, 'Review the SDK metadata compatibility fix'
+guard = r'''next if $flags eq '@' && $depend eq 'USE_GLIBC' && $condition =~ /^(?:[A-Za-z_][A-Za-z0-9_]*\s*&&\s*)*USE_GLIBC(?:\s*&&\s*[A-Za-z_][A-Za-z0-9_]*)*$/;'''
+path.write_text(text.replace(needle, '\t\t\t\t' + guard + '\n' + needle))
+# Kconfig tristates are 0/1/2; USE_GLIBC can only be 0 or 2.
+assert all(max(2-min(a,b),b) == 2 for a in (0,1,2) for b in (0,2))
+PY
+fi
 sed -e 's,https://git.openwrt.org/feed/,https://github.com/openwrt/,' \
     -e 's,https://git.openwrt.org/openwrt/,https://github.com/openwrt/,' \
     -e 's,https://git.openwrt.org/project/,https://github.com/openwrt/,' \
