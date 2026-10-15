@@ -38,6 +38,7 @@ PY
 esac
 if [[ "$name" == luci-app-hybrid-subscription ]]; then
  for file in /usr/share/hybrid-subscription/{backend,engine,cli,quota,regions,openclash,converter,download}.rb \
+             /usr/share/hybrid-subscription/{LICENSE,NOTICE} \
              /www/luci-static/resources/hybrid-subscription.js \
              /www/luci-static/resources/view/hybrid-subscription/{overview,sources,profiles,rules,settings}.js \
              /usr/share/luci/menu.d/luci-app-hybrid-subscription.json \
