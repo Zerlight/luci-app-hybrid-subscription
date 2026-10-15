@@ -14,7 +14,8 @@ if [[ "$format" == apk ]]; then
  python3 - <<'PY'
 from pathlib import Path
 import re
-assert re.search(r'^config USE_GLIBC\n\s+bool\n', Path('Config-build.in').read_text(), re.M), 'Review the SDK libc configuration'
+# Musl-only SDKs may omit USE_GLIBC, making it the constant n.
+assert not re.search(r'^config USE_GLIBC\n\s+(?:tristate|string|int)\b', Path('Config-build.in').read_text(), re.M), 'Review the SDK libc configuration'
 path = Path('scripts/package-metadata.pl')
 text = path.read_text()
 needle = '\t\t\t\tnext if $dep->{"$depend if $condition"};\n'
