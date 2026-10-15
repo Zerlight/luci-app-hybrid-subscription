@@ -146,7 +146,7 @@ class BackendTest < Minitest::Test
   def test_subscription_opt_in_does_not_make_status_tick_or_download_fetch
     b=quota_app;enable_subscription_quota(b)
     built=b.build_profile('main')
-    b.publish('release'=>built['release'],'accepted_warnings'=>built['warnings'].map { |warning| warning['code'] })
+    b.publish({'release'=>built['release'],'accepted_warnings'=>built['warnings'].map { |warning| warning['code'] }})
     b.status;b.tick
     info=b.download_info('main')
     endpoint=HybridSubscription::Download.new(b)
@@ -242,7 +242,7 @@ class BackendTest < Minitest::Test
     refute_includes request[0],'--max-filesize'
     refute_includes request[0].join(' '),'private-status-token'
     assert_includes request[1][:input],'private-status-token'
-    b.publish('release'=>build['release'],'accepted_warnings'=>build['warnings'].map { |warning| warning['code'] })
+    b.publish({'release'=>build['release'],'accepted_warnings'=>build['warnings'].map { |warning| warning['code'] }})
     assert_equal build['release'],b.published['main']
     info=b.status['sources'][0]['quota_status']
     assert_equal 'fresh',info['state']
@@ -371,19 +371,19 @@ class BackendTest < Minitest::Test
   def test_build_requires_ack_and_history_for_rollback
     build=@b.build_profile('main'); assert_equal 3,build['formats'].length
     refute_empty build['warnings']
-    assert_raises(HybridSubscription::Error) { @b.publish('release'=>build['release'],'accepted_warnings'=>[]) }
+    assert_raises(HybridSubscription::Error) { @b.publish({'release'=>build['release'],'accepted_warnings'=>[]}) }
     assert_raises(HybridSubscription::Error) { @b.publish({'release'=>build['release']},rollback:true) }
-    pub=@b.publish('release'=>build['release'],'accepted_warnings'=>build['warnings'].map { |w| w['code'] })
+    pub=@b.publish({'release'=>build['release'],'accepted_warnings'=>build['warnings'].map { |w| w['code'] }})
     assert_equal build['release'],pub['release'];assert_nil @b.enqueued
     assert @b.status['releases'][0]['ever_published']
     @b.publish({'release'=>build['release']},rollback:true)
   end
   def test_changed_source_invalidates_candidate
     r=@b.build_profile('main');@node['password']='new-value';@b.put_source('test',YAML.dump('proxies'=>[@node]),'mihomo')
-    assert_raises(HybridSubscription::Error) { @b.publish('release'=>r['release'],'accepted_warnings'=>r['warnings'].map { |w| w['code'] }) }
+    assert_raises(HybridSubscription::Error) { @b.publish({'release'=>r['release'],'accepted_warnings'=>r['warnings'].map { |w| w['code'] }}) }
   end
   def test_download_does_not_fetch_and_old_tokens_revoke
-    r=@b.build_profile('main');@b.publish('release'=>r['release'],'accepted_warnings'=>r['warnings'].map { |w| w['code'] })
+    r=@b.build_profile('main');@b.publish({'release'=>r['release'],'accepted_warnings'=>r['warnings'].map { |w| w['code'] }})
     info=@b.download_info('main');d=HybridSubscription::Download.new(@b)
     env={'REQUEST_METHOD'=>'GET','REMOTE_ADDR'=>'127.0.0.1','QUERY_STRING'=>'profile=main&format=mihomo&token='+info['token']}
     status,headers,body=d.response(env);assert_equal 200,status;assert_includes body,'private-password';assert_equal body.bytesize.to_s,headers['Content-Length']
@@ -395,7 +395,7 @@ class BackendTest < Minitest::Test
     assert_nil @b.enqueued
   end
   def test_download_detects_tampering
-    r=@b.build_profile('main');@b.publish('release'=>r['release'],'accepted_warnings'=>r['warnings'].map { |w| w['code'] })
+    r=@b.build_profile('main');@b.publish({'release'=>r['release'],'accepted_warnings'=>r['warnings'].map { |w| w['code'] }})
     File.write(File.join(@b.release_path(r['release']),'mihomo.yaml'),'tampered')
     env={'REMOTE_ADDR'=>'127.0.0.1','QUERY_STRING'=>'profile=main&format=mihomo&token='+@b.download_info('main')['token']}
     assert_equal 503,HybridSubscription::Download.new(@b).response(env)[0]
@@ -410,7 +410,7 @@ class BackendTest < Minitest::Test
   def test_auto_apply_only_selected_profile
     r=@b.build_profile('main')
     c=@b.config;c['settings']['openclash_auto_apply']=true;c['settings']['openclash_profile']='main';@b.atomic(@b.path('config.json'),c)
-    r=@b.build_profile('main');@b.publish('release'=>r['release'],'accepted_warnings'=>r['warnings'].map { |w| w['code'] })
+    r=@b.build_profile('main');@b.publish({'release'=>r['release'],'accepted_warnings'=>r['warnings'].map { |w| w['code'] }})
     assert_equal [['apply','main']],@b.enqueued
   end
   def test_command_timeout_kills_child
@@ -431,7 +431,7 @@ class BackendTest < Minitest::Test
   end
   def publish_build(b)
     built=b.build_profile('main')
-    b.publish('release'=>built['release'],'accepted_warnings'=>built['warnings'].map { |w| w['code'] })
+    b.publish({'release'=>built['release'],'accepted_warnings'=>built['warnings'].map { |w| w['code'] }})
   end
   def test_overlapping_publications_have_pinned_serial_apply_jobs
     adapter=ApplyAdapter.new;b=queue_app(adapter);auto_apply(b)
