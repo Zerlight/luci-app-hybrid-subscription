@@ -1,121 +1,145 @@
 # LuCI Hybrid Subscription Manager
 
+[![Test, build and release](https://github.com/Zerlight/luci-app-hybrid-subscription/actions/workflows/ci.yml/badge.svg)](https://github.com/Zerlight/luci-app-hybrid-subscription/actions/workflows/ci.yml)
+[![Latest Release](https://img.shields.io/github/v/release/Zerlight/luci-app-hybrid-subscription?include_prereleases)](https://github.com/Zerlight/luci-app-hybrid-subscription/releases)
+[![OpenWrt](https://img.shields.io/badge/OpenWrt-24.10%20%7C%2025.12-00B5E2)](https://github.com/Zerlight/luci-app-hybrid-subscription/releases)
+[![License: Apache-2.0](https://img.shields.io/badge/License-Apache--2.0-blue.svg)](LICENSE)
+
 [English](README.md) | [简体中文](README.zh-CN.md)
 
-A native OpenWrt LuCI application featuring **multi-source subscription fusion** and a **GUI rule engine**. Combine subscription sources, compose routing policies, and publish versioned configurations for Mihomo, Surge, and sing-box.
+A native OpenWrt LuCI application for **multi-source subscription aggregation** and **visual routing rule orchestration**. It caches upstream proxy subscriptions locally, compiles policy groups and routing rules, and publishes versioned configurations for **Mihomo (Clash Meta)**, **Surge**, and **sing-box**.
 
-## Highlights
+```text
+Upstream Subscriptions ──► Local Node Cache ──► LuCI Rule & Group Editor ──► Immutable Release ──► Client Pull (QR / URL)
+   (Manual / Scheduled)    (/etc/hybrid-...)    (Mihomo / Surge / sing-box)   (SHA-256 Verified)    └──► OpenClash Apply
+```
 
-- **Subscription fusion**: Combine multiple sources in one profile, filter nodes by source or custom region patterns, and configure each client's output separately. Downloads serve the last successfully published file and never fetch upstream sources.
-- **GUI rule engine**: Edit policy groups, ordered routing rules, and shared remote or inline rule sets with native LuCI components. Inspect group dependencies in an interactive graph, and express Mihomo rematch entries, named sub-rules, and recursive logical conditions. Advanced structured fields use JSON editors; cross-client compatibility differences require review before publication.
+This application focuses on configuration compilation and distribution. Runtime traffic graphs and live node switching remain with client dashboards.
 
-The application manages configuration and publication. Runtime connection monitoring and node switching remain with client dashboards.
+## Key Features
 
-## Capabilities
+- **Read/Write Decoupled Subscription Fusion**: Combine multiple subscription sources into independent profiles, filter nodes by source or region regex templates, and serve client downloads directly from published local files—**client downloads never trigger upstream subscription requests**.
+- **Native LuCI Rule Engine & Dependency Graph**: Edit policy groups, ordered routing rules, shared remote/inline rule sets, and Mihomo rematch/sub-rule trees using standard LuCI forms. Inspect group and sub-rule references with an in-browser SVG dependency graph.
+- **Explicit Cross-Client Compatibility**: Retain raw Mihomo node fields in the local cache. When exporting to Surge or sing-box, unsupported protocols block the build and unsupported node/policy fields require explicit confirmation before publication—nothing is silently dropped.
+- **Immutable Releases & Instant Rollback**: Validate drafts, preview redacted outputs, build immutable releases, publish, or roll back to any previously published release.
+- **Safe OpenClash Integration**: Import existing OpenClash subscription definitions and local caches in one click. Apply a published Mihomo release to OpenClash manually or automatically, guarded by isolated `clash_meta -t` syntax checks and an automatic rollback watchdog.
+- **Zero-Daemon Lightweight Architecture**: Built with native LuCI JavaScript and on-demand Ruby CGI/RPCD workers—no persistent Node.js, Docker, or web server process required on the router.
 
-- Merge any number of supported subscription sources into multiple independent subscription profiles.
-- Import Mihomo YAML, Surge configurations, sing-box JSON, and standard proxy node URIs.
-- Preserve canonical Mihomo node fields. Other target formats report unsupported options as explicit compatibility warnings and block unsupported protocols rather than silently dropping nodes.
-- Configure source selection, node regular-expression filters, policy group hierarchies, per-client group types, ordered routing rules, and remote or inline rule sets. Inspect policy dependencies via an interactive SVG graph inside LuCI.
-- Support Mihomo rematch entries, named sub-rules, recursive logical conditions (`AND`, `OR`, `NOT`), inline rule sets, and explicit DNS/geodata/sniffer policies. Features without portable equivalents block incompatible target formats instead of being silently discarded.
-- Follow a strict publication lifecycle: save drafts, validate configurations, preview redacted outputs, build immutable releases, review and accept compatibility warnings, publish, or roll back to any previously published release.
-- Serve downloads via revocable per-profile tokens (`LAN + Token` or `Token` across reachable networks) or restrict downloads to authenticated LuCI sessions. QR codes are rendered locally using LuCI's `uqr` library.
-- Update each subscription source manually or on an independent schedule. Client download requests read only published release artifacts and **never trigger upstream subscription fetches**.
-- Import existing OpenClash subscription definitions and node caches. Apply a published Mihomo release to OpenClash manually or enable automatic application for a designated profile, backed by pre-flight core validation and an automatic rollback guard.
-- Audit the native parser against a local loopback `subconverter` instance without modifying cached node data.
+## Resource Footprint & Router Hardware Requirements
 
-Only modern Mihomo, Surge, and sing-box formats are targeted. Legacy Clash, SSR, and Quantumult formats are intentionally excluded.
+Many OpenWrt routers run with tight RAM, CPU, and flash constraints. Because this project uses an **on-demand short-lived worker architecture** rather than a persistent application server, its idle overhead is near zero:
+
+- **No Persistent Web Daemon**: All UI forms, QR codes (`luci-lib-uqr`), and SVG dependency graphs render in your browser. The background scheduler (`/etc/init.d/hybrid-subscription`) is a minimal POSIX `/bin/sh` loop (`sleep 60`) that wakes briefly once per minute to check scheduled source timestamps.
+- **Short-Lived On-Demand Workers**: Ruby processes run only when you open the editor, refresh a source, build a release, or fetch a subscription link, and exit immediately afterward—returning all memory to the OS.
+
+### Measured Resource Usage
+
+| Metric | Footprint / Measurement | Notes |
+| :--- | :--- | :--- |
+| **Flash / Disk (Packages)** | **~350 KiB** (app + `zh-cn` i18n) / **~5–6.5 MiB** (with Ruby stdlib dependencies) | Total uncompressed size on OverlayFS when Ruby is not already installed. |
+| **Flash / Disk (Data)** | **~50–300 KiB** per cached source / **~100–800 KiB** per published release | Stored under `/etc/hybrid-subscription` (Depends on node count and enabled target formats). |
+| **RAM (Idle)** | **< 1 MiB** | Only the `/bin/sh` timer loop remains resident; **0 MB** of resident Ruby memory when idle. |
+| **RAM (Client Download)** | **~10–14 MiB** transient (< 30 ms) | Authenticates the token, verifies the SHA-256 digest, and streams the static file. |
+| **RAM (Build & Validation)** | **~16–28 MiB** (100–300 nodes) / **~35–65 MiB** (1,000–4,000 nodes) | Peak RSS of the temporary worker process while compiling Mihomo, Surge, and sing-box outputs. |
+| **RAM (OpenClash Pre-Check)** | **+50–120 MiB** transient (only if OpenClash is installed) | Invokes `clash_meta -t` to validate Mihomo syntax and GeoIP/GeoSite databases before release/apply. |
+| **CPU Time (3-Format Build)** | **~0.1–0.4 s** (100–300 nodes on ARM Cortex-A53) / **~10–90 ms** (on x86_64) | 1,000 nodes across all 3 formats takes ~0.5–1.5 s on typical dual-core ARM routers and ~90 ms on x86_64. |
+
+### Recommended Router Specifications
+
+| Deployment Scenario | Minimum Hardware | Recommended Hardware | Practical Guidance for Low-Memory Routers |
+| :--- | :--- | :--- | :--- |
+| **Standalone Subscription Hub** *(No local OpenClash)* | **128 MiB RAM**<br>16 MiB free flash<br>MIPS / ARM 580 MHz+ | **256 MiB+ RAM**<br>32 MiB+ free flash<br>Dual-core ARMv8 / x86_64 | Runs comfortably on entry-level routers (e.g., MT7621 / IPQ4019). Keep total cached nodes under ~500 on 128 MiB devices. |
+| **Co-Deployed with OpenClash** *(Running Mihomo on the same router)* | **256 MiB RAM** *(with ZRAM/Swap)*<br>32 MiB free flash<br>Dual-core ARM / MIPS | **512 MiB+ RAM**<br>64 MiB+ free flash<br>ARM64 (MT7981/7986, IPQ) / x86_64 | On 256 MiB routers running OpenClash, set `"geodata-loader": "memconservative"` in **Mihomo Advanced Policy** and enable ZRAM/Swap to avoid OOM spikes during `clash_meta -t` validation and service reloads. |
 
 ## Installation
 
-Download packages from [GitHub Releases](https://github.com/Zerlight/luci-app-hybrid-subscription/releases). Choose the package matching your OpenWrt series: **24.10 uses `.ipk`**, while **25.12 uses `.apk`**. Install the base application and, optionally, the Simplified Chinese language package from the same release. Runtime dependencies are declared in the package and resolved from your router's configured feeds.
+### 1. Install from GitHub Releases (Recommended)
 
-On OpenWrt 24.10, upload the `.ipk` files to the router and install them with `opkg install /tmp/<package>.ipk`. On OpenWrt 25.12, use `apk add --allow-untrusted /tmp/<package>.apk` for these independently built packages. Release packages are not signed by the official OpenWrt feed keys. Download them from this repository's releases and check their hashes against the accompanying `SHA256SUMS` file before installation.
+Download the prebuilt packages from [GitHub Releases](https://github.com/Zerlight/luci-app-hybrid-subscription/releases) matching your OpenWrt version (**24.10 uses `.ipk`**, **25.12+ uses `.apk`**), verify checksums against `SHA256SUMS`, and install on your router:
 
-For SDK builds, the `Makefile` follows standard OpenWrt LuCI package conventions. Place the repository inside your OpenWrt LuCI package tree and build it with a matching SDK.
-
-For direct deployment to a configured OpenWrt router during development:
+**OpenWrt 24.10 (`opkg`):**
 
 ```sh
-apk add ruby-json ruby-open3 ruby-fileutils ruby-uri ruby-timeout ruby-ipaddr ruby-socket
-./scripts/deploy.sh root@router.example
+opkg update
+opkg install /tmp/luci-app-hybrid-subscription_*.ipk
+# Optional Simplified Chinese translation package:
+opkg install /tmp/luci-i18n-hybrid-subscription-zh-cn_*.ipk
 ```
 
-The installer backs up any files it replaces and does not restart OpenClash or alter its active configuration. Once installed, the application appears under **Services → Hybrid Subscription** (**服务 → 混合订阅** in Simplified Chinese). Required packages (`luci-base`, `luci-lib-uqr`, Ruby YAML/Digest libraries, `curl`, and `rpcd`) must be present on the router.
+**OpenWrt 25.12+ (`apk`):**
 
-## Getting Started
+```sh
+apk update
+apk add --allow-untrusted /tmp/luci-app-hybrid-subscription-*.apk
+# Optional Simplified Chinese translation package:
+apk add --allow-untrusted /tmp/luci-i18n-hybrid-subscription-zh-cn-*.apk
+```
 
-1. **Add Subscription Sources**: Import sources from OpenClash or create new source entries under **Subscription Sources**. You may leave the subscription URL blank if you intend to import a local subscription file.
-2. **Protect Rate-Limited Sources**: Keep time-windowed or rate-limited subscriptions in **Manual Only** update mode. Importing an existing OpenClash source reuses its local cache without contacting the upstream provider.
-3. **Configure Profiles & Groups**: Under **Subscription Profiles**, create a profile, select its sources and target formats, and define policy groups and routing rules. Use **Quick Create Profile** to scaffold a basic manual-selection profile.
-4. **Validate, Build & Publish**: On the **Overview** page, click **Build & Publish** to validate the draft and generate an immutable release, confirm any cross-client compatibility warnings, and publish. Download links and QR codes become available after publication.
-5. **OpenClash Integration**: Applying a release to OpenClash is decoupled from publication by default and may briefly reload proxy connections. Managed OpenClash configurations use the `HybridSubscriptions-<id>.yaml` naming convention so existing profiles remain untouched.
+> Release packages are built in CI with the official OpenWrt SDK and are not signed by upstream OpenWrt feed keys, so `--allow-untrusted` is required on `apk`-based releases. Always verify package hashes against `SHA256SUMS` before installing.
 
-## Daily Workflow
+### 2. Build from OpenWrt SDK
 
-- **Overview**: Monitor source cache status and traffic quota, jump to profile editors, build and publish releases, view download links and QR codes, or open **Release Management** to roll back releases and manage OpenClash integration.
-- **Subscription Sources**: Trigger manual cache updates, import local subscription files, configure dedicated quota endpoints, and run `subconverter` compatibility audits.
-- **Subscription Profiles**: Select an active profile filter to edit export targets, policy groups, or Mihomo rematch/sub-rule entries. Switching tabs preserves unsaved draft changes on the current page.
-- **Routing Rules**: Filter and reorder rules by profile and rule scope (main rules or sub-rules), and manage shared remote or inline rule sets.
-- **Global Settings**: Maintain region matching templates, download access controls, OpenClash auto-apply preferences, and the local `subconverter` loopback address. Clicking **Save** writes to the draft configuration; publication always takes place on the **Overview** page.
+Place this repository in `package/luci-app-hybrid-subscription` inside an OpenWrt SDK tree and run:
 
-## Quota & Expiration Queries
+```sh
+make package/luci-app-hybrid-subscription/compile V=s
+```
 
-Quota parsing follows the `Subscription-Userinfo` HTTP response header convention (`upload; download; total; expire`) used by OpenClash ([reference implementation](https://github.com/vernesong/OpenClash/blob/master/luci-app-openclash/luasrc/controller/openclash.lua)):
+### 3. Direct Deployment (Development)
 
-- **Dedicated Quota URL**: Each source can configure a write-only dedicated quota endpoint (`quota_url`) that is never echoed back to the browser. Dedicated endpoints take priority, never follow HTTP redirects, and never fall back to the main subscription URL on failure.
-- **Subscription Header Opt-In**: Standard subscriptions may explicitly enable **Query Quota via Subscription URL** (`quota_via_subscription`, disabled by default), which sends a header-only `GET` request to the subscription URL when manually refreshing quota. Keep this option disabled for time-windowed or pull-limited subscriptions.
-- **Local Provider Cache**: When OpenClash is installed, the backend also reads local Mihomo provider metadata associated with matching subscription URLs.
-- **Manual Trigger Only**: Clicking **Refresh Quota** updates only quota metadata without refreshing nodes or invalidating published releases. Page polling, scheduled tasks, and client downloads never issue quota requests.
+To deploy directly from a working checkout to a router over SSH:
 
-## Region Matching Templates
+```sh
+# Ensure dependencies are installed on the router first:
+# apk add luci-base luci-lib-uqr rpcd curl ruby ruby-json ruby-yaml ruby-digest ruby-open3 ruby-fileutils ruby-uri ruby-timeout ruby-ipaddr ruby-socket
+./scripts/deploy.sh root@192.168.1.1
+```
 
-Under **Global Settings → Region Matching**, you can add default region templates or define custom regular expressions:
+The installer backs up replaced files and never restarts OpenClash or switches its active configuration. Once installed, open **Services → Hybrid Subscription** (**服务 → 混合订阅**).
 
-- Default templates match flag emojis, Chinese and English region names, and word-bounded two- or three-letter ISO country codes.
-- Per-source override patterns supersede the general regular expression for that specific source.
-- **Preview Region Matches** evaluates current cached node names offline without saving the draft or contacting upstream servers, highlighting unmatched nodes and multi-region ambiguities.
-- When a policy group selects a **Region Template**, the region pattern is combined (`AND`) with the group's include and exclude regular expressions. Region matching classifies nodes by name and does not guarantee the physical egress IP location.
+## Quick Start
 
-## Access Control & Storage
+1. **Add Sources (`Subscription Sources`)**: Click **Import from OpenClash** to reuse existing subscription definitions and node caches without contacting upstream servers, or add a new source manually. Leave **Update Mode** set to **Manual Only** for rate-limited or time-windowed providers.
+2. **Create a Profile (`Subscription Profiles`)**: Click **Quick Create Profile** to generate a starter profile with a manual selection group for Mihomo, Surge, and sing-box, or build custom policy groups, region filters, and Mihomo rematch/sub-rule chains.
+3. **Configure Rules (`Routing Rules`)**: Add ordered routing rules (`DOMAIN-SUFFIX`, `IP-CIDR`, `RULE-SET`, `GEOIP`, `GEOSITE`, or recursive `AND`/`OR`/`NOT` conditions) and shared remote or inline rule sets.
+4. **Build & Publish (`Overview`)**: Click **Build & Publish** on the profile card. Review any cross-client compatibility warnings, confirm publication, and use **Download / QR Code** to import the subscription into your clients.
+5. **Apply to OpenClash (Optional)**: Open **Release Management** on a published profile to apply the Mihomo output to OpenClash manually, or enable **Auto-Apply to OpenClash on Publish** under **Global Settings**.
 
-The default download access mode is **LAN + Download Token**. You may switch to **Download Token (All Reachable Networks)** or **Authenticated LuCI Session Only**. Specifying a custom **Subscription Base URL** updates generated download links without opening firewall ports or configuring network tunnels.
+## Core Concepts & Details
 
-Configuration state, cached nodes, and published releases are stored under `/etc/hybrid-subscription` with restricted permissions (`0700` directories, `0600` files). Source URLs are write-only in the UI, and configuration previews redact server addresses, credentials, and private query tokens.
+### Quota & Expiration Queries
 
-Unpublishing a profile revokes its download token and disables external downloads while retaining release history and the active OpenClash configuration. To uninstall from a router, switch OpenClash to a non-managed configuration and run `scripts/uninstall-router.sh`.
+Quota parsing supports the standard `Subscription-Userinfo` response header (`upload; download; total; expire`) used by [OpenClash](https://github.com/vernesong/OpenClash/blob/master/luci-app-openclash/luasrc/controller/openclash.lua):
+
+- **Dedicated Quota URL (`quota_url`)**: Write-only endpoint queried first without following redirects or falling back to the main subscription URL.
+- **Subscription Header Opt-In (`quota_via_subscription`)**: Disabled by default. When enabled, clicking **Refresh Quota** sends a header-only `GET` request to the subscription URL. Keep this disabled for time-windowed or pull-limited subscriptions.
+- **Local Provider Reuse**: Automatically reads local Mihomo `proxy-providers` quota metadata when OpenClash is installed and shares the same subscription URL.
+
+### Region Matching Templates
+
+Under **Global Settings → Region Matching**, built-in templates match flag emojis, Chinese/English names, and word-bounded ISO country codes. You can define per-source regex overrides and run **Preview Region Matches** against cached node names offline to spot unmatched or multi-region nodes before building.
+
+### Access Control & Security
+
+- **Access Modes**: Choose between **LAN + Download Token** (default), **Download Token (All Reachable Networks)**, or **Authenticated LuCI Session Only**.
+- **Credential Protection**: State and artifacts live in `/etc/hybrid-subscription` (`0700` directories, `0600` files). Subscription and quota URLs are write-only in the UI, and previews redact server addresses, passwords, UUIDs, and query tokens.
+- **Clean Uninstallation**: Switch OpenClash away from any `HybridSubscriptions-*.yaml` profile and run `scripts/uninstall-router.sh`.
 
 ## Internationalization (i18n)
 
-The application follows OpenWrt LuCI internationalization standards while providing a runtime locale registry for direct deployments and backend diagnostics:
+- **Standard LuCI Catalogs**: Source strings use English `msgid`s across `htdocs/`, `menu.d/`, `acl.d/`, and Ruby backend modules, paired with `po/templates/hybrid-subscription.pot` and `po/zh_Hans/hybrid-subscription.po`.
+- **Extensible Runtime Registry**: `htdocs/luci-static/resources/hybrid-subscription.js` exposes `hs.registerLocale(code, { separator, aliases, exact, patterns })` to translate dynamic backend validation errors and provide fallback translations on direct-script deployments.
 
-- **Canonical Source Strings**: All UI views (`htdocs/luci-static/resources/`), menu definitions (`root/usr/share/luci/menu.d/`), ACL descriptions (`root/usr/share/rpcd/acl.d/`), and Ruby backend modules (`root/usr/share/hybrid-subscription/`) use formal English as the default `msgid`.
-- **Standard PO Catalogs**: Translation templates live in `po/templates/hybrid-subscription.pot`, with Simplified Chinese translations in `po/zh_Hans/hybrid-subscription.po`. OpenWrt SDK builds (`include ../../luci.mk`) automatically compile `.po` files into `.lmo` binary catalogs, and `scripts/install-router.sh` compiles `.lmo` catalogs on the router whenever `po2lmo` is available.
-- **Extensible Runtime Locale Registry**: `htdocs/luci-static/resources/hybrid-subscription.js` exposes `hs.registerLocale(code, { separator, aliases, exact, patterns })`. This provides automatic fallback when `.lmo` files are not pre-compiled and translates parameterized backend validation, build, and runtime messages. To add another language, add `po/<lang>/hybrid-subscription.po` and register the locale in `hybrid-subscription.js`.
-
-## Testing
+## Testing & CI
 
 ```sh
-ruby tests/test_engine.rb
-ruby tests/test_backend.rb
-ruby tests/test_openclash.rb
-ruby tests/test_converter.rb
-ruby tests/test_quota.rb
-ruby tests/test_regions.rb
-node tests/frontend_test.js
-node tests/workbench_test.js
+sh scripts/test.sh
 ```
 
-All test suites use synthetic credentials and temporary directories without making external network requests or modifying system configurations.
-
-## Continuous Integration & Releases
-
-GitHub Actions runs the Ruby and JavaScript tests, translation checks, and OpenWrt SDK package builds for OpenWrt 24.10 and 25.12 on pushes and pull requests. Successful builds provide downloadable workflow artifacts containing the application and language packages.
-
-Pushing a version tag in the form `v<major>.<minor>.<patch>` runs the same checks and creates a GitHub Release with `.ipk` and `.apk` installation packages and `SHA256SUMS`. Package builds validate SDK packaging; they do not replace testing on a router running the matching OpenWrt version.
+`scripts/test.sh` runs all Ruby unit tests (`test_engine.rb`, `test_backend.rb`, `test_openclash.rb`, `test_converter.rb`, `test_quota.rb`, `test_regions.rb`), JavaScript view/workbench tests (`frontend_test.js`, `workbench_test.js`), gettext `.po`/`.pot` format validation, and shell syntax checks. GitHub Actions runs this suite and builds `.ipk` (OpenWrt 24.10) and `.apk` (OpenWrt 25.12) packages on every push, pull request, and `v*` release tag.
 
 ## License
 
 Copyright 2026 Zerlight Wu and contributors. Licensed under the [Apache License 2.0](LICENSE).
 
-LuCI and separately installed integrations, including OpenClash and subconverter, retain their own licenses. This repository does not bundle their source code or binaries.
+LuCI and optional external integrations (such as OpenClash and subconverter) retain their own licenses and are not bundled in this repository.

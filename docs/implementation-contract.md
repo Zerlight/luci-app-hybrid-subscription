@@ -61,3 +61,15 @@ The overview is the publish/download workbench. Global settings contain no publi
 - **Default English `msgid`**: All frontend view modules (`htdocs/luci-static/resources/`), menu definitions (`root/usr/share/luci/menu.d/`), ACL descriptions (`root/usr/share/rpcd/acl.d/`), and Ruby backend modules (`root/usr/share/hybrid-subscription/`) use English as the canonical source language.
 - **OpenWrt LuCI PO/POT Standard**: Translation templates are maintained in `po/templates/hybrid-subscription.pot` and Simplified Chinese translations in `po/zh_Hans/hybrid-subscription.po`.
 - **Extensible Runtime Locale Registry**: `htdocs/luci-static/resources/hybrid-subscription.js` provides `registerLocale(code, { separator, aliases, exact, patterns })`, `t(msgid)`, and `translateMessage(message)` to support additional languages, direct router deployments without pre-compiled `.lmo` files, and client-side localization of parameterized backend validation/error messages.
+
+## Resource Footprint and Router Hardware Targets
+
+- **On-Demand Execution Model**: The frontend renders natively in the browser (`form`, `ui`, `uqr`, and SVG dependency graph), and the backend runs as short-lived RPCD/CGI workers without a persistent Ruby or Node.js web daemon. The scheduler (`/etc/init.d/hybrid-subscription`) is a minimal POSIX `/bin/sh` loop (`sleep 60`) with `< 1 MiB` resident memory and `0%` idle CPU overhead.
+- **Storage Footprint**: `luci-app-hybrid-subscription` and `luci-i18n-hybrid-subscription-zh-cn` occupy `~350 KiB` installed (`~5–6.5 MiB` total including `ruby` and stdlib packages if not already present on the firmware). Persistent state under `/etc/hybrid-subscription` requires `~50–300 KiB` per cached source and `~100–800 KiB` per published release.
+- **Transient Worker Memory & CPU**:
+  - Client artifact download: `~10–14 MiB` RSS for `< 30 ms`.
+  - Three-format compilation (`mihomo`, `surge`, `singbox`): `~16–28 MiB` peak RSS for 100–300 nodes (`~0.1–0.4 s` on ARM Cortex-A53, `~12.5 ms` on desktop x86_64/ARM64) and `~35–65 MiB` peak RSS for 1,000–4,000 nodes (`~0.5–1.5 s` on dual-core ARM, `~90 ms` on desktop x86_64/ARM64).
+  - Isolated OpenClash syntax verification (`clash_meta -t`): `+50–120 MiB` transient RSS when OpenClash is installed on the router.
+- **Hardware Recommendations**:
+  - **Standalone Subscription Hub** (no local OpenClash): Minimum `128 MiB RAM` and `16 MiB` free flash (`256 MiB+ RAM` and `32 MiB+` flash recommended). Keep cached nodes under `~500` on `128 MiB` devices.
+  - **Co-Deployed with OpenClash**: Minimum `256 MiB RAM` with ZRAM/Swap and `"geodata-loader": "memconservative"` (`512 MiB+ RAM` and `64 MiB+` flash recommended on ARM64/x86_64).

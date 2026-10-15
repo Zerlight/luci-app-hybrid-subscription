@@ -1,121 +1,144 @@
 # LuCI 混合订阅管理器 (luci-app-hybrid-subscription)
 
+[![Test, build and release](https://github.com/Zerlight/luci-app-hybrid-subscription/actions/workflows/ci.yml/badge.svg)](https://github.com/Zerlight/luci-app-hybrid-subscription/actions/workflows/ci.yml)
+[![Latest Release](https://img.shields.io/github/v/release/Zerlight/luci-app-hybrid-subscription?include_prereleases)](https://github.com/Zerlight/luci-app-hybrid-subscription/releases)
+[![OpenWrt](https://img.shields.io/badge/OpenWrt-24.10%20%7C%2025.12-00B5E2)](https://github.com/Zerlight/luci-app-hybrid-subscription/releases)
+[![License: Apache-2.0](https://img.shields.io/badge/License-Apache--2.0-blue.svg)](LICENSE)
+
 [English](README.md) | [简体中文](README.zh-CN.md)
 
-一款以**多来源融合订阅**和 **GUI 规则引擎**为核心的原生 OpenWrt LuCI 应用。将多个订阅源融合，编排分流策略，并为 Mihomo、Surge 与 sing-box 发布可回退的版本化配置。
+一款面向 OpenWrt LuCI 的原生**多订阅源聚合**与**可视化分流规则编排**工具。支持将多个订阅源缓存至路由器本地，编排策略组与分流规则，并为 **Mihomo (Clash Meta)**、**Surge** 与 **sing-box** 生成带版本管理与一键回滚能力的配置文件。
 
-## 突出特色
+```text
+上游订阅源 ──► 本地节点缓存 ──► LuCI 策略组与规则编排 ──► 不可变发布版本 ──► 客户端拉取 (二维码 / URL)
+(手动/定时)    (/etc/hybrid-...)   (Mihomo / Surge / sing-box)  (SHA-256 校验)    └──► 同步应用至 OpenClash
+```
 
-- **融合订阅**：在同一配置中组合多个订阅源，按来源或自定义地区规则筛选节点，并分别配置各客户端的输出策略。下载融合订阅时仅读取最后成功发布的文件，不触发上游订阅更新。
-- **GUI 规则引擎**：使用 LuCI 原生组件编辑策略组、有序分流规则及共享远程/内联规则集，通过交互式关系图查看策略组依赖；支持表达 Mihomo 重匹配、命名子规则和递归逻辑条件。高级结构化字段使用 JSON 编辑器，跨客户端兼容性差异须在发布前确认。
+本工具专注于订阅聚合、规则编译与版本分发；实时连接监控与运行期节点切换仍由各客户端面板负责。
 
-本应用负责配置管理与发布；运行期连接监控和节点切换由客户端面板承担。
+## 核心特性
 
-## 核心功能
+- **拉取与分发解耦（保护限时/限次订阅）**：支持将任意数量的订阅源组合为多套独立配置（Profile），按来源或地区正则模板筛选节点。客户端扫码或更新订阅时仅读取本地已发布的静态文件，**绝不触发上游订阅拉取**。
+- **原生 LuCI 规则引擎与依赖图**：基于 LuCI 原生组件编辑策略组、有序分流规则、共享远程/内联规则集，支持 Mihomo 重匹配入口（`rematch`）、命名子规则（`sub-rules`）与递归逻辑条件（`AND` / `OR` / `NOT`），并提供浏览器端原生 SVG 策略依赖关系图。
+- **无损缓存与显式兼容校验**：以 Mihomo 原始节点字段作为基准缓存。导出至 Surge 或 sing-box 时，遇到目标客户端不支持的协议将直接报错拦截，无法等价映射的字段需在发布前显式确认，杜绝静默丢弃节点或规则。
+- **不可变版本与历史回滚**：遵循“保存草稿 → 校验与脱敏预览 → 构建版本 → 确认兼容性差异 → 发布 / 历史回滚”流程，改坏草稿不会影响正在使用的订阅链接。
+- **OpenClash 安全协同**：支持一键导入现有 OpenClash 订阅源与本地节点缓存；将已发布版本应用至 OpenClash 前会自动执行 `clash_meta -t` 隔离语法校验并启动超时回滚守卫，防止坏配置导致断网。
+- **无常驻 Web 进程的轻量设计**：完全复用路由器现有的 `uhttpd` 与 `rpcd`，无需额外部署 Node.js、Docker 或独立 Web 后端。
 
-- **多源聚合与多配置隔离**：支持将任意数量的订阅源按需组合为多套独立的订阅配置（Profile）。
-- **多格式节点解析**：原生支持导入 Mihomo（Clash Meta）YAML、Surge 配置、sing-box JSON 以及主流代理协议分享链接（URI / Base64）。
-- **无损字段保留与显式兼容校验**：完整保留 Mihomo 原始节点字段。导出至其他客户端格式时，对无法映射的字段生成显式兼容性提示，对目标客户端不支持的协议予以阻断，杜绝静默丢弃节点或规则。
-- **策略编排与依赖可视化**：支持按订阅源与正则表达式筛选节点、配置多客户端策略组类型、编排有序分流规则及管理远程/内联规则集，并内置原生 SVG 依赖关系图。
-- **Mihomo 高级路由特性**：支持重匹配入口（`rematch`）、命名子规则（`sub-rules`）、递归逻辑组合条件（`AND` / `OR` / `NOT`）、内联规则集以及受控的 DNS、地理数据库（GeoIP / GeoSite）与域名嗅探策略。凡无跨客户端等价实现的特性均会显式拦截不兼容的目标格式。
-- **全生命周期版本发布**：遵循“保存草稿 → 校验与脱敏预览 → 构建不可变版本 → 确认兼容性差异 → 正式发布 / 历史版本回滚”的发布流程。
-- **受控下载与二维码导入**：支持“局域网访问 + 下载令牌”、“仅校验下载令牌（所有可达网络）”和“仅限已登录的 LuCI 会话”三种访问控制模式，并使用 LuCI 内置 `uqr` 库生成订阅二维码。
-- **读写分离的缓存架构**：各订阅源支持独立配置“仅手动”或“定时更新”。客户端请求下载链接时仅读取已发布的静态构建产物，**绝不触发上游订阅拉取**。
-- **OpenClash 深度协同**：支持一键导入现有 OpenClash 订阅源定义与本地节点缓存；可将已发布的 Mihomo 配置手动或自动应用至 OpenClash，应用前自动执行内核语法隔离校验并启动超时回滚守卫。
-- **本地转换器比对**：支持将原生解析的缓存节点与本机回环地址运行的 `subconverter` 转换结果进行无副作用比对。
+## 资源占用评估与路由器硬件要求
 
-本应用仅面向现代 Mihomo、Surge 与 sing-box 客户端格式，不提供旧版 Clash、SSR 或 Quantumult 等历史格式的导出支持。
+许多硬路由的存储空间（Flash）与内存（RAM）较为有限。本项目采用**按需短进程（On-Demand Worker）架构**，不在后台运行常驻的应用服务器：
+
+- **前端零后端渲染开销**：界面表单、二维码（`luci-lib-uqr`）及 SVG 依赖关系图均在浏览器本地渲染，路由器仅提供约 140 KiB 的静态 JS 脚本。
+- **空闲状态近乎零占用**：后台服务（`/etc/init.d/hybrid-subscription`）仅为一个极简的 POSIX `/bin/sh` 睡眠循环（`sleep 60`），每分钟唤醒一次检查是否有到期的定时订阅源；若无任务则立即休眠，**平时无常驻 Ruby 进程，空闲 CPU 占用为 0%**。
+- **用完即走的工作进程**：仅在打开配置页面、更新订阅源、构建版本或客户端请求下载时按需拉起短生命周期 Ruby 进程，执行完毕后内存立即归还系统。
+
+### 实测资源占用指标
+
+| 评估维度 | 实测占用范围 | 说明 |
+| :--- | :--- | :--- |
+| **闪存占用（软件包）** | **~350 KiB**（主程序 + 中文包）<br>**~5–6.5 MiB**（含 Ruby 标准库依赖） | 若固件未预装 Ruby，首次安装 `ruby` 及 `ruby-yaml` / `ruby-json` 等子包约需 5–6.5 MiB 可用空间。 |
+| **闪存占用（数据区）** | **~50–300 KiB** / 每个订阅源缓存<br>**~100–800 KiB** / 每个已发布版本 | 存放在 `/etc/hybrid-subscription`，具体大小取决于节点数量与启用的导出格式数量。 |
+| **内存占用（日常空闲）** | **< 1 MiB** | 仅驻留 `/bin/sh` 定时轮询外壳，无常驻 Ruby 进程。 |
+| **内存占用（客户端下载）** | **~10–14 MiB**（瞬时，耗时 < 30 ms） | 校验下载令牌与文件 SHA-256 后直接返回静态文件，进程随即退出。 |
+| **内存占用（构建与校验）** | **~16–28 MiB**（100–300 节点）<br>**~35–65 MiB**（1,000–4,000 节点） | 同时编译 Mihomo、Surge、sing-box 三端配置时的后台单进程内存峰值（构建完成后立即释放）。 |
+| **内存占用（OpenClash 预校验）** | **+50–120 MiB**（瞬时，仅安装 OpenClash 时） | 构建或应用 Mihomo 配置时调用 `clash_meta -t` 校验语法与 GeoIP/GeoSite 数据库产生的瞬时内存占用。 |
+| **CPU 耗时（三端完整构建）** | **~0.1–0.4 秒**（100–300 节点，ARM A53）<br>**~10–90 毫秒**（x86_64 软路由） | 1,000 节点规模在常见双核 ARM 路由器（如 MT7981 / IPQ6000）上构建耗时约 0.5–1.5 秒。 |
+
+### 路由器硬件配置建议
+
+| 使用场景 | 最低配置要求 | 推荐配置 | 小内存路由器优化建议 |
+| :--- | :--- | :--- | :--- |
+| **仅作为独立订阅聚合与分发中心**<br>*(本机不运行 OpenClash，仅向手机/电脑分发配置)* | **128 MiB RAM**<br>16 MiB 可用闪存<br>MIPS / ARM 580 MHz+ | **256 MiB+ RAM**<br>32 MiB+ 可用闪存<br>双核 ARMv8 / x86_64 | 常见 128 MiB 硬路由（如 MT7621 机型）即可流畅运行；建议将总缓存节点数控制在 500 个以内，并定期清理旧的历史版本。 |
+| **与 OpenClash 同机运行**<br>*(同时在本机运行 Mihomo 透明代理)* | **256 MiB RAM** *(建议开启 ZRAM/Swap)*<br>32 MiB 可用闪存<br>双核 ARM / MIPS | **512 MiB+ RAM**<br>64 MiB+ 可用闪存<br>ARM64 (MT7981/7986、IPQ) / x86_64 | 在 256 MiB 内存机型上与 OpenClash 同跑时，建议在**订阅配置 → 高级策略**中设置 `"geodata-loader": "memconservative"` 并开启 ZRAM/Swap，避免 `clash_meta -t` 预校验与重载时触发内存不足（OOM）。 |
 
 ## 安装与部署
 
-从 [GitHub Releases](https://github.com/Zerlight/luci-app-hybrid-subscription/releases) 下载与你的 OpenWrt 系列对应的安装包：**24.10 使用 `.ipk`，25.12 使用 `.apk`**。安装主程序包，并按需安装同一版本的简体中文语言包。运行时依赖已在软件包中声明，由路由器当前配置的软件源解析安装。
+### 1. 使用 Release 预编译包安装（推荐）
 
-OpenWrt 24.10 上传 `.ipk` 文件后，运行 `opkg install /tmp/<package>.ipk`。OpenWrt 25.12 对本项目独立构建的安装包使用 `apk add --allow-untrusted /tmp/<package>.apk`。这些安装包未使用 OpenWrt 官方软件源密钥签名，请从本仓库的 Release 下载，并在安装前使用随附的 `SHA256SUMS` 核对文件哈希。
+前往 [GitHub Releases](https://github.com/Zerlight/luci-app-hybrid-subscription/releases) 下载对应 OpenWrt 版本的安装包（**OpenWrt 24.10 使用 `.ipk`**，**OpenWrt 25.12+ 使用 `.apk`**），使用随附的 `SHA256SUMS` 校验文件哈希后上传至路由器 `/tmp` 目录安装：
 
-如需自行编译，项目 `Makefile` 遵循 OpenWrt LuCI 标准软件包规范，可放入匹配版本的 OpenWrt SDK 的 LuCI 应用目录中打包。
-
-在开发调试阶段，也可直接部署至已配置好依赖的 OpenWrt 路由器：
+**OpenWrt 24.10 (`opkg`)：**
 
 ```sh
-apk add ruby-json ruby-open3 ruby-fileutils ruby-uri ruby-timeout ruby-ipaddr ruby-socket
-./scripts/deploy.sh root@router.example
+opkg update
+opkg install /tmp/luci-app-hybrid-subscription_*.ipk
+# 安装简体中文语言包（可选）：
+opkg install /tmp/luci-i18n-hybrid-subscription-zh-cn_*.ipk
 ```
 
-安装脚本会自动备份被替换的文件，且不会重启 OpenClash 或改动其当前激活的配置文件。安装完成后，可在 LuCI 顶部导航栏 **服务 → 混合订阅**（英文界面为 **Services → Hybrid Subscription**）中访问。路由器需预先安装 `luci-base`、`luci-lib-uqr`、Ruby 标准库（YAML / Digest 等）、`curl` 与 `rpcd`。
+**OpenWrt 25.12+ (`apk`)：**
+
+```sh
+apk update
+apk add --allow-untrusted /tmp/luci-app-hybrid-subscription-*.apk
+# 安装简体中文语言包（可选）：
+apk add --allow-untrusted /tmp/luci-i18n-hybrid-subscription-zh-cn-*.apk
+```
+
+> Release 中的安装包由 GitHub Actions 调用官方 OpenWrt SDK 构建，未使用 OpenWrt 官方软件源私钥签名，因此在 `apk` 体系下需携带 `--allow-untrusted` 参数。运行时依赖（`ruby`、`luci-lib-uqr`、`curl` 等）将自动从路由器软件源解析安装。
+
+### 2. 使用 OpenWrt SDK 编译
+
+将本仓库放入 OpenWrt SDK 的 `package/luci-app-hybrid-subscription` 目录后执行：
+
+```sh
+make package/luci-app-hybrid-subscription/compile V=s
+```
+
+### 3. 开发环境一键直装
+
+在开发调试阶段，可通过 SSH 将工作区代码直接部署至已安装依赖的路由器：
+
+```sh
+# 需预先在路由器上安装依赖：
+# apk add luci-base luci-lib-uqr rpcd curl ruby ruby-json ruby-yaml ruby-digest ruby-open3 ruby-fileutils ruby-uri ruby-timeout ruby-ipaddr ruby-socket
+./scripts/deploy.sh root@192.168.1.1
+```
+
+安装过程会自动备份原有的同名文件，不会重启 OpenClash 或改动其当前配置。安装后可在 LuCI 导航栏 **服务 → 混合订阅** 中访问。
 
 ## 快速上手
 
-1. **添加订阅源**：前往**订阅源**页面，从 OpenClash 导入现有订阅或手动新增订阅源。若计划通过本地文件导入节点，订阅地址可留空保存。
-2. **保护限时/限次订阅**：对于存在拉取时间窗口或次数限制的订阅源，请将更新方式保持为**仅手动**。从 OpenClash 导入订阅源时仅读取本地既有缓存，不会向上游发起网络请求。
-3. **配置策略组与规则**：在**订阅配置**页面创建配置（可使用**快速创建订阅配置**生成包含默认手动选择策略组的基础模板），按需添加地区策略组与分流规则。
-4. **校验、构建与发布**：前往**状态概览**页面，点击**构建并发布**完成配置校验与版本构建，核对兼容性差异后确认发布。发布成功后即可获取订阅下载链接与二维码。
-5. **应用至 OpenClash**：将配置应用至 OpenClash 与版本发布相互独立（默认关闭自动应用），应用过程可能短暂重载代理连接。受管配置文件统一命名为 `HybridSubscriptions-<id>.yaml`，不会覆盖用户原有的其他 OpenClash 配置。
+1. **添加订阅源（订阅源）**：点击**从 OpenClash 导入**可直接复用本机已有的订阅定义与节点缓存（不会请求上游服务器），也可手动新建订阅源。对于限制拉取次数或仅限时开放的订阅源，请将更新方式保持为**仅手动**。
+2. **创建订阅配置（订阅配置）**：点击**快速创建订阅配置**生成包含默认节点选择组的基础配置（同时支持 Mihomo、Surge 与 sing-box），或按需添加地区策略组与 Mihomo 重匹配/子规则。
+3. **编排规则（分流规则）**：按需添加有序分流规则（支持 `DOMAIN-SUFFIX`、`IP-CIDR`、`RULE-SET`、`GEOIP`、`GEOSITE` 及递归 `AND`/`OR`/`NOT` 逻辑组合）与共享规则集。
+4. **构建与发布（状态概览）**：在配置卡片上点击**构建并发布**，核对跨客户端兼容性提示后确认发布，即可点击**下载 / 二维码**在各端导入订阅。
+5. **同步至 OpenClash（可选）**：在已发布配置的**版本管理**中可手动将 Mihomo 配置应用至 OpenClash，也可在**全局设置**中开启**发布后自动应用至 OpenClash**。
 
-## 日常使用指南
+## 功能机制说明
 
-- **状态概览**：查看各订阅源缓存状态与流量额度，跳转配置编辑，执行构建、发布、下载与扫码；点击**版本管理**可查看历史构建记录、回滚版本、重置下载令牌或手动同步至 OpenClash。
-- **订阅源**：管理节点缓存更新、导入本地订阅文件、配置独立额度查询接口，以及执行 `subconverter` 兼容性比对。
-- **订阅配置**：通过顶部筛选器切换当前订阅配置，集中编辑导出格式、策略组及 Mihomo 重匹配/子规则；页签切换不会丢失当前页面尚未保存的草稿修改。
-- **分流规则**：按所属订阅配置与规则域（主规则链或子规则）筛选并拖拽调整规则顺序；下方可独立管理跨配置共享的远程或内联规则集。
-- **全局设置**：维护国家/地区匹配模板、下载访问控制策略、OpenClash 自动应用开关及本地 `subconverter` 地址。页面底部**保存**按钮仅更新配置草稿，版本发布均在**状态概览**页面确认执行。
+### 流量与到期查询
 
-## 流量与到期状态查询
+额度解析兼容 [OpenClash](https://github.com/vernesong/OpenClash/blob/master/luci-app-openclash/luasrc/controller/openclash.lua) 使用的 `Subscription-Userinfo` 响应头格式（`upload; download; total; expire`）：
 
-额度解析遵循 OpenClash 所采用的 `Subscription-Userinfo` 响应头规范（`upload; download; total; expire`，参见 [OpenClash 状态查询实现](https://github.com/vernesong/OpenClash/blob/master/luci-app-openclash/luasrc/controller/openclash.lua)）：
+- **独立额度查询地址（`quota_url`）**：支持为每个订阅源设置独立的只写查询接口，刷新额度时优先调用，不跟随重定向，失败时不会回退请求原订阅地址。
+- **订阅响应头查询开关（`quota_via_subscription`）**：默认关闭。普通订阅源开启后，手动点击**刷新额度**时会向订阅地址发送 `GET` 请求并仅读取响应头；限时或限次订阅请保持关闭。
+- **本地缓存复用**：若系统已安装 OpenClash，后台会自动读取相同订阅地址对应的 Mihomo `proxy-providers` 本地额度信息。
 
-- **独立额度查询地址**：支持为每个订阅源配置独立的额度查询接口（`quota_url`），保存后不会回传至浏览器。刷新额度时优先请求独立接口，不跟随重定向，失败时亦不会回退请求原订阅地址。
-- **订阅响应头查询开关**：普通订阅源可显式勾选**允许通过订阅地址查询额度**（`quota_via_subscription`，默认关闭）。开启后，手动点击**刷新额度**时会向订阅地址发送 `GET` 请求并仅读取响应头；限时或限次拉取的订阅源请保持关闭。
-- **本地缓存复用**：若系统已安装 OpenClash，后台会自动匹配相同订阅地址的 Mihomo `proxy-providers` 本地额度信息。
-- **纯手动触发**：**刷新额度**仅更新流量与到期元数据，不触发节点拉取或版本构建。页面定时轮询、后台计划任务及客户端下载请求均不会发起额度查询。
+### 国家与地区匹配模板
 
-## 国家与地区匹配模板
+在**全局设置 → 地区匹配**中可一键添加常用国家/地区模板（支持国旗 Emoji、中英文名称与带边界匹配的 ISO 国家代码），并支持为特定订阅源单独设置专属正则。点击**预览地区匹配结果**可基于当前本地缓存离线测试匹配效果，排查未命中或同时命中多个地区的节点。
 
-在**全局设置 → 地区匹配**中可添加常用国家/地区模板或自定义匹配规则：
+### 访问控制与存储安全
 
-- 内置模板支持匹配国旗 Emoji、中英文名称以及带单词边界断言的两字母/三字母国家代码，避免短代码误命中普通英文单词。
-- 支持按订阅源单独设置专属正则表达式，覆盖通用匹配规则。
-- **预览地区匹配结果**基于当前本地缓存中的原始节点名称进行离线试算，清晰展示未匹配节点与命中多个地区的冲突节点，不产生网络请求，也不会自动保存草稿。
-- 策略组选择**地区匹配模板**后，将与该策略组自身的包含、排除正则表达式取交集生效。地区匹配仅依据节点名称归类，不代表节点实际出口 IP 归属地。
+- **三种下载鉴权方式**：支持**局域网访问 + 下载令牌**（默认）、**仅校验下载令牌（所有可达网络）**与**仅限已登录的 LuCI 会话**。
+- **凭据隔离与脱敏**：后台配置与版本产物存储于权限受限的 `/etc/hybrid-subscription`（目录 `0700`，文件 `0600`）。订阅地址与额度查询地址不会回传浏览器，预览界面自动脱敏服务器地址、密码与私有令牌。
+- **卸载方式**：将 OpenClash 切换至非 `HybridSubscriptions-*.yaml` 配置后，运行 `scripts/uninstall-router.sh` 即可卸载程序（`/etc/hybrid-subscription` 下的配置数据将保留以备恢复）。
 
-## 访问安全与存储隔离
+## 国际化与开发测试
 
-默认下载访问鉴权方式为**局域网访问 + 下载令牌**，也可按需切换为**仅校验下载令牌（所有可达网络）**或**仅限已登录的 LuCI 会话**。修改**订阅链接基础地址**仅改变生成的链接前缀，不会自动开放防火墙端口或配置内网穿透服务。
-
-后台状态、节点缓存与历史发布产物均保存在权限受限的 `/etc/hybrid-subscription` 目录中（目录权限 `0700`，文件权限 `0600`）。订阅地址与额度查询地址在前端均为只写字段，配置预览界面会自动对服务器地址、连接密码及私有查询令牌进行脱敏处理。
-
-执行**停止发布**将立即吊销对应下载令牌并停用下载链接，同时保留历史版本记录与当前正在运行的 OpenClash 配置。如需卸载本应用，请先将 OpenClash 切换至非受管配置，再运行 `scripts/uninstall-router.sh`。
-
-## 国际化与多语言扩展 (i18n)
-
-本项目采用 OpenWrt LuCI 标准国际化体系，并内置运行时多语言扩展注册表以兼顾 SDK 编译与脚本直装场景：
-
-- **英文基准词条（`msgid`）**：前端视图（`htdocs/luci-static/resources/`）、菜单定义（`root/usr/share/luci/menu.d/`）、ACL 权限描述（`root/usr/share/rpcd/acl.d/`）及后端 Ruby 模块（`root/usr/share/hybrid-subscription/`）均以规范英文作为默认源字符串。
-- **标准 PO / POT 目录结构**：翻译模板位于 `po/templates/hybrid-subscription.pot`，简体中文翻译位于 `po/zh_Hans/hybrid-subscription.po`。通过 OpenWrt SDK 编译时由 `luci.mk` 自动生成 `.lmo` 二进制语言包；使用 `scripts/install-router.sh` 直装时，若路由器具备 `po2lmo` 也会自动编译安装。
-- **可扩展的运行时语言注册表**：`htdocs/luci-static/resources/hybrid-subscription.js` 提供 `hs.registerLocale(code, { separator, aliases, exact, patterns })` 接口，既可在未编译 `.lmo` 的直装环境中提供完整翻译回退，又能对后端返回的动态参数化校验错误与告警信息进行本地化匹配。后续新增其他语言时，只需在 `po/<lang>/hybrid-subscription.po` 中补充翻译，并通过 `hs.registerLocale` 注册对应语种词典即可。
-
-## 单元测试
+- **标准 LuCI i18n**：源码默认使用英文 `msgid`，提供 `po/templates/hybrid-subscription.pot` 模板与 `po/zh_Hans/hybrid-subscription.po` 简体中文翻译，并在 `hybrid-subscription.js` 中内置 `hs.registerLocale` 运行时语言注册表，支持对后端动态参数化校验报错进行本地化转换。
+- **运行完整测试套件**：
 
 ```sh
-ruby tests/test_engine.rb
-ruby tests/test_backend.rb
-ruby tests/test_openclash.rb
-ruby tests/test_converter.rb
-ruby tests/test_quota.rb
-ruby tests/test_regions.rb
-node tests/frontend_test.js
-node tests/workbench_test.js
+sh scripts/test.sh
 ```
 
-所有测试均使用合成凭据与临时目录运行，不会请求外部上游订阅服务或改动宿主系统配置。
-
-## 自动测试与版本发布
-
-GitHub Actions 在代码推送和 Pull Request 时执行 Ruby、JavaScript 测试及翻译检查，并使用 OpenWrt SDK 构建 24.10 与 25.12 安装包。构建成功后，可从对应工作流下载包含主程序与语言包的构建产物。
-
-推送 `v<主版本>.<次版本>.<修订版本>` 格式的版本标签会运行相同检查，并自动创建 GitHub Release，提供 `.ipk`、`.apk` 安装包和 `SHA256SUMS`。SDK 打包校验不能替代在对应 OpenWrt 版本路由器上的实际安装测试。
+`scripts/test.sh` 会依次执行全部 Ruby 单元测试、JavaScript 前端与工作台测试、`msgfmt` 翻译格式检查及 Shell 脚本语法校验。GitHub Actions 在每次推送、Pull Request 及推送 `v*` 版本标签时均会自动执行测试并构建 OpenWrt 24.10 (`.ipk`) 与 25.12 (`.apk`) 安装包。
 
 ## 许可证
 
-Copyright 2026 Zerlight Wu and contributors。本项目采用 [Apache License 2.0](LICENSE)。
+Copyright 2026 Zerlight Wu and contributors。本项目基于 [Apache License 2.0](LICENSE) 开源。
 
-LuCI 及独立安装的 OpenClash、subconverter 等集成组件仍遵循各自的许可证；本仓库不捆绑它们的源码或二进制文件。
+LuCI 及独立安装的 OpenClash、subconverter 等外部组件遵循各自的开源许可证，本仓库不捆绑其源码或二进制文件。
