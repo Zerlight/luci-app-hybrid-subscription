@@ -6,7 +6,7 @@ A native OpenWrt LuCI application featuring **multi-source subscription fusion**
 
 ## Highlights
 
-- **Subscription fusion**: Combine multiple sources in one profile, filter nodes by source or custom region patterns, and configure each client's output separately. Published downloads use cached nodes, so downloading a fused subscription never fetches upstream sources.
+- **Subscription fusion**: Combine multiple sources in one profile, filter nodes by source or custom region patterns, and configure each client's output separately. Downloads serve the last successfully published file and never fetch upstream sources.
 - **GUI rule engine**: Edit policy groups, ordered routing rules, and shared remote or inline rule sets with native LuCI components. Inspect group dependencies in an interactive graph, and express Mihomo rematch entries, named sub-rules, and recursive logical conditions. Advanced structured fields use JSON editors; cross-client compatibility differences require review before publication.
 
 The application manages configuration and publication. Runtime connection monitoring and node switching remain with client dashboards.

@@ -35,7 +35,8 @@ CONFIG_PACKAGE_luci-i18n-hybrid-subscription-zh-cn=m
 CONFIG
 make defconfig 2>&1 | tee /tmp/hybrid-defconfig.log
 if grep -q 'error: recursive dependency' /tmp/hybrid-defconfig.log; then
- awk '/^[[:space:]]*config PACKAGE_libcurl$/{printing=1} printing {print} printing && /^[[:space:]]*config / && $2 != "PACKAGE_libcurl" {exit}' tmp/.config-package.in
+ awk '/^[[:space:]]*(menu)?config PACKAGE_libcurl$/{printing=1} printing {print} printing && /^[[:space:]]*(menu)?config / && $2 != "PACKAGE_libcurl" {exit}' tmp/.config-package.in
+ sed -n '/^config LIBCURL_LDAP$/,/^$/p' Config-build.in
  exit 1
 fi
 make -j"$(nproc)" "package/$package/compile" V=s
