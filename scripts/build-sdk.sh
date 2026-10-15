@@ -30,10 +30,14 @@ cat >> .config <<'CONFIG'
 # CONFIG_ALL_KMODS is not set
 # CONFIG_RUBY_ENABLE_YJIT is not set
 CONFIG_PACKAGE_luci-app-hybrid-subscription=m
-CONFIG_LUCI_LANG_zh_Hans=m
+CONFIG_LUCI_LANG_zh_Hans=y
 CONFIG_PACKAGE_luci-i18n-hybrid-subscription-zh-cn=m
 CONFIG
-make defconfig
+make defconfig 2>&1 | tee /tmp/hybrid-defconfig.log
+if grep -q 'error: recursive dependency' /tmp/hybrid-defconfig.log; then
+ awk '/^[[:space:]]*config PACKAGE_libcurl$/{printing=1} printing {print} printing && /^[[:space:]]*config / && $2 != "PACKAGE_libcurl" {exit}' tmp/.config-package.in
+ exit 1
+fi
 make -j"$(nproc)" "package/$package/compile" V=s
 
 mkdir -p "$output_dir"

@@ -9,3 +9,5 @@ PKG_LICENSE:=Apache-2.0
 PKG_LICENSE_FILES:=LICENSE
 
 include $(TOPDIR)/feeds/luci/luci.mk
+
+# call BuildPackage - OpenWrt buildroot signature
