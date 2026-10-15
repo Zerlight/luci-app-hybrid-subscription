@@ -8,4 +8,4 @@ PKG_RELEASE:=1
 PKG_LICENSE:=Apache-2.0
 PKG_LICENSE_FILES:=LICENSE
 
-include ../../luci.mk
+include $(TOPDIR)/feeds/luci/luci.mk

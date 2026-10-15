@@ -1,0 +1,115 @@
+name: Test, build and release
+
+on:
+  push:
+    branches: [main]
+    tags: ['v*']
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ !startsWith(github.ref, 'refs/tags/') }}
+
+jobs:
+  test:
+    name: Tests and translations
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: '24'
+      - name: Install test dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends ruby ruby-minitest gettext
+      - name: Validate release version
+        if: startsWith(github.ref, 'refs/tags/')
+        env:
+          RELEASE_TAG: ${{ github.ref_name }}
+        run: |
+          version=$(sed -n 's/^PKG_VERSION:=//p' Makefile)
+          [[ "$RELEASE_TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]
+          test "$RELEASE_TAG" = "v$version"
+      - name: Run all tests
+        run: sh scripts/test.sh
+
+  package:
+    name: OpenWrt ${{ matrix.version }} (${{ matrix.format }})
+    needs: test
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - version: 24.10.8
+            format: ipk
+          - version: 25.12.5
+            format: apk
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - name: Build with the official OpenWrt SDK
+        env:
+          SDK_VERSION: ${{ matrix.version }}
+          PACKAGE_FORMAT: ${{ matrix.format }}
+        run: |
+          mkdir -p "$RUNNER_TEMP/packages"
+          chmod 777 "$RUNNER_TEMP/packages"
+          docker run --rm \
+            --env PACKAGE_FORMAT \
+            --volume "$GITHUB_WORKSPACE:/src:ro" \
+            --volume "$RUNNER_TEMP/packages:/artifacts" \
+            "ghcr.io/openwrt/sdk:x86_64-$SDK_VERSION" \
+            /bin/bash /src/scripts/build-sdk.sh
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: openwrt-${{ matrix.version }}-${{ matrix.format }}
+          path: ${{ runner.temp }}/packages/*
+          if-no-files-found: error
+          retention-days: 14
+
+  release:
+    name: Publish release
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: [test, package]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    permissions:
+      contents: write
+      actions: read
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          pattern: openwrt-*
+          path: artifacts
+      - name: Verify and assemble release assets
+        run: |
+          mkdir dist
+          for directory in artifacts/*; do
+            (cd "$directory" && sha256sum --check SHA256SUMS)
+            find "$directory" -maxdepth 1 -type f \( -name '*.ipk' -o -name '*.apk' \) -exec cp {} dist/ \;
+          done
+          test "$(find dist -type f -name '*.ipk' | wc -l)" -eq 2
+          test "$(find dist -type f -name '*.apk' | wc -l)" -eq 2
+          (cd dist && sha256sum -- *.ipk *.apk > SHA256SUMS)
+      - name: Publish installers
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_TAG: ${{ github.ref_name }}
+        run: |
+          gh release create "$RELEASE_TAG" dist/* \
+            --verify-tag --title "$RELEASE_TAG" --generate-notes \
+            --notes 'Native LuCI subscription fusion and GUI rule engine for Mihomo, Surge, and sing-box. Install the .ipk packages on OpenWrt 24.10 or the .apk packages on OpenWrt 25.12. The zh-cn package adds Simplified Chinese translations. Verify downloads with SHA256SUMS.'

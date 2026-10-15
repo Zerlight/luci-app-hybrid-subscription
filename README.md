@@ -2,7 +2,14 @@
 
 [English](README.md) | [简体中文](README.zh-CN.md)
 
-A native OpenWrt LuCI application for managing cached subscription sources, reusable rule sets, policy groups, and versioned Mihomo, Surge, and sing-box configuration exports. It operates as a configuration compiler and publication service rather than a runtime proxy dashboard.
+A native OpenWrt LuCI application featuring **multi-source subscription fusion** and a **GUI rule engine**. Combine subscription sources, compose routing policies, and publish versioned configurations for Mihomo, Surge, and sing-box.
+
+## Highlights
+
+- **Subscription fusion**: Combine multiple sources in one profile, filter nodes by source or custom region patterns, and configure each client's output separately. Published downloads use cached nodes, so downloading a fused subscription never fetches upstream sources.
+- **GUI rule engine**: Edit policy groups, ordered routing rules, and shared remote or inline rule sets with native LuCI components. Inspect group dependencies in an interactive graph, and express Mihomo rematch entries, named sub-rules, and recursive logical conditions. Advanced structured fields use JSON editors; cross-client compatibility differences require review before publication.
+
+The application manages configuration and publication. Runtime connection monitoring and node switching remain with client dashboards.
 
 ## Capabilities
 
@@ -21,7 +28,11 @@ Only modern Mihomo, Surge, and sing-box formats are targeted. Legacy Clash, SSR,
 
 ## Installation
 
-The `Makefile` follows standard OpenWrt LuCI package conventions. Place the repository inside your OpenWrt LuCI package tree and build it with a matching SDK. All runtime dependencies are declared in the `Makefile`.
+Download packages from [GitHub Releases](https://github.com/Zerlight/luci-app-hybrid-subscription/releases). Choose the package matching your OpenWrt series: **24.10 uses `.ipk`**, while **25.12 uses `.apk`**. Install the base application and, optionally, the Simplified Chinese language package from the same release. Runtime dependencies are declared in the package and resolved from your router's configured feeds.
+
+On OpenWrt 24.10, upload the `.ipk` files to the router and install them with `opkg install /tmp/<package>.ipk`. On OpenWrt 25.12, use `apk add --allow-untrusted /tmp/<package>.apk` for these independently built packages. Release packages are not signed by the official OpenWrt feed keys. Download them from this repository's releases and check their hashes against the accompanying `SHA256SUMS` file before installation.
+
+For SDK builds, the `Makefile` follows standard OpenWrt LuCI package conventions. Place the repository inside your OpenWrt LuCI package tree and build it with a matching SDK.
 
 For direct deployment to a configured OpenWrt router during development:
 
@@ -96,6 +107,12 @@ node tests/workbench_test.js
 ```
 
 All test suites use synthetic credentials and temporary directories without making external network requests or modifying system configurations.
+
+## Continuous Integration & Releases
+
+GitHub Actions runs the Ruby and JavaScript tests, translation checks, and OpenWrt SDK package builds for OpenWrt 24.10 and 25.12 on pushes and pull requests. Successful builds provide downloadable workflow artifacts containing the application and language packages.
+
+Pushing a version tag in the form `v<major>.<minor>.<patch>` runs the same checks and creates a GitHub Release with `.ipk` and `.apk` installation packages and `SHA256SUMS`. Package builds validate SDK packaging; they do not replace testing on a router running the matching OpenWrt version.
 
 ## License
 

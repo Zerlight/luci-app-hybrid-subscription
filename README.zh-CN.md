@@ -2,7 +2,14 @@
 
 [English](README.md) | [简体中文](README.zh-CN.md)
 
-一款原生 OpenWrt LuCI 订阅聚合与配置管理应用，用于集中管理多订阅源节点缓存、共享分流规则集、策略组编排，并生成支持版本化管理的 Mihomo、Surge 与 sing-box 配置文件。本应用定位于配置编译与发布服务，而非运行期代理监控面板。
+一款以**多来源融合订阅**和 **GUI 规则引擎**为核心的原生 OpenWrt LuCI 应用。将多个订阅源融合，编排分流策略，并为 Mihomo、Surge 与 sing-box 发布可回退的版本化配置。
+
+## 突出特色
+
+- **融合订阅**：在同一配置中组合多个订阅源，按来源或自定义地区规则筛选节点，并分别配置各客户端的输出策略。下载已发布的融合订阅只读取节点缓存，不触发上游订阅更新。
+- **GUI 规则引擎**：使用 LuCI 原生组件编辑策略组、有序分流规则及共享远程/内联规则集，通过交互式关系图查看策略组依赖；支持表达 Mihomo 重匹配、命名子规则和递归逻辑条件。高级结构化字段使用 JSON 编辑器，跨客户端兼容性差异须在发布前确认。
+
+本应用负责配置管理与发布；运行期连接监控和节点切换由客户端面板承担。
 
 ## 核心功能
 
@@ -21,7 +28,11 @@
 
 ## 安装与部署
 
-项目 `Makefile` 遵循 OpenWrt LuCI 标准软件包规范，可放入 OpenWrt SDK 的 LuCI 应用目录中直接编译打包。所有运行时依赖均已在 `Makefile` 中声明。
+从 [GitHub Releases](https://github.com/Zerlight/luci-app-hybrid-subscription/releases) 下载与你的 OpenWrt 系列对应的安装包：**24.10 使用 `.ipk`，25.12 使用 `.apk`**。安装主程序包，并按需安装同一版本的简体中文语言包。运行时依赖已在软件包中声明，由路由器当前配置的软件源解析安装。
+
+OpenWrt 24.10 上传 `.ipk` 文件后，运行 `opkg install /tmp/<package>.ipk`。OpenWrt 25.12 对本项目独立构建的安装包使用 `apk add --allow-untrusted /tmp/<package>.apk`。这些安装包未使用 OpenWrt 官方软件源密钥签名，请从本仓库的 Release 下载，并在安装前使用随附的 `SHA256SUMS` 核对文件哈希。
+
+如需自行编译，项目 `Makefile` 遵循 OpenWrt LuCI 标准软件包规范，可放入匹配版本的 OpenWrt SDK 的 LuCI 应用目录中打包。
 
 在开发调试阶段，也可直接部署至已配置好依赖的 OpenWrt 路由器：
 
@@ -96,6 +107,12 @@ node tests/workbench_test.js
 ```
 
 所有测试均使用合成凭据与临时目录运行，不会请求外部上游订阅服务或改动宿主系统配置。
+
+## 自动测试与版本发布
+
+GitHub Actions 在代码推送和 Pull Request 时执行 Ruby、JavaScript 测试及翻译检查，并使用 OpenWrt SDK 构建 24.10 与 25.12 安装包。构建成功后，可从对应工作流下载包含主程序与语言包的构建产物。
+
+推送 `v<主版本>.<次版本>.<修订版本>` 格式的版本标签会运行相同检查，并自动创建 GitHub Release，提供 `.ipk`、`.apk` 安装包和 `SHA256SUMS`。SDK 打包校验不能替代在对应 OpenWrt 版本路由器上的实际安装测试。
 
 ## 许可证
 
