@@ -1,0 +1,54 @@
+{
+  "admin/services/hybrid-subscription": {
+    "title": "Hybrid Subscription",
+    "order": 65,
+    "action": {
+      "type": "firstchild"
+    },
+    "depends": {
+      "acl": [
+        "luci-app-hybrid-subscription"
+      ]
+    }
+  },
+  "admin/services/hybrid-subscription/overview": {
+    "title": "Overview",
+    "order": 10,
+    "action": {
+      "type": "view",
+      "path": "hybrid-subscription/overview"
+    }
+  },
+  "admin/services/hybrid-subscription/sources": {
+    "title": "Subscription Sources",
+    "order": 20,
+    "action": {
+      "type": "view",
+      "path": "hybrid-subscription/sources"
+    }
+  },
+  "admin/services/hybrid-subscription/profiles": {
+    "title": "Subscription Profiles",
+    "order": 30,
+    "action": {
+      "type": "view",
+      "path": "hybrid-subscription/profiles"
+    }
+  },
+  "admin/services/hybrid-subscription/rules": {
+    "title": "Routing Rules",
+    "order": 40,
+    "action": {
+      "type": "view",
+      "path": "hybrid-subscription/rules"
+    }
+  },
+  "admin/services/hybrid-subscription/settings": {
+    "title": "Global Settings",
+    "order": 50,
+    "action": {
+      "type": "view",
+      "path": "hybrid-subscription/settings"
+    }
+  }
+}

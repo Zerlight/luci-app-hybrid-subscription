@@ -1,0 +1,37 @@
+{
+  "luci-app-hybrid-subscription": {
+    "description": "Manage hybrid subscription sources, profiles, and releases",
+    "read": {
+      "ubus": {
+        "luci.hybrid_subscription": [
+          "status",
+          "get_config",
+          "job_status",
+          "download_info",
+          "validate",
+          "preview",
+          "region_defaults",
+          "preview_regions"
+        ]
+      }
+    },
+    "write": {
+      "ubus": {
+        "luci.hybrid_subscription": [
+          "save_config",
+          "refresh",
+          "refresh_quota",
+          "import_source",
+          "import_openclash",
+          "build",
+          "publish",
+          "rollback",
+          "rotate_token",
+          "apply_openclash",
+          "compare_converter",
+          "unpublish"
+        ]
+      }
+    }
+  }
+}

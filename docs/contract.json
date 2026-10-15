@@ -1,0 +1,101 @@
+{
+  "schema": 1,
+  "settings": {
+    "access_mode": "lan_token",
+    "base_url": "",
+    "openclash_auto_apply": false,
+    "openclash_profile": "",
+    "converter_url": "http://127.0.0.1:25500"
+  },
+  "sources": [
+    {
+      "id": "example",
+      "name": "Example",
+      "enabled": true,
+      "url": "",
+      "format": "auto",
+      "update_mode": "manual",
+      "interval": 86400,
+      "exclude_filter": "",
+      "user_agent": "",
+      "openclash_section": "",
+      "takeover": false,
+      "quota_url": "",
+      "quota_via_subscription": false,
+      "quota_max_age": 86400
+    }
+  ],
+  "profiles": [
+    {
+      "id": "main",
+      "name": "Hybrid",
+      "sources": [
+        "example"
+      ],
+      "formats": [
+        "mihomo",
+        "surge",
+        "singbox"
+      ],
+      "final_policy": "proxy",
+      "mihomo_core": "standard",
+      "surge_version": "modern",
+      "singbox_version": "1.12"
+    }
+  ],
+  "groups": [
+    {
+      "id": "proxy",
+      "profile": "main",
+      "name": "Proxy",
+      "sources": [
+        "example"
+      ],
+      "filter": "",
+      "exclude_filter": "",
+      "members": [
+        "DIRECT"
+      ],
+      "mihomo_type": "select",
+      "surge_type": "select",
+      "singbox_type": "selector",
+      "url": "https://www.gstatic.com/generate_204",
+      "interval": 300,
+      "tolerance": 50,
+      "hidden": false,
+      "region": ""
+    }
+  ],
+  "rule_sets": [
+    {
+      "id": "example_rules",
+      "name": "Example rules",
+      "behavior": "domain",
+      "mihomo_url": "https://example.com/domains.txt",
+      "mihomo_format": "text",
+      "surge_url": "https://example.com/domains.conf",
+      "singbox_url": "https://example.com/domains.json",
+      "singbox_format": "source",
+      "interval": 86400
+    }
+  ],
+  "rules": [
+    {
+      "id": "rule1",
+      "profile": "main",
+      "enabled": true,
+      "type": "DOMAIN-SUFFIX",
+      "value": "example.com",
+      "policy": "proxy",
+      "no_resolve": false
+    }
+  ],
+  "regions": [
+    {
+      "id": "jp",
+      "name": "Japan",
+      "pattern": "(?:🇯🇵|日本|(?<![A-Za-z])(?i:JP|JPN|Japan)(?![A-Za-z]))",
+      "source_patterns": {}
+    }
+  ]
+}

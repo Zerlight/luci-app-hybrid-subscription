@@ -1,0 +1,2 @@
+#!/bin/sh
+exec /usr/bin/ruby /usr/share/hybrid-subscription/download.rb

@@ -1,0 +1,2060 @@
+msgid ""
+msgstr ""
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: root/usr/share/luci/menu.d/luci-app-hybrid-subscription.json
+msgid "Hybrid Subscription"
+msgstr ""
+
+#: root/usr/share/luci/menu.d/luci-app-hybrid-subscription.json
+msgid "Overview"
+msgstr ""
+
+#: root/usr/share/luci/menu.d/luci-app-hybrid-subscription.json
+#: htdocs/luci-static/resources/view/hybrid-subscription/sources.js:13
+msgid "Subscription Sources"
+msgstr ""
+
+#: root/usr/share/luci/menu.d/luci-app-hybrid-subscription.json
+#: htdocs/luci-static/resources/view/hybrid-subscription/overview.js:85
+#: htdocs/luci-static/resources/view/hybrid-subscription/profiles.js:16
+#: htdocs/luci-static/resources/view/hybrid-subscription/profiles.js:76
+msgid "Subscription Profiles"
+msgstr ""
+
+#: root/usr/share/luci/menu.d/luci-app-hybrid-subscription.json
+#: htdocs/luci-static/resources/view/hybrid-subscription/rules.js:48
+msgid "Routing Rules"
+msgstr ""
+
+#: root/usr/share/luci/menu.d/luci-app-hybrid-subscription.json
+msgid "Global Settings"
+msgstr ""
+
+#: root/usr/share/rpcd/acl.d/luci-app-hybrid-subscription.json
+msgid "Manage hybrid subscription sources, profiles, and releases"
+msgstr ""
+
+#: htdocs/luci-static/resources/hybrid-subscription.js:777
+msgid "The router did not return a valid response. Please check the backend service and permissions."
+msgstr ""
+
+#: htdocs/luci-static/resources/hybrid-subscription.js:801
+#: htdocs/luci-static/resources/view/hybrid-subscription/overview.js:12
+#: htdocs/luci-static/resources/view/hybrid-subscription/sources.js:35
+msgid "Unknown"
+msgstr ""
+
+#: htdocs/luci-static/resources/hybrid-subscription.js:811
+msgid "No records"
+msgstr ""
+
+#: htdocs/luci-static/resources/hybrid-subscription.js:817
+msgid "Validation found %s error(s)."
+msgstr ""
+
+#: htdocs/luci-static/resources/hybrid-subscription.js:817
+msgid "Validation passed with no blocking errors."
+msgstr ""
+
+#: htdocs/luci-static/resources/hybrid-subscription.js:821
+#: htdocs/luci-static/resources/hybrid-subscription.js:1145
+#: htdocs/luci-static/resources/view/hybrid-subscription/overview.js:52
+#: htdocs/luci-static/resources/view/hybrid-subscription/overview.js:78
+#: htdocs/luci-static/resources/view/hybrid-subscription/profiles.js:35
+#: htdocs/luci-static/resources/view/hybrid-subscription/settings.js:80
+#: htdocs/luci-static/resources/view/hybrid-subscription/sources.js:39
+#: htdocs/luci-static/resources/view/hybrid-subscription/sources.js:70
+msgid "Close"
+msgstr ""
+
+#: htdocs/luci-static/resources/hybrid-subscription.js:826
+msgid "Job submitted. Waiting for completion…"
+msgstr ""
+
+#: htdocs/luci-static/resources/hybrid-subscription.js:827
+msgid "Refreshing the page will not cancel the background job."
+msgstr ""
+
+#: htdocs/luci-static/resources/hybrid-subscription.js:835
+#: htdocs/luci-static/resources/view/hybrid-subscription/overview.js:111
+msgid "Queued"
+msgstr ""
+
+#: htdocs/luci-static/resources/hybrid-subscription.js:835
+#: htdocs/luci-static/resources/view/hybrid-subscription/overview.js:111
+msgid "Running"
+msgstr ""
+
+#: htdocs/luci-static/resources/hybrid-subscription.js:835
+#: htdocs/luci-static/resources/view/hybrid-subscription/overview.js:111
+msgid "Completed"
+msgstr ""
+
+#: htdocs/luci-static/resources/hybrid-subscription.js:835
+#: htdocs/luci-static/resources/view/hybrid-subscription/overview.js:111
+msgid "Failed"
+msgstr ""
+
+#: htdocs/luci-static/resources/hybrid-subscription.js:836
+msgid "Processing…"
+msgstr ""
+
+#: htdocs/luci-static/resources/hybrid-subscription.js:840
+msgid "Job failed."
+msgstr ""
+
+#: htdocs/luci-static/resources/hybrid-subscription.js:842
+msgid "The job is still running in the background. Check the Overview page for its status."
+msgstr ""
+
+#: htdocs/luci-static/resources/hybrid-subscription.js:855
+msgid "The backend did not return a job identifier."
+msgstr ""
+
+#: htdocs/luci-static/resources/hybrid-subscription.js:926
+msgid "Draft saved. Build and publish from the Overview page to update downloads or OpenClash."
+msgstr ""
+
+#: htdocs/luci-static/resources/hybrid-subscription.js:938
+msgid "Add"
+msgstr ""
+
+#: htdocs/luci-static/resources/hybrid-subscription.js:939
+#: htdocs/luci-static/resources/view/hybrid-subscription/profiles.js:94
+msgid "Identifier"
+msgstr ""
+
+#: htdocs/luci-static/resources/hybrid-subscription.js:941
+msgid "Start with a lowercase letter and use only lowercase letters, digits, underscores, or hyphens (up to 48 characters)."
+msgstr ""
+
+#: htdocs/luci-static/resources/hybrid-subscription.js:943
+#: htdocs/luci-static/resources/hybrid-subscription.js:1241
+#: htdocs/luci-static/resources/view/hybrid-subscription/profiles.js:96
+msgid "Name"
+msgstr ""
+
+#: htdocs/luci-static/resources/hybrid-subscription.js:1091
+msgid "Please enter a valid JSON array."
+msgstr ""
+
+#: htdocs/luci-static/resources/hybrid-subscription.js:1091
+msgid "Please enter a valid JSON object."
+msgstr ""
+
+#: htdocs/luci-static/resources/hybrid-subscription.js:1092
+msgid "Invalid JSON format: "
+msgstr ""
+
+#: htdocs/luci-static/resources/hybrid-subscription.js:1110
+msgid "Paste YAML, JSON, or node subscription content"
+msgstr ""
+
+#: htdocs/luci-static/resources/hybrid-subscription.js:1114
+msgid "File size must not exceed 2 MiB."
+msgstr ""
+
+#: htdocs/luci-static/resources/hybrid-subscription.js:1117
+msgid "Import Cache: "
+msgstr ""
+
+#: htdocs/luci-static/resources/hybrid-subscription.js:1118
+msgid "Replaces only the local node cache for this source without fetching upstream or publishing automatically."
+msgstr ""
+
+#: htdocs/luci-static/resources/hybrid-subscription.js:1120
+#: htdocs/luci-static/resources/view/hybrid-subscription/overview.js:62
+#: htdocs/luci-static/resources/view/hybrid-subscription/overview.js:69
+#: htdocs/luci-static/resources/view/hybrid-subscription/overview.js:72
+#: htdocs/luci-static/resources/view/hybrid-subscription/overview.js:75
+#: htdocs/luci-static/resources/view/hybrid-subscription/profiles.js:101
+msgid "Cancel"
+msgstr ""
+
+#: htdocs/luci-static/resources/hybrid-subscription.js:1120
+msgid "Validate & Import"
+msgstr ""
+
+#: htdocs/luci-static/resources/hybrid-subscription.js:1121
+msgid "Content size must not exceed 2 MiB."
+msgstr ""
+
+#: htdocs/luci-static/resources/hybrid-subscription.js:1123
+msgid "Source node cache has been imported."
+msgstr ""
+
+#: htdocs/luci-static/resources/hybrid-subscription.js:1134
+msgid "Download access is restricted to authenticated LuCI sessions. Third-party clients cannot pull via URL or QR code; please download the file and import it manually."
+msgstr ""
+
+#: htdocs/luci-static/resources/hybrid-subscription.js:1134
+msgid "Anyone with the download link can access the node credentials in this subscription. Share only with your own trusted devices."
+msgstr ""
+
+#: htdocs/luci-static/resources/hybrid-subscription.js:1137
+msgid "Download File"
+msgstr ""
+
+#: htdocs/luci-static/resources/hybrid-subscription.js:1141
+msgid "Import in Surge"
+msgstr ""
+
+#: htdocs/luci-static/resources/hybrid-subscription.js:1144
+msgid "No published artifacts are available. Build and publish the profile first."
+msgstr ""
+
+#: htdocs/luci-static/resources/hybrid-subscription.js:1146
+msgid "Subscription Download & QR Code"
+msgstr ""
+
+#: htdocs/luci-static/resources/hybrid-subscription.js:1164
+msgid "Dependency graph of subscription sources, policy groups, rematch entries, and sub-rules"
+msgstr ""
+
+#: htdocs/luci-static/resources/hybrid-subscription.js:1169
+msgid "Final fallback policy of main rules"
+msgstr ""
+
+#: htdocs/luci-static/resources/hybrid-subscription.js:1190
+msgid "Main rules final fallback"
+msgstr ""
+
+#: htdocs/luci-static/resources/hybrid-subscription.js:1192
+msgid "Source nodes expanded into policy group"
+msgstr ""
+
+#: htdocs/luci-static/resources/hybrid-subscription.js:1193
+msgid "Group member"
+msgstr ""
+
+#: htdocs/luci-static/resources/hybrid-subscription.js:1194
+msgid "Empty group fallback"
+msgstr ""
+
+#: htdocs/luci-static/resources/hybrid-subscription.js:1196
+msgid "Forwards to sub-rule"
+msgstr ""
+
+#: htdocs/luci-static/resources/hybrid-subscription.js:1198
+msgid "Sub-rule final fallback"
+msgstr ""
+
+#: htdocs/luci-static/resources/hybrid-subscription.js:1220
+msgid "Profile / Sources"
+msgstr ""
+
+#: htdocs/luci-static/resources/hybrid-subscription.js:1220
+#: htdocs/luci-static/resources/view/hybrid-subscription/profiles.js:41
+#: htdocs/luci-static/resources/view/hybrid-subscription/profiles.js:77
+msgid "Policy Groups"
+msgstr ""
+
+#: htdocs/luci-static/resources/hybrid-subscription.js:1220
+msgid "Rematch Entries"
+msgstr ""
+
+#: htdocs/luci-static/resources/hybrid-subscription.js:1220
+msgid "Sub-Rules"
+msgstr ""
+
+#: htdocs/luci-static/resources/hybrid-subscription.js:1220
+msgid "Built-in Policies"
+msgstr ""
+
+#: htdocs/luci-static/resources/hybrid-subscription.js:1238
+msgid "Zoom"
+msgstr ""
+
+#: htdocs/luci-static/resources/hybrid-subscription.js:1239
+msgid "Scroll horizontally or vertically to inspect. 100% preserves native label size; expand below for full names and outgoing references."
+msgstr ""
+
+#: htdocs/luci-static/resources/hybrid-subscription.js:1240
+msgid "Scrollable policy dependency graph"
+msgstr ""
+
+#: htdocs/luci-static/resources/hybrid-subscription.js:1241
+msgid "Full Names & Outgoing References (Click a Name to Focus)"
+msgstr ""
+
+#: htdocs/luci-static/resources/hybrid-subscription.js:1241
+msgid "References"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/overview.js:15
+#: htdocs/luci-static/resources/view/hybrid-subscription/overview.js:22
+msgid "Confirm Publication"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/overview.js:16
+msgid "Validation and build succeeded. Publishing makes this release available via the download link without re-fetching upstream sources."
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/overview.js:17
+msgid "The following compatibility differences may affect client behavior. Please review and confirm each item:"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/overview.js:17
+msgid "No compatibility differences require confirmation."
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/overview.js:22
+msgid "Not Now"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/overview.js:23
+msgid "Please confirm all compatibility differences, or return to modify the configuration."
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/overview.js:26
+#: htdocs/luci-static/resources/view/hybrid-subscription/overview.js:69
+#: htdocs/luci-static/resources/view/hybrid-subscription/overview.js:111
+msgid "Apply to OpenClash"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/overview.js:35
+msgid "Used "
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/overview.js:35
+msgid "No quota data"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/overview.js:36
+#: htdocs/luci-static/resources/view/hybrid-subscription/sources.js:35
+msgid "Expires: "
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/overview.js:36
+msgid "Not provided by upstream"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/overview.js:36
+#: htdocs/luci-static/resources/view/hybrid-subscription/sources.js:35
+msgid "Never expires"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/overview.js:36
+msgid "Click \"Refresh Quota\" to fetch the latest data."
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/overview.js:36
+msgid "Quota query is not configured. Configure it under Subscription Sources."
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/overview.js:37
+#: htdocs/luci-static/resources/view/hybrid-subscription/sources.js:35
+msgid "Stale · "
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/overview.js:45
+msgid "Preview Client Format"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/overview.js:46
+msgid "Select a format to generate a preview. Sensitive node credentials will be redacted."
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/overview.js:47
+msgid "Preview: "
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/overview.js:47
+msgid "Generate Preview"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/overview.js:49
+msgid "No content available to display."
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/overview.js:56
+msgid "Release Management: "
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/overview.js:57
+msgid "Validate Draft"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/overview.js:57
+msgid "Validation Result"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/overview.js:57
+msgid "View Preview"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/overview.js:57
+msgid "Edit Routing Rules"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/overview.js:58
+msgid "Release History"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/overview.js:59
+msgid "Created At"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/overview.js:59
+msgid "Release ID"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/overview.js:59
+#: htdocs/luci-static/resources/view/hybrid-subscription/overview.js:107
+#: htdocs/luci-static/resources/view/hybrid-subscription/overview.js:110
+msgid "Status"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/overview.js:59
+#: htdocs/luci-static/resources/view/hybrid-subscription/overview.js:101
+msgid "Actions"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/overview.js:60
+msgid "Published"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/overview.js:60
+msgid "Previously Published"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/overview.js:60
+msgid "Unpublished"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/overview.js:60
+msgid "Roll Back"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/overview.js:60
+msgid "Publish"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/overview.js:62
+msgid "Roll Back Release"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/overview.js:62
+msgid "Rolling back restores the download link to this release. If auto-apply is enabled, OpenClash will also be updated."
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/overview.js:62
+msgid "Confirm Rollback"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/overview.js:63
+msgid "Roll Back OpenClash"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/overview.js:67
+msgid "OpenClash & Download Management"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/overview.js:68
+msgid "Apply Published Release to OpenClash"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/overview.js:69
+msgid "This will back up and switch the active OpenClash configuration, which may briefly interrupt proxy connections."
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/overview.js:69
+msgid "Apply"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/overview.js:71
+#: htdocs/luci-static/resources/view/hybrid-subscription/overview.js:72
+msgid "Rotate Download Token"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/overview.js:72
+msgid "Existing download links and QR codes will be invalidated immediately. Clients must re-import the new subscription URL."
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/overview.js:72
+msgid "Confirm Rotation"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/overview.js:74
+#: htdocs/luci-static/resources/view/hybrid-subscription/overview.js:75
+msgid "Unpublish"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/overview.js:75
+msgid "Revokes download links while retaining release history and the active OpenClash configuration."
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/overview.js:75
+msgid "Confirm Unpublish"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/overview.js:90
+msgid "Published · "
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/overview.js:90
+msgid "Draft · Unpublished"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/overview.js:91
+msgid "Edit Profile"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/overview.js:91
+msgid "Build & Publish"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/overview.js:92
+msgid "Validate and Build Release"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/overview.js:94
+msgid "No release ID was returned. Please check the job status."
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/overview.js:97
+msgid "Download / QR Code"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/overview.js:97
+msgid "Release Management"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/overview.js:99
+msgid "Add subscription sources first, then create a subscription profile."
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/overview.js:99
+msgid "Create Subscription Profile"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/overview.js:100
+msgid "Subscription Source Status"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/overview.js:101
+msgid "Source"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/overview.js:101
+msgid "Node Cache"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/overview.js:101
+#: htdocs/luci-static/resources/view/hybrid-subscription/sources.js:31
+#: htdocs/luci-static/resources/view/hybrid-subscription/sources.js:76
+msgid "Quota / Expiration"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/overview.js:103
+msgid " nodes"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/overview.js:103
+#: htdocs/luci-static/resources/view/hybrid-subscription/sources.js:19
+msgid "Not cached"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/overview.js:103
+msgid " regions matched"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/overview.js:104
+#: htdocs/luci-static/resources/view/hybrid-subscription/overview.js:111
+#: htdocs/luci-static/resources/view/hybrid-subscription/sources.js:37
+msgid "Refresh Quota"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/overview.js:104
+#: htdocs/luci-static/resources/view/hybrid-subscription/sources.js:42
+msgid "Refresh Quota Status"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/overview.js:104
+msgid "Manage Sources"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/overview.js:107
+msgid "Components & Recent Jobs"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/overview.js:107
+msgid "Component"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/overview.js:108
+msgid "Installed"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/overview.js:108
+msgid "Not installed"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/overview.js:109
+msgid "Available"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/overview.js:109
+msgid "Unavailable"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/overview.js:110
+msgid "Time"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/overview.js:110
+msgid "Operation"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/overview.js:110
+msgid "Details"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/overview.js:111
+msgid "Update Nodes"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/overview.js:111
+msgid "Build Release"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/overview.js:111
+msgid "Compatibility Audit"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/profiles.js:17
+#: htdocs/luci-static/resources/view/hybrid-subscription/profiles.js:100
+msgid "Quick Create Profile"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/profiles.js:19
+#: htdocs/luci-static/resources/view/hybrid-subscription/profiles.js:97
+msgid "Included Sources"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/profiles.js:21
+msgid "Export Formats"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/profiles.js:23
+msgid "Default Fallback Policy"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/profiles.js:23
+msgid "Select a policy group or rematch entry belonging to this profile, or DIRECT / REJECT."
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/profiles.js:25
+msgid "Mihomo Core Variant"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/profiles.js:25
+msgid "The Smart core variant is required when using Smart policy groups."
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/profiles.js:25
+msgid "Standard Mihomo"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/profiles.js:25
+msgid "Mihomo Smart"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/profiles.js:26
+msgid "Surge Target"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/profiles.js:26
+msgid "Surge (Modern)"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/profiles.js:27
+msgid "sing-box Target"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/profiles.js:28
+msgid "Mihomo DNS Policy (JSON)"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/profiles.js:28
+msgid "Configure Mihomo DNS routing options. Listener addresses and controller secrets are managed by the router and not permitted here. Leave empty to use defaults."
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/profiles.js:29
+msgid "Mihomo Advanced Policy (JSON)"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/profiles.js:29
+msgid "Configure domain sniffing, connection behavior, and GeoIP/GeoSite database options. Controller, listener, TUN, and network interface bindings are not permitted."
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/profiles.js:30
+msgid "Dependency Graph"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/profiles.js:33
+msgid "Dependency Graph: "
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/profiles.js:34
+msgid "Directed edges illustrate references across sources, policy groups, rematch entries, and sub-rules. Circular dependencies will block validation and publication."
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/profiles.js:39
+#: htdocs/luci-static/resources/view/hybrid-subscription/rules.js:47
+msgid "General"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/profiles.js:39
+msgid "Target Clients"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/profiles.js:39
+msgid "Advanced Policy"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/profiles.js:43
+#: htdocs/luci-static/resources/view/hybrid-subscription/profiles.js:64
+#: htdocs/luci-static/resources/view/hybrid-subscription/profiles.js:70
+#: htdocs/luci-static/resources/view/hybrid-subscription/rules.js:18
+msgid "Profile"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/profiles.js:44
+msgid "Node Sources"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/profiles.js:44
+msgid "Leave empty to include only explicit group members without expanding source nodes."
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/profiles.js:45
+msgid "Region Template"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/profiles.js:45
+msgid "Combined with the include and exclude regular expressions below. Per-source region overrides can be configured in Global Settings."
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/profiles.js:45
+msgid "No Region Template"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/profiles.js:46
+#: htdocs/luci-static/resources/view/hybrid-subscription/settings.js:46
+msgid "None"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/profiles.js:47
+msgid "Include Nodes (Regex)"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/profiles.js:47
+msgid "Example: Japan|日本|JP to match only nodes in that region."
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/profiles.js:48
+msgid "Exclude Nodes (Regex)"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/profiles.js:49
+msgid "Group Members / Built-in Policies"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/profiles.js:49
+msgid "Select policy groups or rematch entries within the same profile, or DIRECT / REJECT. Surge Smart groups accept nodes only."
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/profiles.js:50
+msgid "Mihomo Group Type"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/profiles.js:50
+#: htdocs/luci-static/resources/view/hybrid-subscription/profiles.js:51
+#: htdocs/luci-static/resources/view/hybrid-subscription/profiles.js:52
+msgid "Manual Select"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/profiles.js:50
+#: htdocs/luci-static/resources/view/hybrid-subscription/profiles.js:51
+#: htdocs/luci-static/resources/view/hybrid-subscription/profiles.js:52
+msgid "URL Test (Auto)"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/profiles.js:50
+#: htdocs/luci-static/resources/view/hybrid-subscription/profiles.js:51
+msgid "Fallback"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/profiles.js:50
+msgid "Load Balance"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/profiles.js:51
+msgid "Surge Group Type"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/profiles.js:52
+msgid "sing-box Group Type"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/profiles.js:53
+msgid "Health Check URL"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/profiles.js:54
+msgid "Test Interval (seconds)"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/profiles.js:55
+msgid "Latency Tolerance (ms)"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/profiles.js:56
+msgid "Hide Group in Supported Clients"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/profiles.js:57
+msgid "Mihomo Default Selection"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/profiles.js:57
+msgid "Must be a member of this group. Leave empty to use the client default."
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/profiles.js:58
+msgid "Mihomo Empty Group Fallback"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/profiles.js:58
+msgid "Fallback policy when no nodes match the filter. Leave empty to report an empty group during validation."
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/profiles.js:59
+msgid "Lazy Health Check"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/profiles.js:59
+msgid "Mihomo tests node latency only when this policy group is actively used."
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/profiles.js:60
+msgid "Nodes & Members"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/profiles.js:60
+msgid "Client Behavior"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/profiles.js:60
+msgid "Health Check"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/profiles.js:62
+msgid "Mihomo Rematch Entries"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/profiles.js:62
+msgid "Forwards traffic into a designated sub-rule for secondary matching."
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/profiles.js:65
+msgid "Target Sub-Rule"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/profiles.js:66
+msgid "Rematch Tag"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/profiles.js:66
+msgid "Optional tag matched by REMATCH-NAME rules inside the target sub-rule."
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/profiles.js:68
+msgid "Mihomo Sub-Rules"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/profiles.js:68
+msgid "Rules inside each sub-rule are managed on the Routing Rules page and evaluated in order."
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/profiles.js:71
+msgid "Fallback Policy"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/profiles.js:72
+msgid "Save & Edit Rules"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/profiles.js:78
+msgid "Advanced Routing"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/profiles.js:80
+#: htdocs/luci-static/resources/view/hybrid-subscription/rules.js:49
+msgid "All Profiles"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/profiles.js:83
+#: htdocs/luci-static/resources/view/hybrid-subscription/rules.js:53
+msgid "Active Profile"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/profiles.js:95
+msgid "Use 1–40 lowercase letters, digits, underscores, or hyphens, starting with a letter."
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/profiles.js:100
+msgid "Creates a starter profile with a manual node selection group for Mihomo, Surge, and sing-box. You can add region groups and routing rules afterward."
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/profiles.js:101
+msgid "Add to Draft"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/profiles.js:104
+msgid "Profile identifier already exists."
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/profiles.js:107
+msgid "Proxy"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/rules.js:13
+msgid "Ordered Routing Rules"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/rules.js:19
+#: htdocs/luci-static/resources/view/hybrid-subscription/rules.js:54
+msgid "Rule Scope"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/rules.js:19
+msgid "Select Main Rules or a sub-rule belonging to the same profile."
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/rules.js:19
+#: htdocs/luci-static/resources/view/hybrid-subscription/rules.js:20
+#: htdocs/luci-static/resources/view/hybrid-subscription/rules.js:49
+msgid "Main Rules"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/rules.js:21
+#: htdocs/luci-static/resources/view/hybrid-subscription/sources.js:14
+msgid "Enabled"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/rules.js:22
+msgid "Rule Type"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/rules.js:23
+msgid "Match Value"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/rules.js:23
+msgid "Use TCP or UDP for NETWORK; REMATCH-NAME is valid only within sub-rules. Edit AND/OR/NOT conditions under the \"Advanced Conditions\" tab."
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/rules.js:26
+msgid "Logical expression · "
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/rules.js:26
+msgid " conditions"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/rules.js:30
+msgid "Outbound Policy"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/rules.js:31
+msgid "Skip DNS Resolution (no-resolve)"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/rules.js:31
+msgid "Applies to IP and rule-set rules that support no-resolve. Unsupported target formats will report a warning during validation."
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/rules.js:32
+msgid "Logical Conditions (JSON Array)"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/rules.js:32
+msgid "Example: [ {\"type\":\"NETWORK\",\"value\":\"UDP\"}, {\"type\":\"RULE-SET\",\"value\":\"ruleset_id\"} ]. Nested conditions use type and conditions; AND/OR require at least 2 conditions, and NOT requires exactly 1."
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/rules.js:34
+msgid "Matching & Policy"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/rules.js:34
+msgid "Advanced Conditions"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/rules.js:36
+msgid "Shared Rule Sets"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/rules.js:36
+msgid "Available across all subscription profiles regardless of the active filter above."
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/rules.js:37
+msgid "Source Type"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/rules.js:37
+msgid "Remote URL"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/rules.js:37
+msgid "Inline Rules"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/rules.js:38
+msgid "Rule Behavior"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/rules.js:38
+msgid "Domain"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/rules.js:38
+msgid "IP CIDR"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/rules.js:38
+msgid "Classical"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/rules.js:39
+msgid "Inline Rule Entries"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/rules.js:39
+msgid "One rule per line without an outbound policy, e.g., DOMAIN-SUFFIX,example.com."
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/rules.js:40
+msgid "Mihomo URL"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/rules.js:41
+msgid "Mihomo Format"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/rules.js:42
+msgid "Mihomo Download Detour Policy"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/rules.js:42
+msgid "Leave empty to use the client default outbound for fetching rule sets."
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/rules.js:43
+msgid "Surge URL"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/rules.js:43
+msgid "URL of a Surge-compatible RULE-SET file."
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/rules.js:44
+msgid "sing-box URL"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/rules.js:45
+msgid "sing-box Format"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/rules.js:46
+#: htdocs/luci-static/resources/view/hybrid-subscription/sources.js:46
+msgid "Update Interval (seconds)"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/rules.js:47
+msgid "Content & URLs"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/rules.js:47
+msgid "Update Options"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/rules.js:48
+msgid "Rule Sets"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/rules.js:49
+msgid "All Main & Sub-Rules"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/settings.js:12
+msgid "Region Matching Templates"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/settings.js:12
+msgid "Classify nodes into regions by matching node names against flag emojis, region names, or ISO country codes. Per-source rules override the general pattern."
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/settings.js:14
+msgid "Add Common Regions"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/settings.js:15
+msgid "Preview Region Matches"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/settings.js:17
+msgid "General Pattern (Regex)"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/settings.js:17
+msgid "Example: 🇯🇵|日本|Japan. Use word-boundary assertions for short country codes to avoid false positives. Patterns must not match empty strings."
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/settings.js:18
+msgid "Source Overrides"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/settings.js:21
+msgid "Use general pattern for all sources"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/settings.js:25
+msgid " Override Pattern"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/settings.js:25
+msgid "Leave empty to use the general pattern above. When specified, only this source uses this regular expression."
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/settings.js:35
+msgid "View Matched Nodes"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/settings.js:37
+#: htdocs/luci-static/resources/view/hybrid-subscription/settings.js:51
+msgid "Download & Integration"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/settings.js:37
+msgid "Manage published releases, download links, and rollbacks on the Overview page."
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/settings.js:38
+msgid "Download Access"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/settings.js:38
+msgid "OpenClash & Subconverter"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/settings.js:39
+msgid "Download Access Mode"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/settings.js:40
+msgid "LAN + Download Token"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/settings.js:40
+msgid "Download Token (All Reachable Networks)"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/settings.js:40
+msgid "Authenticated LuCI Session Only"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/settings.js:42
+msgid "Changing the access mode does not open firewall ports. Session-only mode does not provide QR codes for third-party clients. Rotate tokens under \"Release Management\" on the Overview page."
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/settings.js:43
+msgid "Subscription Base URL"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/settings.js:43
+msgid "Leave empty to use the current router origin."
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/settings.js:45
+msgid "Auto-Apply to OpenClash on Publish"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/settings.js:45
+msgid "Applies only to the profile selected below (disabled by default). When enabled, publishing or rolling back will reload OpenClash."
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/settings.js:46
+msgid "Linked OpenClash Profile"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/settings.js:48
+msgid "Local Subconverter URL"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/settings.js:48
+msgid "Loopback addresses only. Run compatibility audits from the Advanced tab of a subscription source."
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/settings.js:50
+msgid "Region Matching"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/settings.js:75
+msgid "Match Preview: "
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/settings.js:75
+msgid "Region Match Preview"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/settings.js:75
+msgid "Previewed against currently cached node names. If a node matches multiple regions, refine the regular expressions. Name matching does not guarantee the actual egress IP location."
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/settings.js:78
+msgid " matched nodes"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/settings.js:78
+msgid " nodes, "
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/settings.js:78
+msgid " unmatched, "
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/settings.js:78
+msgid " ambiguous"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/settings.js:79
+msgid "Original Node Name"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/settings.js:79
+msgid "Matched Regions"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/settings.js:79
+msgid "Unmatched"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/sources.js:16
+msgid "Cache Status"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/sources.js:19
+msgid "Disabled · "
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/sources.js:19
+msgid " nodes · "
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/sources.js:21
+msgid "Subscription URL"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/sources.js:21
+msgid "Leave blank to keep the saved URL. For a new source, you may save an empty URL first and import a local file later. Saved URLs are never sent back to the browser."
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/sources.js:23
+msgid "URL Saved"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/sources.js:24
+#: htdocs/luci-static/resources/view/hybrid-subscription/sources.js:27
+msgid "Yes"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/sources.js:24
+#: htdocs/luci-static/resources/view/hybrid-subscription/sources.js:27
+msgid "No"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/sources.js:25
+msgid "Dedicated Quota Query URL"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/sources.js:25
+msgid "Specify a dedicated endpoint that returns the Subscription-Userinfo header. Quota refreshes never fall back to the subscription URL. Leave blank to keep the saved URL."
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/sources.js:26
+msgid "Quota URL Saved"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/sources.js:28
+msgid "Clear Saved Quota URL"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/sources.js:28
+msgid "Check and save to remove the dedicated quota query endpoint."
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/sources.js:29
+msgid "Query Quota via Subscription URL"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/sources.js:29
+msgid "When no dedicated quota URL is set, sends a GET request to the subscription URL to read response headers. Keep disabled for time-windowed or rate-limited subscriptions, as this may consume pull quota. Only triggered manually."
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/sources.js:30
+msgid "Quota Cache TTL (seconds)"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/sources.js:30
+msgid "Data older than this threshold is marked as stale without triggering automatic requests."
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/sources.js:34
+msgid "No data"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/sources.js:39
+msgid "Quota Query Not Configured"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/sources.js:39
+msgid "Configure a dedicated quota URL under \"Quota / Expiration\". Standard subscriptions may also enable header queries via the subscription URL; keep that disabled for time-windowed subscriptions."
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/sources.js:44
+msgid "Input Format"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/sources.js:44
+msgid "Auto Detect"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/sources.js:45
+msgid "Update Mode"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/sources.js:45
+msgid "Manual Only"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/sources.js:45
+msgid "Scheduled"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/sources.js:46
+msgid "Applies only to scheduled sources. Do not enable scheduled updates for time-windowed subscriptions."
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/sources.js:48
+msgid "Exclude Node Names (Regex)"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/sources.js:48
+msgid "Filter out informational entries such as traffic or expiration notices."
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/sources.js:49
+msgid "Download User-Agent"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/sources.js:49
+msgid "Leave blank to use the default User-Agent."
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/sources.js:50
+msgid "Linked OpenClash Source"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/sources.js:51
+msgid "Take Over OpenClash Subscription Updates"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/sources.js:51
+msgid "Applies only to sources imported from OpenClash. Disables OpenClash auto-updates for this source when applying a profile to prevent duplicate pulls."
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/sources.js:52
+msgid "Update Cache"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/sources.js:53
+msgid "Update Source Cache"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/sources.js:55
+msgid "Import File"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/sources.js:59
+#: htdocs/luci-static/resources/view/hybrid-subscription/sources.js:61
+msgid "Subconverter Compatibility Audit"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/sources.js:64
+msgid "Missing"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/sources.js:64
+msgid "Added"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/sources.js:64
+msgid "Modified"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/sources.js:65
+msgid "Compatibility Audit: "
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/sources.js:66
+msgid "Compares cached nodes against local subconverter output without fetching upstream sources or modifying the cache."
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/sources.js:67
+msgid "Original nodes: %s; Converted nodes: %s."
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/sources.js:68
+msgid "Native parser and subconverter outputs are identical."
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/sources.js:68
+msgid "Differences detected. Subscription generation continues to use the native parser output."
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/sources.js:69
+msgid "Node"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/sources.js:69
+msgid "Difference Type"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/sources.js:69
+msgid "Affected Fields"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/sources.js:69
+msgid "No differences"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/sources.js:76
+msgid "Subscription & Updates"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/sources.js:76
+msgid "Advanced"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/sources.js:83
+msgid "Import from OpenClash"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/sources.js:87
+msgid "OpenClash subscription sources and node caches have been imported."
+msgstr ""
+
+#: root/usr/share/hybrid-subscription/
+msgid "Japan"
+msgstr ""
+
+#: root/usr/share/hybrid-subscription/
+msgid "Hong Kong"
+msgstr ""
+
+#: root/usr/share/hybrid-subscription/
+msgid "Taiwan"
+msgstr ""
+
+#: root/usr/share/hybrid-subscription/
+msgid "Singapore"
+msgstr ""
+
+#: root/usr/share/hybrid-subscription/
+msgid "United States"
+msgstr ""
+
+#: root/usr/share/hybrid-subscription/
+msgid "South Korea"
+msgstr ""
+
+#: root/usr/share/hybrid-subscription/
+msgid "United Kingdom"
+msgstr ""
+
+#: root/usr/share/hybrid-subscription/
+msgid "Germany"
+msgstr ""
+
+#: root/usr/share/hybrid-subscription/
+msgid "Canada"
+msgstr ""
+
+#: root/usr/share/hybrid-subscription/
+msgid "Australia"
+msgstr ""
+
+#: root/usr/share/hybrid-subscription/
+msgid "France"
+msgstr ""
+
+#: root/usr/share/hybrid-subscription/
+msgid "Netherlands"
+msgstr ""
+
+#: root/usr/share/hybrid-subscription/
+msgid "India"
+msgstr ""
+
+#: root/usr/share/hybrid-subscription/
+msgid "Argentina"
+msgstr ""
+
+#: root/usr/share/hybrid-subscription/
+msgid "Brazil"
+msgstr ""
+
+#: root/usr/share/hybrid-subscription/
+msgid "Russia"
+msgstr ""
+
+#: root/usr/share/hybrid-subscription/
+msgid "Türkiye"
+msgstr ""
+
+#: root/usr/share/hybrid-subscription/
+msgid "Invalid identifier"
+msgstr ""
+
+#: root/usr/share/hybrid-subscription/
+msgid "Command output exceeds size limit"
+msgstr ""
+
+#: root/usr/share/hybrid-subscription/
+msgid "Operation timed out; existing cache and published releases remain unchanged"
+msgstr ""
+
+#: root/usr/share/hybrid-subscription/
+msgid "URL must use HTTP or HTTPS"
+msgstr ""
+
+#: root/usr/share/hybrid-subscription/
+msgid "Converter URL must use a loopback address"
+msgstr ""
+
+#: root/usr/share/hybrid-subscription/
+msgid "Invalid URL format"
+msgstr ""
+
+#: root/usr/share/hybrid-subscription/
+msgid "Configuration was modified in another session; please reload before saving"
+msgstr ""
+
+#: root/usr/share/hybrid-subscription/
+msgid "Configuration exceeds the 2 MiB size limit"
+msgstr ""
+
+#: root/usr/share/hybrid-subscription/
+msgid "Unsupported configuration schema version"
+msgstr ""
+
+#: root/usr/share/hybrid-subscription/
+msgid "Quota URL must not contain credentials; use an API token instead"
+msgstr ""
+
+#: root/usr/share/hybrid-subscription/
+msgid "Dedicated quota URL must not match the subscription URL"
+msgstr ""
+
+#: root/usr/share/hybrid-subscription/
+msgid "Quota header query option must be a boolean"
+msgstr ""
+
+#: root/usr/share/hybrid-subscription/
+msgid "Quota cache TTL must be between 60 and 31536000 seconds"
+msgstr ""
+
+#: root/usr/share/hybrid-subscription/
+msgid "Unsupported update mode"
+msgstr ""
+
+#: root/usr/share/hybrid-subscription/
+msgid "Scheduled update interval must be at least 300 seconds"
+msgstr ""
+
+#: root/usr/share/hybrid-subscription/
+msgid "Source name exceeds maximum length"
+msgstr ""
+
+#: root/usr/share/hybrid-subscription/
+msgid "Missing global settings"
+msgstr ""
+
+#: root/usr/share/hybrid-subscription/
+msgid "Invalid download access mode"
+msgstr ""
+
+#: root/usr/share/hybrid-subscription/
+msgid "Invalid export format"
+msgstr ""
+
+#: root/usr/share/hybrid-subscription/
+msgid "Unpublish the profile before deleting it"
+msgstr ""
+
+#: root/usr/share/hybrid-subscription/
+msgid "Invalid configuration field format"
+msgstr ""
+
+#: root/usr/share/hybrid-subscription/
+msgid "Subscription source does not exist"
+msgstr ""
+
+#: root/usr/share/hybrid-subscription/
+msgid "Subscription profile does not exist"
+msgstr ""
+
+#: root/usr/share/hybrid-subscription/
+msgid "Subscription content exceeds 2 MiB"
+msgstr ""
+
+#: root/usr/share/hybrid-subscription/
+msgid "Subscription contains no valid nodes; previous cache retained"
+msgstr ""
+
+#: root/usr/share/hybrid-subscription/
+msgid "Source or cache was updated concurrently; discarding stale fetch result"
+msgstr ""
+
+#: root/usr/share/hybrid-subscription/
+msgid "No subscription URL configured for this source; import a local file instead"
+msgstr ""
+
+#: root/usr/share/hybrid-subscription/
+msgid "Subscription source is disabled"
+msgstr ""
+
+#: root/usr/share/hybrid-subscription/
+msgid "Dedicated quota URL must not match any subscription URL"
+msgstr ""
+
+#: root/usr/share/hybrid-subscription/
+msgid "Invalid User-Agent for quota request"
+msgstr ""
+
+#: root/usr/share/hybrid-subscription/
+msgid "Source or quota query settings changed; please retry"
+msgstr ""
+
+#: root/usr/share/hybrid-subscription/
+msgid "No valid Subscription-Userinfo header received; previous quota state retained"
+msgstr ""
+
+#: root/usr/share/hybrid-subscription/
+msgid "No quota query method configured and no local cache available; configure quota query under Subscription Sources"
+msgstr ""
+
+#: root/usr/share/hybrid-subscription/
+msgid "Source or quota state was updated concurrently; discarding stale quota result"
+msgstr ""
+
+#: root/usr/share/hybrid-subscription/
+msgid "Region preview configuration exceeds size limit"
+msgstr ""
+
+#: root/usr/share/hybrid-subscription/
+msgid "Region preview requires sources and regions lists"
+msgstr ""
+
+#: root/usr/share/hybrid-subscription/
+msgid "Invalid source selection for region preview"
+msgstr ""
+
+#: root/usr/share/hybrid-subscription/
+msgid "Invalid JSON in region preview configuration"
+msgstr ""
+
+#: root/usr/share/hybrid-subscription/
+msgid "Invalid release identifier"
+msgstr ""
+
+#: root/usr/share/hybrid-subscription/
+msgid "Select at least one export format"
+msgstr ""
+
+#: root/usr/share/hybrid-subscription/
+msgid "Unsupported export format"
+msgstr ""
+
+#: root/usr/share/hybrid-subscription/
+msgid "Release does not exist"
+msgstr ""
+
+#: root/usr/share/hybrid-subscription/
+msgid "Rollback is only allowed for previously published releases"
+msgstr ""
+
+#: root/usr/share/hybrid-subscription/
+msgid "Draft configuration or source cache has changed; please rebuild before publishing"
+msgstr ""
+
+#: root/usr/share/hybrid-subscription/
+msgid "Please confirm all compatibility differences before publishing"
+msgstr ""
+
+#: root/usr/share/hybrid-subscription/
+msgid "Release artifact integrity check failed"
+msgstr ""
+
+#: root/usr/share/hybrid-subscription/
+msgid "Build and publish this profile first"
+msgstr ""
+
+#: root/usr/share/hybrid-subscription/
+msgid "Invalid job identifier"
+msgstr ""
+
+#: root/usr/share/hybrid-subscription/
+msgid "Background job terminated or timed out; please resubmit"
+msgstr ""
+
+#: root/usr/share/hybrid-subscription/
+msgid "Invalid operation"
+msgstr ""
+
+#: root/usr/share/hybrid-subscription/
+msgid "Profile has not been published"
+msgstr ""
+
+#: root/usr/share/hybrid-subscription/
+msgid "Release does not belong to this profile"
+msgstr ""
+
+#: root/usr/share/hybrid-subscription/
+msgid "Failed to start background job; please try again later"
+msgstr ""
+
+#: root/usr/share/hybrid-subscription/
+msgid "Job does not exist"
+msgstr ""
+
+#: root/usr/share/hybrid-subscription/
+msgid "Job has expired; please resubmit"
+msgstr ""
+
+#: root/usr/share/hybrid-subscription/
+msgid "No cached nodes available for this source"
+msgstr ""
+
+#: root/usr/share/hybrid-subscription/
+msgid "Job is missing a target release"
+msgstr ""
+
+#: root/usr/share/hybrid-subscription/
+msgid "Release does not include Mihomo output"
+msgstr ""
+
+#: root/usr/share/hybrid-subscription/
+msgid "Unknown operation"
+msgstr ""
+
+#: root/usr/share/hybrid-subscription/
+msgid "Unknown command"
+msgstr ""
+
+#: root/usr/share/hybrid-subscription/
+msgid "Invalid request payload or backend state; please check the configuration"
+msgstr ""
+
+#: root/usr/share/hybrid-subscription/
+msgid "Configuration must contain JSON-compatible values"
+msgstr ""
+
+#: root/usr/share/hybrid-subscription/
+msgid "Source exceeds 2 MiB"
+msgstr ""
+
+#: root/usr/share/hybrid-subscription/
+msgid "Source is not valid UTF-8"
+msgstr ""
+
+#: root/usr/share/hybrid-subscription/
+msgid "Source is empty"
+msgstr ""
+
+#: root/usr/share/hybrid-subscription/
+msgid "Unknown source format"
+msgstr ""
+
+#: root/usr/share/hybrid-subscription/
+msgid "Encoded source does not contain supported node links"
+msgstr ""
+
+#: root/usr/share/hybrid-subscription/
+msgid "Expected a Mihomo proxy list, Surge [Proxy], sing-box outbounds, or supported node links"
+msgstr ""
+
+#: root/usr/share/hybrid-subscription/
+msgid "Source has no proxy nodes"
+msgstr ""
+
+#: root/usr/share/hybrid-subscription/
+msgid "Source has too many nodes (maximum 4096)"
+msgstr ""
+
+#: root/usr/share/hybrid-subscription/
+msgid "Invalid or unsafe YAML source (aliases and object tags are disabled)"
+msgstr ""
+
+#: root/usr/share/hybrid-subscription/
+msgid "Malformed subscription; check its format and encoding"
+msgstr ""
+
+#: root/usr/share/hybrid-subscription/
+msgid "Profile must select at least one output format"
+msgstr ""
+
+#: root/usr/share/hybrid-subscription/
+msgid "Unknown output format"
+msgstr ""
+
+#: root/usr/share/hybrid-subscription/
+msgid "Unknown profile"
+msgstr ""
+
+#: root/usr/share/hybrid-subscription/
+msgid "Configuration and caches must be objects"
+msgstr ""
+
+#: root/usr/share/hybrid-subscription/
+msgid "Profile contains duplicate sources or formats"
+msgstr ""
+
+#: root/usr/share/hybrid-subscription/
+msgid "Unknown profile format"
+msgstr ""
+
+#: root/usr/share/hybrid-subscription/
+msgid "Profile has no nodes"
+msgstr ""
+
+#: root/usr/share/hybrid-subscription/
+msgid "Regular expression exceeded its time limit"
+msgstr ""
+
+#: root/usr/share/hybrid-subscription/
+msgid "Mihomo DNS must be an object"
+msgstr ""
+
+#: root/usr/share/hybrid-subscription/
+msgid "Mihomo DNS contains unsupported settings (listeners are managed separately)"
+msgstr ""
+
+#: root/usr/share/hybrid-subscription/
+msgid "Mihomo policy must be an object"
+msgstr ""
+
+#: root/usr/share/hybrid-subscription/
+msgid "Mihomo policy contains unsupported settings (API, listener and router bindings are excluded)"
+msgstr ""
+
+#: root/usr/share/hybrid-subscription/
+msgid "Mihomo policy geox-url contains unsupported databases"
+msgstr ""
+
+#: root/usr/share/hybrid-subscription/
+msgid "Mihomo profile policy supports only store-selected/store-fake-ip"
+msgstr ""
+
+#: root/usr/share/hybrid-subscription/
+msgid "Mihomo geodata-loader must be standard or memconservative"
+msgstr ""
+
+#: root/usr/share/hybrid-subscription/
+msgid "Mihomo-specific runtime and geodata policy has no equivalent export here and will be omitted"
+msgstr ""
+
+#: root/usr/share/hybrid-subscription/
+msgid "Surge field contains a line break or NUL"
+msgstr ""
+
+#: root/usr/share/hybrid-subscription/
+msgid "Surge built-in LAN and Mihomo GEOIP LAN may cover different reserved ranges"
+msgstr ""
+
+#: root/usr/share/hybrid-subscription/
+msgid "Bandwidth must be Mbps or a number followed by Mbps"
+msgstr ""
+
+#: root/usr/share/hybrid-subscription/
+msgid "Target bandwidth must be a whole number of Mbps"
+msgstr ""
+
+#: root/usr/share/hybrid-subscription/
+msgid "sing-box ip_is_private and Mihomo GEOIP LAN do not cover exactly the same reserved ranges"
+msgstr ""
+
+#: root/usr/share/hybrid-subscription/
+msgid "Region matching needs valid, unique source IDs"
+msgstr ""
+
+#: root/usr/share/hybrid-subscription/
+msgid "Regions must be a list of at most 128 objects"
+msgstr ""
+
+#: root/usr/share/hybrid-subscription/
+msgid "Region has an invalid ID"
+msgstr ""
+
+#: root/usr/share/hybrid-subscription/
+msgid "Region preview needs at most 4096 node names"
+msgstr ""
+
+#: root/usr/share/hybrid-subscription/
+msgid "Region matching accepts only valid node names"
+msgstr ""
+
+#: root/usr/share/hybrid-subscription/
+msgid "Region regular expression exceeded its time limit"
+msgstr ""
+
+#: root/usr/share/hybrid-subscription/
+msgid "Converter must use an HTTP(S) loopback URL without credentials or query parameters"
+msgstr ""
+
+#: root/usr/share/hybrid-subscription/
+msgid "Invalid local converter URL"
+msgstr ""
+
+#: root/usr/share/hybrid-subscription/
+msgid "Converter audit requires a non-empty node list"
+msgstr ""
+
+#: root/usr/share/hybrid-subscription/
+msgid "Converter audit input exceeds 2 MiB"
+msgstr ""
+
+#: root/usr/share/hybrid-subscription/
+msgid "Converter did not return a proxy list"
+msgstr ""
+
+#: root/usr/share/hybrid-subscription/
+msgid "Converter returned invalid or unsafe YAML"
+msgstr ""
+
+#: root/usr/share/hybrid-subscription/
+msgid "Local converter audit transport failed"
+msgstr ""
+
+#: root/usr/share/hybrid-subscription/
+msgid "Local converter request timed out"
+msgstr ""
+
+#: root/usr/share/hybrid-subscription/
+msgid "Converter response exceeds its size limit"
+msgstr ""
+
+#: root/usr/share/hybrid-subscription/
+msgid "Local converter request failed"
+msgstr ""
+
+#: root/usr/share/hybrid-subscription/
+msgid "curl is required for the local converter audit"
+msgstr ""
+
+#: root/usr/share/hybrid-subscription/
+msgid "Could not read the existing OpenClash subscriptions."
+msgstr ""
+
+#: root/usr/share/hybrid-subscription/
+msgid "Mihomo core is not installed."
+msgstr ""
+
+#: root/usr/share/hybrid-subscription/
+msgid "Exported configuration is missing or too large."
+msgstr ""
+
+#: root/usr/share/hybrid-subscription/
+msgid "The export is not a Mihomo configuration."
+msgstr ""
+
+#: root/usr/share/hybrid-subscription/
+msgid "Invalid YAML configuration."
+msgstr ""
+
+#: root/usr/share/hybrid-subscription/
+msgid "Invalid profile ID."
+msgstr ""
+
+#: root/usr/share/hybrid-subscription/
+msgid "OpenClash is not installed."
+msgstr ""
+
+#: root/usr/share/hybrid-subscription/
+msgid "Profile does not exist."
+msgstr ""
+
+#: root/usr/share/hybrid-subscription/
+msgid "The release is not a Mihomo configuration."
+msgstr ""
+
+#: root/usr/share/hybrid-subscription/
+msgid "This release requires the Smart core. Install it in OpenClash before applying."
+msgstr ""
+
+#: root/usr/share/hybrid-subscription/
+msgid "An OpenClash apply operation is already running."
+msgstr ""
+
+#: root/usr/share/hybrid-subscription/
+msgid "Apply exceeded its rollback deadline."
+msgstr ""
+
+#: root/usr/share/hybrid-subscription/
+msgid "Apply failed and automatic recovery failed. Use the saved OpenClash backup in the integration backup directory."
+msgstr ""
+
+#: root/usr/share/hybrid-subscription/
+msgid "Apply failed. Previous OpenClash configuration restored."
+msgstr ""
+
+#: root/usr/share/hybrid-subscription/
+msgid "This export requires the installed Mihomo Smart core."
+msgstr ""
+
+#: root/usr/share/hybrid-subscription/
+msgid "Required geodata is missing; update it in OpenClash before validating this profile."
+msgstr ""
+
+#: root/usr/share/hybrid-subscription/
+msgid "A local provider cache is missing. Import its contents before publishing."
+msgstr ""
+
+#: root/usr/share/hybrid-subscription/
+msgid "An OpenClash command timed out."
+msgstr ""
+
+#: root/usr/share/hybrid-subscription/
+msgid "An OpenClash command failed."
+msgstr ""
+
+#: root/usr/share/hybrid-subscription/
+msgid "An OpenClash helper is unavailable."
+msgstr ""
+
+#: root/usr/share/hybrid-subscription/
+msgid "Could not read OpenClash settings."
+msgstr ""
+
+#: root/usr/share/hybrid-subscription/
+msgid "An OpenClash subscription changed. Re-import it before taking over updates."
+msgstr ""
+
+#: root/usr/share/hybrid-subscription/
+msgid "OpenClash did not load the published policy."
+msgstr ""

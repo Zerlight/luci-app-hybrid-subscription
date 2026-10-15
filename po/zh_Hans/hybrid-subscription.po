@@ -1,0 +1,2064 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: luci-app-hybrid-subscription\n"
+"Language: zh_Hans\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+
+#: root/usr/share/luci/menu.d/luci-app-hybrid-subscription.json
+msgid "Hybrid Subscription"
+msgstr "混合订阅"
+
+#: root/usr/share/luci/menu.d/luci-app-hybrid-subscription.json
+msgid "Overview"
+msgstr "状态概览"
+
+#: root/usr/share/luci/menu.d/luci-app-hybrid-subscription.json
+#: htdocs/luci-static/resources/view/hybrid-subscription/sources.js:13
+msgid "Subscription Sources"
+msgstr "订阅源"
+
+#: root/usr/share/luci/menu.d/luci-app-hybrid-subscription.json
+#: htdocs/luci-static/resources/view/hybrid-subscription/overview.js:85
+#: htdocs/luci-static/resources/view/hybrid-subscription/profiles.js:16
+#: htdocs/luci-static/resources/view/hybrid-subscription/profiles.js:76
+msgid "Subscription Profiles"
+msgstr "订阅配置"
+
+#: root/usr/share/luci/menu.d/luci-app-hybrid-subscription.json
+#: htdocs/luci-static/resources/view/hybrid-subscription/rules.js:48
+msgid "Routing Rules"
+msgstr "分流规则"
+
+#: root/usr/share/luci/menu.d/luci-app-hybrid-subscription.json
+msgid "Global Settings"
+msgstr "全局设置"
+
+#: root/usr/share/rpcd/acl.d/luci-app-hybrid-subscription.json
+msgid "Manage hybrid subscription sources, profiles, and releases"
+msgstr "管理混合订阅源、配置草稿与发布版本"
+
+#: htdocs/luci-static/resources/hybrid-subscription.js:777
+msgid "The router did not return a valid response. Please check the backend service and permissions."
+msgstr "后端服务未返回有效响应，请检查服务运行状态及当前账户权限。"
+
+#: htdocs/luci-static/resources/hybrid-subscription.js:801
+#: htdocs/luci-static/resources/view/hybrid-subscription/overview.js:12
+#: htdocs/luci-static/resources/view/hybrid-subscription/sources.js:35
+msgid "Unknown"
+msgstr "未知"
+
+#: htdocs/luci-static/resources/hybrid-subscription.js:811
+msgid "No records"
+msgstr "暂无记录"
+
+#: htdocs/luci-static/resources/hybrid-subscription.js:817
+msgid "Validation found %s error(s)."
+msgstr "配置校验发现 %s 处错误。"
+
+#: htdocs/luci-static/resources/hybrid-subscription.js:817
+msgid "Validation passed with no blocking errors."
+msgstr "配置校验通过，未发现阻断性错误。"
+
+#: htdocs/luci-static/resources/hybrid-subscription.js:821
+#: htdocs/luci-static/resources/hybrid-subscription.js:1145
+#: htdocs/luci-static/resources/view/hybrid-subscription/overview.js:52
+#: htdocs/luci-static/resources/view/hybrid-subscription/overview.js:78
+#: htdocs/luci-static/resources/view/hybrid-subscription/profiles.js:35
+#: htdocs/luci-static/resources/view/hybrid-subscription/settings.js:80
+#: htdocs/luci-static/resources/view/hybrid-subscription/sources.js:39
+#: htdocs/luci-static/resources/view/hybrid-subscription/sources.js:70
+msgid "Close"
+msgstr "关闭"
+
+#: htdocs/luci-static/resources/hybrid-subscription.js:826
+msgid "Job submitted. Waiting for completion…"
+msgstr "任务已提交，正在等待后台执行完成…"
+
+#: htdocs/luci-static/resources/hybrid-subscription.js:827
+msgid "Refreshing the page will not cancel the background job."
+msgstr "刷新当前页面不会中断后台任务执行。"
+
+#: htdocs/luci-static/resources/hybrid-subscription.js:835
+#: htdocs/luci-static/resources/view/hybrid-subscription/overview.js:111
+msgid "Queued"
+msgstr "排队中"
+
+#: htdocs/luci-static/resources/hybrid-subscription.js:835
+#: htdocs/luci-static/resources/view/hybrid-subscription/overview.js:111
+msgid "Running"
+msgstr "运行中"
+
+#: htdocs/luci-static/resources/hybrid-subscription.js:835
+#: htdocs/luci-static/resources/view/hybrid-subscription/overview.js:111
+msgid "Completed"
+msgstr "已完成"
+
+#: htdocs/luci-static/resources/hybrid-subscription.js:835
+#: htdocs/luci-static/resources/view/hybrid-subscription/overview.js:111
+msgid "Failed"
+msgstr "失败"
+
+#: htdocs/luci-static/resources/hybrid-subscription.js:836
+msgid "Processing…"
+msgstr "正在处理…"
+
+#: htdocs/luci-static/resources/hybrid-subscription.js:840
+msgid "Job failed."
+msgstr "任务执行失败。"
+
+#: htdocs/luci-static/resources/hybrid-subscription.js:842
+msgid "The job is still running in the background. Check the Overview page for its status."
+msgstr "任务仍在后台运行，请稍后在“状态概览”页面查看结果。"
+
+#: htdocs/luci-static/resources/hybrid-subscription.js:855
+msgid "The backend did not return a job identifier."
+msgstr "后台未返回有效的任务标识。"
+
+#: htdocs/luci-static/resources/hybrid-subscription.js:926
+msgid "Draft saved. Build and publish from the Overview page to update downloads or OpenClash."
+msgstr "配置草稿已保存。如需更新订阅链接或同步至 OpenClash，请前往“状态概览”页面执行构建与发布。"
+
+#: htdocs/luci-static/resources/hybrid-subscription.js:938
+msgid "Add"
+msgstr "添加"
+
+#: htdocs/luci-static/resources/hybrid-subscription.js:939
+#: htdocs/luci-static/resources/view/hybrid-subscription/profiles.js:94
+msgid "Identifier"
+msgstr "标识符"
+
+#: htdocs/luci-static/resources/hybrid-subscription.js:941
+msgid "Start with a lowercase letter and use only lowercase letters, digits, underscores, or hyphens (up to 48 characters)."
+msgstr "须以小写字母开头，仅限小写字母、数字、下划线或连字符，长度不超过 48 个字符。"
+
+#: htdocs/luci-static/resources/hybrid-subscription.js:943
+#: htdocs/luci-static/resources/hybrid-subscription.js:1241
+#: htdocs/luci-static/resources/view/hybrid-subscription/profiles.js:96
+msgid "Name"
+msgstr "名称"
+
+#: htdocs/luci-static/resources/hybrid-subscription.js:1091
+msgid "Please enter a valid JSON array."
+msgstr "请输入合法的 JSON 数组。"
+
+#: htdocs/luci-static/resources/hybrid-subscription.js:1091
+msgid "Please enter a valid JSON object."
+msgstr "请输入合法的 JSON 对象。"
+
+#: htdocs/luci-static/resources/hybrid-subscription.js:1092
+msgid "Invalid JSON format: "
+msgstr "JSON 格式无效："
+
+#: htdocs/luci-static/resources/hybrid-subscription.js:1110
+msgid "Paste YAML, JSON, or node subscription content"
+msgstr "粘贴 YAML、JSON 或节点订阅内容"
+
+#: htdocs/luci-static/resources/hybrid-subscription.js:1114
+msgid "File size must not exceed 2 MiB."
+msgstr "文件大小不得超过 2 MiB。"
+
+#: htdocs/luci-static/resources/hybrid-subscription.js:1117
+msgid "Import Cache: "
+msgstr "导入本地缓存："
+
+#: htdocs/luci-static/resources/hybrid-subscription.js:1118
+msgid "Replaces only the local node cache for this source without fetching upstream or publishing automatically."
+msgstr "仅替换当前订阅源的本地节点缓存，不会请求上游接口或自动发布订阅。"
+
+#: htdocs/luci-static/resources/hybrid-subscription.js:1120
+#: htdocs/luci-static/resources/view/hybrid-subscription/overview.js:62
+#: htdocs/luci-static/resources/view/hybrid-subscription/overview.js:69
+#: htdocs/luci-static/resources/view/hybrid-subscription/overview.js:72
+#: htdocs/luci-static/resources/view/hybrid-subscription/overview.js:75
+#: htdocs/luci-static/resources/view/hybrid-subscription/profiles.js:101
+msgid "Cancel"
+msgstr "取消"
+
+#: htdocs/luci-static/resources/hybrid-subscription.js:1120
+msgid "Validate & Import"
+msgstr "校验并导入"
+
+#: htdocs/luci-static/resources/hybrid-subscription.js:1121
+msgid "Content size must not exceed 2 MiB."
+msgstr "内容大小不得超过 2 MiB。"
+
+#: htdocs/luci-static/resources/hybrid-subscription.js:1123
+msgid "Source node cache has been imported."
+msgstr "订阅源本地缓存已成功导入。"
+
+#: htdocs/luci-static/resources/hybrid-subscription.js:1134
+msgid "Download access is restricted to authenticated LuCI sessions. Third-party clients cannot pull via URL or QR code; please download the file and import it manually."
+msgstr "当前访问模式仅限已登录的 LuCI 会话下载。第三方客户端无法通过订阅链接或二维码直接拉取，请下载配置文件后手动导入。"
+
+#: htdocs/luci-static/resources/hybrid-subscription.js:1134
+msgid "Anyone with the download link can access the node credentials in this subscription. Share only with your own trusted devices."
+msgstr "持有下载链接即可获取订阅内的节点连接凭据，请仅在受信任的自有设备间使用，切勿公开分享。"
+
+#: htdocs/luci-static/resources/hybrid-subscription.js:1137
+msgid "Download File"
+msgstr "下载配置文件"
+
+#: htdocs/luci-static/resources/hybrid-subscription.js:1141
+msgid "Import in Surge"
+msgstr "一键导入至 Surge"
+
+#: htdocs/luci-static/resources/hybrid-subscription.js:1144
+msgid "No published artifacts are available. Build and publish the profile first."
+msgstr "当前尚无已发布的配置文件，请先构建并发布版本。"
+
+#: htdocs/luci-static/resources/hybrid-subscription.js:1146
+msgid "Subscription Download & QR Code"
+msgstr "订阅下载与二维码"
+
+#: htdocs/luci-static/resources/hybrid-subscription.js:1164
+msgid "Dependency graph of subscription sources, policy groups, rematch entries, and sub-rules"
+msgstr "订阅源、策略组、重匹配项与子规则依赖关系图"
+
+#: htdocs/luci-static/resources/hybrid-subscription.js:1169
+msgid "Final fallback policy of main rules"
+msgstr "主规则链默认兜底出口"
+
+#: htdocs/luci-static/resources/hybrid-subscription.js:1190
+msgid "Main rules final fallback"
+msgstr "主规则链默认出口"
+
+#: htdocs/luci-static/resources/hybrid-subscription.js:1192
+msgid "Source nodes expanded into policy group"
+msgstr "订阅源节点汇入策略组"
+
+#: htdocs/luci-static/resources/hybrid-subscription.js:1193
+msgid "Group member"
+msgstr "策略组成员引用"
+
+#: htdocs/luci-static/resources/hybrid-subscription.js:1194
+msgid "Empty group fallback"
+msgstr "空策略组回退出口"
+
+#: htdocs/luci-static/resources/hybrid-subscription.js:1196
+msgid "Forwards to sub-rule"
+msgstr "转发至子规则"
+
+#: htdocs/luci-static/resources/hybrid-subscription.js:1198
+msgid "Sub-rule final fallback"
+msgstr "子规则默认出口"
+
+#: htdocs/luci-static/resources/hybrid-subscription.js:1220
+msgid "Profile / Sources"
+msgstr "配置 / 订阅源"
+
+#: htdocs/luci-static/resources/hybrid-subscription.js:1220
+#: htdocs/luci-static/resources/view/hybrid-subscription/profiles.js:41
+#: htdocs/luci-static/resources/view/hybrid-subscription/profiles.js:77
+msgid "Policy Groups"
+msgstr "策略组"
+
+#: htdocs/luci-static/resources/hybrid-subscription.js:1220
+msgid "Rematch Entries"
+msgstr "重匹配项"
+
+#: htdocs/luci-static/resources/hybrid-subscription.js:1220
+msgid "Sub-Rules"
+msgstr "子规则"
+
+#: htdocs/luci-static/resources/hybrid-subscription.js:1220
+msgid "Built-in Policies"
+msgstr "内置策略"
+
+#: htdocs/luci-static/resources/hybrid-subscription.js:1238
+msgid "Zoom"
+msgstr "缩放比例"
+
+#: htdocs/luci-static/resources/hybrid-subscription.js:1239
+msgid "Scroll horizontally or vertically to inspect. 100% preserves native label size; expand below for full names and outgoing references."
+msgstr "支持横向与纵向滚动浏览。100% 比例保持原始字号；可在下方展开查看完整名称与引用明细。"
+
+#: htdocs/luci-static/resources/hybrid-subscription.js:1240
+msgid "Scrollable policy dependency graph"
+msgstr "可滚动的策略依赖关系图"
+
+#: htdocs/luci-static/resources/hybrid-subscription.js:1241
+msgid "Full Names & Outgoing References (Click a Name to Focus)"
+msgstr "完整名称与引用明细（点击名称可定位节点）"
+
+#: htdocs/luci-static/resources/hybrid-subscription.js:1241
+msgid "References"
+msgstr "引用目标"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/overview.js:15
+#: htdocs/luci-static/resources/view/hybrid-subscription/overview.js:22
+msgid "Confirm Publication"
+msgstr "确认发布"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/overview.js:16
+msgid "Validation and build succeeded. Publishing makes this release available via the download link without re-fetching upstream sources."
+msgstr "配置校验与构建已完成。发布后，客户端下载链接将切换至此版本，期间不会重新拉取上游订阅源。"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/overview.js:17
+msgid "The following compatibility differences may affect client behavior. Please review and confirm each item:"
+msgstr "以下兼容性差异可能影响客户端行为，请逐项核对并确认："
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/overview.js:17
+msgid "No compatibility differences require confirmation."
+msgstr "未检测到需要确认的兼容性差异。"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/overview.js:22
+msgid "Not Now"
+msgstr "暂不发布"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/overview.js:23
+msgid "Please confirm all compatibility differences, or return to modify the configuration."
+msgstr "请先勾选确认所有兼容性差异，或返回修改配置。"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/overview.js:26
+#: htdocs/luci-static/resources/view/hybrid-subscription/overview.js:69
+#: htdocs/luci-static/resources/view/hybrid-subscription/overview.js:111
+msgid "Apply to OpenClash"
+msgstr "应用至 OpenClash"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/overview.js:35
+msgid "Used "
+msgstr "已用 "
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/overview.js:35
+msgid "No quota data"
+msgstr "暂无流量数据"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/overview.js:36
+#: htdocs/luci-static/resources/view/hybrid-subscription/sources.js:35
+msgid "Expires: "
+msgstr "到期时间："
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/overview.js:36
+msgid "Not provided by upstream"
+msgstr "上游未提供"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/overview.js:36
+#: htdocs/luci-static/resources/view/hybrid-subscription/sources.js:35
+msgid "Never expires"
+msgstr "长期有效"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/overview.js:36
+msgid "Click \"Refresh Quota\" to fetch the latest data."
+msgstr "可点击“刷新额度”获取最新数据。"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/overview.js:36
+msgid "Quota query is not configured. Configure it under Subscription Sources."
+msgstr "未配置额度查询，请前往“订阅源”页面配置。"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/overview.js:37
+#: htdocs/luci-static/resources/view/hybrid-subscription/sources.js:35
+msgid "Stale · "
+msgstr "数据已过期 · "
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/overview.js:45
+msgid "Preview Client Format"
+msgstr "预览客户端格式"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/overview.js:46
+msgid "Select a format to generate a preview. Sensitive node credentials will be redacted."
+msgstr "选择目标格式并生成预览，节点密码等敏感凭据将自动脱敏显示。"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/overview.js:47
+msgid "Preview: "
+msgstr "配置预览："
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/overview.js:47
+msgid "Generate Preview"
+msgstr "生成预览"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/overview.js:49
+msgid "No content available to display."
+msgstr "暂无可显示的内容。"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/overview.js:56
+msgid "Release Management: "
+msgstr "版本管理："
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/overview.js:57
+msgid "Validate Draft"
+msgstr "校验草稿"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/overview.js:57
+msgid "Validation Result"
+msgstr "校验结果"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/overview.js:57
+msgid "View Preview"
+msgstr "查看预览"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/overview.js:57
+msgid "Edit Routing Rules"
+msgstr "编辑分流规则"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/overview.js:58
+msgid "Release History"
+msgstr "版本记录"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/overview.js:59
+msgid "Created At"
+msgstr "生成时间"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/overview.js:59
+msgid "Release ID"
+msgstr "版本号"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/overview.js:59
+#: htdocs/luci-static/resources/view/hybrid-subscription/overview.js:107
+#: htdocs/luci-static/resources/view/hybrid-subscription/overview.js:110
+msgid "Status"
+msgstr "状态"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/overview.js:59
+#: htdocs/luci-static/resources/view/hybrid-subscription/overview.js:101
+msgid "Actions"
+msgstr "操作"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/overview.js:60
+msgid "Published"
+msgstr "当前发布"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/overview.js:60
+msgid "Previously Published"
+msgstr "历史发布"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/overview.js:60
+msgid "Unpublished"
+msgstr "未发布"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/overview.js:60
+msgid "Roll Back"
+msgstr "回滚"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/overview.js:60
+msgid "Publish"
+msgstr "发布"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/overview.js:62
+msgid "Roll Back Release"
+msgstr "回滚版本"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/overview.js:62
+msgid "Rolling back restores the download link to this release. If auto-apply is enabled, OpenClash will also be updated."
+msgstr "回滚后，客户端下载链接将恢复至此版本；若已启用自动应用，OpenClash 配置也将同步更新。"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/overview.js:62
+msgid "Confirm Rollback"
+msgstr "确认回滚"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/overview.js:63
+msgid "Roll Back OpenClash"
+msgstr "回滚至 OpenClash"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/overview.js:67
+msgid "OpenClash & Download Management"
+msgstr "OpenClash 与下载管理"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/overview.js:68
+msgid "Apply Published Release to OpenClash"
+msgstr "将已发布版本应用至 OpenClash"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/overview.js:69
+msgid "This will back up and switch the active OpenClash configuration, which may briefly interrupt proxy connections."
+msgstr "系统将备份当前配置并切换 OpenClash 运行配置，期间代理连接可能短暂中断。"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/overview.js:69
+msgid "Apply"
+msgstr "应用"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/overview.js:71
+#: htdocs/luci-static/resources/view/hybrid-subscription/overview.js:72
+msgid "Rotate Download Token"
+msgstr "重置下载令牌"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/overview.js:72
+msgid "Existing download links and QR codes will be invalidated immediately. Clients must re-import the new subscription URL."
+msgstr "重置后，原有下载链接与二维码将立即失效，客户端需重新导入订阅地址。"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/overview.js:72
+msgid "Confirm Rotation"
+msgstr "确认重置"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/overview.js:74
+#: htdocs/luci-static/resources/view/hybrid-subscription/overview.js:75
+msgid "Unpublish"
+msgstr "停止发布"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/overview.js:75
+msgid "Revokes download links while retaining release history and the active OpenClash configuration."
+msgstr "停用外部下载链接并吊销访问令牌，历史版本记录与当前 OpenClash 运行配置将予以保留。"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/overview.js:75
+msgid "Confirm Unpublish"
+msgstr "确认停止发布"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/overview.js:90
+msgid "Published · "
+msgstr "已发布 · "
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/overview.js:90
+msgid "Draft · Unpublished"
+msgstr "草稿 · 未发布"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/overview.js:91
+msgid "Edit Profile"
+msgstr "编辑配置"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/overview.js:91
+msgid "Build & Publish"
+msgstr "构建并发布"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/overview.js:92
+msgid "Validate and Build Release"
+msgstr "校验并构建版本"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/overview.js:94
+msgid "No release ID was returned. Please check the job status."
+msgstr "未返回版本标识，请查看任务执行结果。"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/overview.js:97
+msgid "Download / QR Code"
+msgstr "下载 / 二维码"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/overview.js:97
+msgid "Release Management"
+msgstr "版本管理"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/overview.js:99
+msgid "Add subscription sources first, then create a subscription profile."
+msgstr "请先添加订阅源，再创建订阅配置。"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/overview.js:99
+msgid "Create Subscription Profile"
+msgstr "创建订阅配置"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/overview.js:100
+msgid "Subscription Source Status"
+msgstr "订阅源状态"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/overview.js:101
+msgid "Source"
+msgstr "订阅源"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/overview.js:101
+msgid "Node Cache"
+msgstr "节点缓存"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/overview.js:101
+#: htdocs/luci-static/resources/view/hybrid-subscription/sources.js:31
+#: htdocs/luci-static/resources/view/hybrid-subscription/sources.js:76
+msgid "Quota / Expiration"
+msgstr "流量 / 到期"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/overview.js:103
+msgid " nodes"
+msgstr " 个节点"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/overview.js:103
+#: htdocs/luci-static/resources/view/hybrid-subscription/sources.js:19
+msgid "Not cached"
+msgstr "尚未缓存"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/overview.js:103
+msgid " regions matched"
+msgstr " 个匹配地区"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/overview.js:104
+#: htdocs/luci-static/resources/view/hybrid-subscription/overview.js:111
+#: htdocs/luci-static/resources/view/hybrid-subscription/sources.js:37
+msgid "Refresh Quota"
+msgstr "刷新额度"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/overview.js:104
+#: htdocs/luci-static/resources/view/hybrid-subscription/sources.js:42
+msgid "Refresh Quota Status"
+msgstr "刷新流量额度"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/overview.js:104
+msgid "Manage Sources"
+msgstr "管理订阅源"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/overview.js:107
+msgid "Components & Recent Jobs"
+msgstr "组件状态与近期任务"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/overview.js:107
+msgid "Component"
+msgstr "组件"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/overview.js:108
+msgid "Installed"
+msgstr "已安装"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/overview.js:108
+msgid "Not installed"
+msgstr "未安装"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/overview.js:109
+msgid "Available"
+msgstr "可用"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/overview.js:109
+msgid "Unavailable"
+msgstr "不可用"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/overview.js:110
+msgid "Time"
+msgstr "时间"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/overview.js:110
+msgid "Operation"
+msgstr "操作"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/overview.js:110
+msgid "Details"
+msgstr "详情"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/overview.js:111
+msgid "Update Nodes"
+msgstr "更新节点"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/overview.js:111
+msgid "Build Release"
+msgstr "构建版本"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/overview.js:111
+msgid "Compatibility Audit"
+msgstr "兼容性比对"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/profiles.js:17
+#: htdocs/luci-static/resources/view/hybrid-subscription/profiles.js:100
+msgid "Quick Create Profile"
+msgstr "快速创建订阅配置"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/profiles.js:19
+#: htdocs/luci-static/resources/view/hybrid-subscription/profiles.js:97
+msgid "Included Sources"
+msgstr "包含的订阅源"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/profiles.js:21
+msgid "Export Formats"
+msgstr "导出格式"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/profiles.js:23
+msgid "Default Fallback Policy"
+msgstr "默认兜底策略"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/profiles.js:23
+msgid "Select a policy group or rematch entry belonging to this profile, or DIRECT / REJECT."
+msgstr "未命中任何分流规则时的默认出口，仅可选择当前配置下的策略组、重匹配项或内置策略。"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/profiles.js:25
+msgid "Mihomo Core Variant"
+msgstr "Mihomo 内核版本"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/profiles.js:25
+msgid "The Smart core variant is required when using Smart policy groups."
+msgstr "若策略组使用了 Smart 类型，须选择支持 Smart 的 Mihomo 内核。"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/profiles.js:25
+msgid "Standard Mihomo"
+msgstr "标准 Mihomo 内核"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/profiles.js:25
+msgid "Mihomo Smart"
+msgstr "Mihomo Smart 内核"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/profiles.js:26
+msgid "Surge Target"
+msgstr "Surge 目标版本"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/profiles.js:26
+msgid "Surge (Modern)"
+msgstr "Surge 现代版"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/profiles.js:27
+msgid "sing-box Target"
+msgstr "sing-box 目标版本"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/profiles.js:28
+msgid "Mihomo DNS Policy (JSON)"
+msgstr "Mihomo DNS 策略（JSON）"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/profiles.js:28
+msgid "Configure Mihomo DNS routing options. Listener addresses and controller secrets are managed by the router and not permitted here. Leave empty to use defaults."
+msgstr "配置 Mihomo DNS 分流与解析参数；监听地址、控制端口及密钥等运行期参数由宿主环境接管，不可在此定义。留空则使用默认配置。"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/profiles.js:29
+msgid "Mihomo Advanced Policy (JSON)"
+msgstr "Mihomo 高级策略（JSON）"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/profiles.js:29
+msgid "Configure domain sniffing, connection behavior, and GeoIP/GeoSite database options. Controller, listener, TUN, and network interface bindings are not permitted."
+msgstr "配置域名嗅探、连接保活及地理数据库（GeoIP / GeoSite）等策略项；不支持定义外部控制器、入站监听、TUN 或网卡绑定参数。"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/profiles.js:30
+msgid "Dependency Graph"
+msgstr "依赖关系图"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/profiles.js:33
+msgid "Dependency Graph: "
+msgstr "依赖关系图："
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/profiles.js:34
+msgid "Directed edges illustrate references across sources, policy groups, rematch entries, and sub-rules. Circular dependencies will block validation and publication."
+msgstr "有向连线表示订阅源、策略组、重匹配项与子规则之间的引用关系。若存在循环依赖，配置校验将予以拦截并禁止发布。"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/profiles.js:39
+#: htdocs/luci-static/resources/view/hybrid-subscription/rules.js:47
+msgid "General"
+msgstr "基本设置"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/profiles.js:39
+msgid "Target Clients"
+msgstr "目标客户端"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/profiles.js:39
+msgid "Advanced Policy"
+msgstr "高级策略"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/profiles.js:43
+#: htdocs/luci-static/resources/view/hybrid-subscription/profiles.js:64
+#: htdocs/luci-static/resources/view/hybrid-subscription/profiles.js:70
+#: htdocs/luci-static/resources/view/hybrid-subscription/rules.js:18
+msgid "Profile"
+msgstr "所属配置"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/profiles.js:44
+msgid "Node Sources"
+msgstr "节点来源"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/profiles.js:44
+msgid "Leave empty to include only explicit group members without expanding source nodes."
+msgstr "留空则不自动展开订阅源节点，仅包含下方显式指定的策略组成员。"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/profiles.js:45
+msgid "Region Template"
+msgstr "地区匹配模板"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/profiles.js:45
+msgid "Combined with the include and exclude regular expressions below. Per-source region overrides can be configured in Global Settings."
+msgstr "与下方的包含、排除正则条件同时生效（取交集）。如需按订阅源单独定制地区匹配规则，可在“全局设置”中配置。"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/profiles.js:45
+msgid "No Region Template"
+msgstr "不使用地区模板"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/profiles.js:46
+#: htdocs/luci-static/resources/view/hybrid-subscription/settings.js:46
+msgid "None"
+msgstr "无"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/profiles.js:47
+msgid "Include Nodes (Regex)"
+msgstr "包含节点（正则）"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/profiles.js:47
+msgid "Example: Japan|日本|JP to match only nodes in that region."
+msgstr "例如填写 Japan|日本|JP，仅筛选名称匹配的节点入组。"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/profiles.js:48
+msgid "Exclude Nodes (Regex)"
+msgstr "排除节点（正则）"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/profiles.js:49
+msgid "Group Members / Built-in Policies"
+msgstr "策略组成员 / 内置策略"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/profiles.js:49
+msgid "Select policy groups or rematch entries within the same profile, or DIRECT / REJECT. Surge Smart groups accept nodes only."
+msgstr "可选择同一订阅配置下的策略组、重匹配项或 DIRECT、REJECT。注意：Surge 的 Smart 策略组仅支持直接包含节点。"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/profiles.js:50
+msgid "Mihomo Group Type"
+msgstr "Mihomo 策略组类型"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/profiles.js:50
+#: htdocs/luci-static/resources/view/hybrid-subscription/profiles.js:51
+#: htdocs/luci-static/resources/view/hybrid-subscription/profiles.js:52
+msgid "Manual Select"
+msgstr "手动选择"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/profiles.js:50
+#: htdocs/luci-static/resources/view/hybrid-subscription/profiles.js:51
+#: htdocs/luci-static/resources/view/hybrid-subscription/profiles.js:52
+msgid "URL Test (Auto)"
+msgstr "自动测速优选（URL-Test）"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/profiles.js:50
+#: htdocs/luci-static/resources/view/hybrid-subscription/profiles.js:51
+msgid "Fallback"
+msgstr "故障转移（Fallback）"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/profiles.js:50
+msgid "Load Balance"
+msgstr "负载均衡（Load-Balance）"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/profiles.js:51
+msgid "Surge Group Type"
+msgstr "Surge 策略组类型"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/profiles.js:52
+msgid "sing-box Group Type"
+msgstr "sing-box 策略组类型"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/profiles.js:53
+msgid "Health Check URL"
+msgstr "连通性测试地址"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/profiles.js:54
+msgid "Test Interval (seconds)"
+msgstr "测速间隔（秒）"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/profiles.js:55
+msgid "Latency Tolerance (ms)"
+msgstr "延迟容差（毫秒）"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/profiles.js:56
+msgid "Hide Group in Supported Clients"
+msgstr "在客户端界面隐藏此策略组"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/profiles.js:57
+msgid "Mihomo Default Selection"
+msgstr "Mihomo 默认选中项"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/profiles.js:57
+msgid "Must be a member of this group. Leave empty to use the client default."
+msgstr "须为当前策略组的有效成员；留空则使用客户端默认选中项。"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/profiles.js:58
+msgid "Mihomo Empty Group Fallback"
+msgstr "Mihomo 空组回退策略"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/profiles.js:58
+msgid "Fallback policy when no nodes match the filter. Leave empty to report an empty group during validation."
+msgstr "未筛选到任何节点时使用的回退出口；留空则在配置校验时报错提示。"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/profiles.js:59
+msgid "Lazy Health Check"
+msgstr "按需延迟测试（Lazy）"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/profiles.js:59
+msgid "Mihomo tests node latency only when this policy group is actively used."
+msgstr "仅在该策略组产生实际流量时触发节点连通性测试（仅 Mihomo 生效）。"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/profiles.js:60
+msgid "Nodes & Members"
+msgstr "节点与成员"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/profiles.js:60
+msgid "Client Behavior"
+msgstr "客户端行为"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/profiles.js:60
+msgid "Health Check"
+msgstr "连通性测试"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/profiles.js:62
+msgid "Mihomo Rematch Entries"
+msgstr "Mihomo 重匹配入口"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/profiles.js:62
+msgid "Forwards traffic into a designated sub-rule for secondary matching."
+msgstr "将命中的流量转交至指定子规则链进行二次分流匹配。"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/profiles.js:65
+msgid "Target Sub-Rule"
+msgstr "目标子规则"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/profiles.js:66
+msgid "Rematch Tag"
+msgstr "重匹配标记"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/profiles.js:66
+msgid "Optional tag matched by REMATCH-NAME rules inside the target sub-rule."
+msgstr "可选标记，供目标子规则中的 REMATCH-NAME 规则识别来源。"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/profiles.js:68
+msgid "Mihomo Sub-Rules"
+msgstr "Mihomo 子规则"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/profiles.js:68
+msgid "Rules inside each sub-rule are managed on the Routing Rules page and evaluated in order."
+msgstr "子规则内的分流条目在“分流规则”页面统一管理，并按排列顺序依次匹配。"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/profiles.js:71
+msgid "Fallback Policy"
+msgstr "未命中兜底策略"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/profiles.js:72
+msgid "Save & Edit Rules"
+msgstr "保存并编辑规则"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/profiles.js:78
+msgid "Advanced Routing"
+msgstr "高级路由"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/profiles.js:80
+#: htdocs/luci-static/resources/view/hybrid-subscription/rules.js:49
+msgid "All Profiles"
+msgstr "全部订阅配置"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/profiles.js:83
+#: htdocs/luci-static/resources/view/hybrid-subscription/rules.js:53
+msgid "Active Profile"
+msgstr "当前订阅配置"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/profiles.js:95
+msgid "Use 1–40 lowercase letters, digits, underscores, or hyphens, starting with a letter."
+msgstr "请使用 1–40 个小写字母、数字、下划线或连字符，且须以字母开头。"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/profiles.js:100
+msgid "Creates a starter profile with a manual node selection group for Mihomo, Surge, and sing-box. You can add region groups and routing rules afterward."
+msgstr "自动生成包含默认手动选择策略组的基础配置（适配 Mihomo、Surge 与 sing-box），创建后可继续添加地区策略组与分流规则。"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/profiles.js:101
+msgid "Add to Draft"
+msgstr "添加至草稿"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/profiles.js:104
+msgid "Profile identifier already exists."
+msgstr "该配置标识符已存在。"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/profiles.js:107
+msgid "Proxy"
+msgstr "节点选择"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/rules.js:13
+msgid "Ordered Routing Rules"
+msgstr "分流规则列表"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/rules.js:19
+#: htdocs/luci-static/resources/view/hybrid-subscription/rules.js:54
+msgid "Rule Scope"
+msgstr "所属规则域"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/rules.js:19
+msgid "Select Main Rules or a sub-rule belonging to the same profile."
+msgstr "留空归入主规则链；若选择子规则，须归属于同一订阅配置。"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/rules.js:19
+#: htdocs/luci-static/resources/view/hybrid-subscription/rules.js:20
+#: htdocs/luci-static/resources/view/hybrid-subscription/rules.js:49
+msgid "Main Rules"
+msgstr "主规则链"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/rules.js:21
+#: htdocs/luci-static/resources/view/hybrid-subscription/sources.js:14
+msgid "Enabled"
+msgstr "启用"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/rules.js:22
+msgid "Rule Type"
+msgstr "规则类型"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/rules.js:23
+msgid "Match Value"
+msgstr "匹配内容"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/rules.js:23
+msgid "Use TCP or UDP for NETWORK; REMATCH-NAME is valid only within sub-rules. Edit AND/OR/NOT conditions under the \"Advanced Conditions\" tab."
+msgstr "NETWORK 类型请填写 TCP 或 UDP；REMATCH-NAME 仅在子规则内有效。AND / OR / NOT 逻辑组合条件请在“高级条件”标签页中编辑。"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/rules.js:26
+msgid "Logical expression · "
+msgstr "逻辑组合 · "
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/rules.js:26
+msgid " conditions"
+msgstr " 个条件"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/rules.js:30
+msgid "Outbound Policy"
+msgstr "出口策略"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/rules.js:31
+msgid "Skip DNS Resolution (no-resolve)"
+msgstr "跳过域名解析（no-resolve）"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/rules.js:31
+msgid "Applies to IP and rule-set rules that support no-resolve. Unsupported target formats will report a warning during validation."
+msgstr "匹配 IP 或规则集时不触发本地 DNS 解析；若目标客户端不支持该标记，校验时将给出兼容性提示。"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/rules.js:32
+msgid "Logical Conditions (JSON Array)"
+msgstr "逻辑条件（JSON 数组）"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/rules.js:32
+msgid "Example: [ {\"type\":\"NETWORK\",\"value\":\"UDP\"}, {\"type\":\"RULE-SET\",\"value\":\"ruleset_id\"} ]. Nested conditions use type and conditions; AND/OR require at least 2 conditions, and NOT requires exactly 1."
+msgstr "示例：[ {\"type\":\"NETWORK\",\"value\":\"UDP\"}, {\"type\":\"RULE-SET\",\"value\":\"规则集标识\"} ]。支持通过 type 与 conditions 嵌套组合；AND / OR 至少包含 2 个子条件，NOT 须恰好包含 1 个子条件。"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/rules.js:34
+msgid "Matching & Policy"
+msgstr "匹配与出口"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/rules.js:34
+msgid "Advanced Conditions"
+msgstr "高级条件"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/rules.js:36
+msgid "Shared Rule Sets"
+msgstr "共享规则集"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/rules.js:36
+msgid "Available across all subscription profiles regardless of the active filter above."
+msgstr "可供所有订阅配置引用，不受上方配置筛选条件限制。"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/rules.js:37
+msgid "Source Type"
+msgstr "规则集来源"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/rules.js:37
+msgid "Remote URL"
+msgstr "远程地址"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/rules.js:37
+msgid "Inline Rules"
+msgstr "内联规则"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/rules.js:38
+msgid "Rule Behavior"
+msgstr "匹配行为类型"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/rules.js:38
+msgid "Domain"
+msgstr "域名（domain）"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/rules.js:38
+msgid "IP CIDR"
+msgstr "IP 网段（ipcidr）"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/rules.js:38
+msgid "Classical"
+msgstr "经典复合规则（classical）"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/rules.js:39
+msgid "Inline Rule Entries"
+msgstr "内联规则内容"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/rules.js:39
+msgid "One rule per line without an outbound policy, e.g., DOMAIN-SUFFIX,example.com."
+msgstr "每行填写一条不含出口策略的规则，例如：DOMAIN-SUFFIX,example.com。"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/rules.js:40
+msgid "Mihomo URL"
+msgstr "Mihomo 规则集地址"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/rules.js:41
+msgid "Mihomo Format"
+msgstr "Mihomo 规则集格式"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/rules.js:42
+msgid "Mihomo Download Detour Policy"
+msgstr "Mihomo 规则集下载策略"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/rules.js:42
+msgid "Leave empty to use the client default outbound for fetching rule sets."
+msgstr "指定拉取该远程规则集时使用的代理策略；留空则使用客户端默认下载策略。"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/rules.js:43
+msgid "Surge URL"
+msgstr "Surge 规则集地址"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/rules.js:43
+msgid "URL of a Surge-compatible RULE-SET file."
+msgstr "填写兼容 Surge RULE-SET / DOMAIN-SET 格式的远程规则地址。"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/rules.js:44
+msgid "sing-box URL"
+msgstr "sing-box 规则集地址"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/rules.js:45
+msgid "sing-box Format"
+msgstr "sing-box 规则集格式"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/rules.js:46
+#: htdocs/luci-static/resources/view/hybrid-subscription/sources.js:46
+msgid "Update Interval (seconds)"
+msgstr "更新间隔（秒）"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/rules.js:47
+msgid "Content & URLs"
+msgstr "内容与地址"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/rules.js:47
+msgid "Update Options"
+msgstr "更新策略"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/rules.js:48
+msgid "Rule Sets"
+msgstr "规则集"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/rules.js:49
+msgid "All Main & Sub-Rules"
+msgstr "全部主规则与子规则"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/settings.js:12
+msgid "Region Matching Templates"
+msgstr "国家与地区匹配模板"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/settings.js:12
+msgid "Classify nodes into regions by matching node names against flag emojis, region names, or ISO country codes. Per-source rules override the general pattern."
+msgstr "根据节点名称自动识别国家或地区，支持匹配国旗 Emoji、中英文名称及国家代码。订阅源专属规则优先于通用匹配规则。"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/settings.js:14
+msgid "Add Common Regions"
+msgstr "添加常用地区模板"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/settings.js:15
+msgid "Preview Region Matches"
+msgstr "预览地区匹配结果"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/settings.js:17
+msgid "General Pattern (Regex)"
+msgstr "通用匹配规则（正则）"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/settings.js:17
+msgid "Example: 🇯🇵|日本|Japan. Use word-boundary assertions for short country codes to avoid false positives. Patterns must not match empty strings."
+msgstr "例如：🇯🇵|日本|Japan。对于两字母/三字母国家代码，建议使用内置模板的单词边界断言以避免误匹配；正则表达式不可匹配空字符串。"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/settings.js:18
+msgid "Source Overrides"
+msgstr "订阅源专属覆盖"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/settings.js:21
+msgid "Use general pattern for all sources"
+msgstr "全部使用通用规则"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/settings.js:25
+msgid " Override Pattern"
+msgstr " 专属匹配规则"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/settings.js:25
+msgid "Leave empty to use the general pattern above. When specified, only this source uses this regular expression."
+msgstr "留空则沿用上方通用匹配规则；填写后，该订阅源将优先采用此正则表达式。"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/settings.js:35
+msgid "View Matched Nodes"
+msgstr "查看匹配节点"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/settings.js:37
+#: htdocs/luci-static/resources/view/hybrid-subscription/settings.js:51
+msgid "Download & Integration"
+msgstr "下载与系统集成"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/settings.js:37
+msgid "Manage published releases, download links, and rollbacks on the Overview page."
+msgstr "如需管理已发布版本、获取下载链接或执行版本回滚，请前往“状态概览”页面。"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/settings.js:38
+msgid "Download Access"
+msgstr "下载访问控制"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/settings.js:38
+msgid "OpenClash & Subconverter"
+msgstr "OpenClash 与本地转换器"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/settings.js:39
+msgid "Download Access Mode"
+msgstr "下载访问鉴权方式"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/settings.js:40
+msgid "LAN + Download Token"
+msgstr "局域网访问 + 下载令牌"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/settings.js:40
+msgid "Download Token (All Reachable Networks)"
+msgstr "仅校验下载令牌（所有可达网络）"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/settings.js:40
+msgid "Authenticated LuCI Session Only"
+msgstr "仅限已登录的 LuCI 会话"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/settings.js:42
+msgid "Changing the access mode does not open firewall ports. Session-only mode does not provide QR codes for third-party clients. Rotate tokens under \"Release Management\" on the Overview page."
+msgstr "修改鉴权方式不会更改路由器防火墙端口策略。“仅限已登录的 LuCI 会话”模式下不生成供第三方客户端扫码的链接。如需重置令牌，请前往“状态概览 → 版本管理”。"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/settings.js:43
+msgid "Subscription Base URL"
+msgstr "订阅链接基础地址"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/settings.js:43
+msgid "Leave empty to use the current router origin."
+msgstr "留空则默认使用当前访问路由器的协议、主机名与端口。"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/settings.js:45
+msgid "Auto-Apply to OpenClash on Publish"
+msgstr "发布后自动应用至 OpenClash"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/settings.js:45
+msgid "Applies only to the profile selected below (disabled by default). When enabled, publishing or rolling back will reload OpenClash."
+msgstr "仅对下方指定的关联配置生效（默认关闭）。启用后，每次发布或回滚该配置时将自动同步并重载 OpenClash。"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/settings.js:46
+msgid "Linked OpenClash Profile"
+msgstr "OpenClash 关联订阅配置"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/settings.js:48
+msgid "Local Subconverter URL"
+msgstr "本地 subconverter 服务地址"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/settings.js:48
+msgid "Loopback addresses only. Run compatibility audits from the Advanced tab of a subscription source."
+msgstr "仅允许填写本机回环地址（127.0.0.1 或 ::1）。可在“订阅源 → 高级选项”中执行兼容性比对。"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/settings.js:50
+msgid "Region Matching"
+msgstr "地区匹配"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/settings.js:75
+msgid "Match Preview: "
+msgstr "匹配预览："
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/settings.js:75
+msgid "Region Match Preview"
+msgstr "地区匹配预览"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/settings.js:75
+msgid "Previewed against currently cached node names. If a node matches multiple regions, refine the regular expressions. Name matching does not guarantee the actual egress IP location."
+msgstr "基于当前本地缓存的节点名称进行试算。若同一节点命中多个地区，建议收紧正则表达式；名称匹配结果仅用于策略归类，不代表节点实际出口 IP 归属地。"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/settings.js:78
+msgid " matched nodes"
+msgstr " 个匹配节点"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/settings.js:78
+msgid " nodes, "
+msgstr " 个节点，未匹配 "
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/settings.js:78
+msgid " unmatched, "
+msgstr " 个，多重匹配 "
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/settings.js:78
+msgid " ambiguous"
+msgstr " 个"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/settings.js:79
+msgid "Original Node Name"
+msgstr "原始节点名称"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/settings.js:79
+msgid "Matched Regions"
+msgstr "命中地区"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/settings.js:79
+msgid "Unmatched"
+msgstr "未匹配"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/sources.js:16
+msgid "Cache Status"
+msgstr "缓存状态"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/sources.js:19
+msgid "Disabled · "
+msgstr "已停用 · "
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/sources.js:19
+msgid " nodes · "
+msgstr " 个节点 · "
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/sources.js:21
+msgid "Subscription URL"
+msgstr "订阅地址"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/sources.js:21
+msgid "Leave blank to keep the saved URL. For a new source, you may save an empty URL first and import a local file later. Saved URLs are never sent back to the browser."
+msgstr "留空则保留已保存的地址；新建订阅源也可先留空保存，随后导入本地文件。出于安全考虑，已保存的地址不会回传至浏览器。"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/sources.js:23
+msgid "URL Saved"
+msgstr "已保存地址"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/sources.js:24
+#: htdocs/luci-static/resources/view/hybrid-subscription/sources.js:27
+msgid "Yes"
+msgstr "是"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/sources.js:24
+#: htdocs/luci-static/resources/view/hybrid-subscription/sources.js:27
+msgid "No"
+msgstr "否"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/sources.js:25
+msgid "Dedicated Quota Query URL"
+msgstr "独立额度查询地址"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/sources.js:25
+msgid "Specify a dedicated endpoint that returns the Subscription-Userinfo header. Quota refreshes never fall back to the subscription URL. Leave blank to keep the saved URL."
+msgstr "填写返回 Subscription-Userinfo 响应头的独立查询接口。刷新额度时不会回退请求订阅地址；留空则保留现有配置。"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/sources.js:26
+msgid "Quota URL Saved"
+msgstr "已保存额度地址"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/sources.js:28
+msgid "Clear Saved Quota URL"
+msgstr "清除已保存的额度地址"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/sources.js:28
+msgid "Check and save to remove the dedicated quota query endpoint."
+msgstr "勾选并保存后，将移除已保存的独立额度查询地址。"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/sources.js:29
+msgid "Query Quota via Subscription URL"
+msgstr "允许通过订阅地址查询额度"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/sources.js:29
+msgid "When no dedicated quota URL is set, sends a GET request to the subscription URL to read response headers. Keep disabled for time-windowed or rate-limited subscriptions, as this may consume pull quota. Only triggered manually."
+msgstr "未配置独立查询地址时，通过向订阅地址发送 GET 请求读取响应头。对于限制拉取次数或仅限时开放的订阅源，请保持关闭，以免消耗拉取配额。仅在手动点击“刷新额度”时触发。"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/sources.js:30
+msgid "Quota Cache TTL (seconds)"
+msgstr "额度数据有效期（秒）"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/sources.js:30
+msgid "Data older than this threshold is marked as stale without triggering automatic requests."
+msgstr "超过此时间后数据将标记为已过期，但系统不会因此自动发起后台请求。"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/sources.js:34
+msgid "No data"
+msgstr "暂无数据"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/sources.js:39
+msgid "Quota Query Not Configured"
+msgstr "尚未配置额度查询"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/sources.js:39
+msgid "Configure a dedicated quota URL under \"Quota / Expiration\". Standard subscriptions may also enable header queries via the subscription URL; keep that disabled for time-windowed subscriptions."
+msgstr "请在“流量 / 到期”标签页配置独立额度查询地址。普通订阅源也可开启“允许通过订阅地址查询额度”；限时或限次订阅请仅使用独立查询地址。"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/sources.js:44
+msgid "Input Format"
+msgstr "输入格式"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/sources.js:44
+msgid "Auto Detect"
+msgstr "自动识别"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/sources.js:45
+msgid "Update Mode"
+msgstr "更新方式"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/sources.js:45
+msgid "Manual Only"
+msgstr "仅手动"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/sources.js:45
+msgid "Scheduled"
+msgstr "定时更新"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/sources.js:46
+msgid "Applies only to scheduled sources. Do not enable scheduled updates for time-windowed subscriptions."
+msgstr "仅对定时更新的订阅源生效。限时或限次拉取的订阅源请勿启用定时更新。"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/sources.js:48
+msgid "Exclude Node Names (Regex)"
+msgstr "排除节点名称（正则）"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/sources.js:48
+msgid "Filter out informational entries such as traffic or expiration notices."
+msgstr "按正则表达式过滤剩余流量提示、官网说明等非代理节点条目。"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/sources.js:49
+msgid "Download User-Agent"
+msgstr "请求 User-Agent"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/sources.js:49
+msgid "Leave blank to use the default User-Agent."
+msgstr "留空则使用默认 User-Agent。"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/sources.js:50
+msgid "Linked OpenClash Source"
+msgstr "关联的 OpenClash 订阅源"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/sources.js:51
+msgid "Take Over OpenClash Subscription Updates"
+msgstr "接管 OpenClash 订阅更新"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/sources.js:51
+msgid "Applies only to sources imported from OpenClash. Disables OpenClash auto-updates for this source when applying a profile to prevent duplicate pulls."
+msgstr "仅对从 OpenClash 导入的订阅源生效。应用配置时自动停用 OpenClash 侧的对应订阅更新，避免重复拉取。"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/sources.js:52
+msgid "Update Cache"
+msgstr "更新缓存"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/sources.js:53
+msgid "Update Source Cache"
+msgstr "更新订阅源缓存"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/sources.js:55
+msgid "Import File"
+msgstr "导入文件"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/sources.js:59
+#: htdocs/luci-static/resources/view/hybrid-subscription/sources.js:61
+msgid "Subconverter Compatibility Audit"
+msgstr "转换器兼容性比对"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/sources.js:64
+msgid "Missing"
+msgstr "缺失"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/sources.js:64
+msgid "Added"
+msgstr "新增"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/sources.js:64
+msgid "Modified"
+msgstr "字段变更"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/sources.js:65
+msgid "Compatibility Audit: "
+msgstr "兼容性比对："
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/sources.js:66
+msgid "Compares cached nodes against local subconverter output without fetching upstream sources or modifying the cache."
+msgstr "仅将本地缓存节点与 subconverter 转换结果进行比对，不会拉取上游订阅或修改本地缓存。"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/sources.js:67
+msgid "Original nodes: %s; Converted nodes: %s."
+msgstr "原始节点数：%s；转换后节点数：%s。"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/sources.js:68
+msgid "Native parser and subconverter outputs are identical."
+msgstr "原生解析与 subconverter 转换结果完全一致。"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/sources.js:68
+msgid "Differences detected. Subscription generation continues to use the native parser output."
+msgstr "检测到字段差异，系统将继续采用原生解析结果生成配置。"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/sources.js:69
+msgid "Node"
+msgstr "节点名称"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/sources.js:69
+msgid "Difference Type"
+msgstr "差异类型"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/sources.js:69
+msgid "Affected Fields"
+msgstr "涉及字段"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/sources.js:69
+msgid "No differences"
+msgstr "无差异"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/sources.js:76
+msgid "Subscription & Updates"
+msgstr "订阅与更新"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/sources.js:76
+msgid "Advanced"
+msgstr "高级选项"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/sources.js:83
+msgid "Import from OpenClash"
+msgstr "从 OpenClash 导入"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/sources.js:87
+msgid "OpenClash subscription sources and node caches have been imported."
+msgstr "已成功导入 OpenClash 订阅源定义与本地节点缓存。"
+
+#: root/usr/share/hybrid-subscription/
+msgid "Japan"
+msgstr "日本"
+
+#: root/usr/share/hybrid-subscription/
+msgid "Hong Kong"
+msgstr "中国香港"
+
+#: root/usr/share/hybrid-subscription/
+msgid "Taiwan"
+msgstr "中国台湾"
+
+#: root/usr/share/hybrid-subscription/
+msgid "Singapore"
+msgstr "新加坡"
+
+#: root/usr/share/hybrid-subscription/
+msgid "United States"
+msgstr "美国"
+
+#: root/usr/share/hybrid-subscription/
+msgid "South Korea"
+msgstr "韩国"
+
+#: root/usr/share/hybrid-subscription/
+msgid "United Kingdom"
+msgstr "英国"
+
+#: root/usr/share/hybrid-subscription/
+msgid "Germany"
+msgstr "德国"
+
+#: root/usr/share/hybrid-subscription/
+msgid "Canada"
+msgstr "加拿大"
+
+#: root/usr/share/hybrid-subscription/
+msgid "Australia"
+msgstr "澳大利亚"
+
+#: root/usr/share/hybrid-subscription/
+msgid "France"
+msgstr "法国"
+
+#: root/usr/share/hybrid-subscription/
+msgid "Netherlands"
+msgstr "荷兰"
+
+#: root/usr/share/hybrid-subscription/
+msgid "India"
+msgstr "印度"
+
+#: root/usr/share/hybrid-subscription/
+msgid "Argentina"
+msgstr "阿根廷"
+
+#: root/usr/share/hybrid-subscription/
+msgid "Brazil"
+msgstr "巴西"
+
+#: root/usr/share/hybrid-subscription/
+msgid "Russia"
+msgstr "俄罗斯"
+
+#: root/usr/share/hybrid-subscription/
+msgid "Türkiye"
+msgstr "土耳其"
+
+#: root/usr/share/hybrid-subscription/
+msgid "Invalid identifier"
+msgstr "标识符格式无效"
+
+#: root/usr/share/hybrid-subscription/
+msgid "Command output exceeds size limit"
+msgstr "命令返回结果超出大小限制"
+
+#: root/usr/share/hybrid-subscription/
+msgid "Operation timed out; existing cache and published releases remain unchanged"
+msgstr "操作执行超时，原有缓存与已发布版本保持不变"
+
+#: root/usr/share/hybrid-subscription/
+msgid "URL must use HTTP or HTTPS"
+msgstr "URL 必须使用 HTTP 或 HTTPS 协议"
+
+#: root/usr/share/hybrid-subscription/
+msgid "Converter URL must use a loopback address"
+msgstr "转换器地址必须为本机回环地址"
+
+#: root/usr/share/hybrid-subscription/
+msgid "Invalid URL format"
+msgstr "URL 格式无效"
+
+#: root/usr/share/hybrid-subscription/
+msgid "Configuration was modified in another session; please reload before saving"
+msgstr "配置已在其他会话中更新，请刷新页面后重新保存"
+
+#: root/usr/share/hybrid-subscription/
+msgid "Configuration exceeds the 2 MiB size limit"
+msgstr "配置文件大小超出 2 MiB 限制"
+
+#: root/usr/share/hybrid-subscription/
+msgid "Unsupported configuration schema version"
+msgstr "不支持的配置数据结构版本"
+
+#: root/usr/share/hybrid-subscription/
+msgid "Quota URL must not contain credentials; use an API token instead"
+msgstr "额度查询地址不得包含用户名或密码，请改用接口令牌参数"
+
+#: root/usr/share/hybrid-subscription/
+msgid "Dedicated quota URL must not match the subscription URL"
+msgstr "独立额度查询地址不得与订阅下载地址相同"
+
+#: root/usr/share/hybrid-subscription/
+msgid "Quota header query option must be a boolean"
+msgstr "订阅响应头查询开关必须为布尔值"
+
+#: root/usr/share/hybrid-subscription/
+msgid "Quota cache TTL must be between 60 and 31536000 seconds"
+msgstr "额度数据有效期须在 60 至 31536000 秒之间"
+
+#: root/usr/share/hybrid-subscription/
+msgid "Unsupported update mode"
+msgstr "不支持的更新方式"
+
+#: root/usr/share/hybrid-subscription/
+msgid "Scheduled update interval must be at least 300 seconds"
+msgstr "定时更新间隔不得少于 300 秒"
+
+#: root/usr/share/hybrid-subscription/
+msgid "Source name exceeds maximum length"
+msgstr "订阅源名称超出长度限制"
+
+#: root/usr/share/hybrid-subscription/
+msgid "Missing global settings"
+msgstr "缺少全局设置项"
+
+#: root/usr/share/hybrid-subscription/
+msgid "Invalid download access mode"
+msgstr "下载访问鉴权方式无效"
+
+#: root/usr/share/hybrid-subscription/
+msgid "Invalid export format"
+msgstr "导出格式无效"
+
+#: root/usr/share/hybrid-subscription/
+msgid "Unpublish the profile before deleting it"
+msgstr "删除已发布的订阅配置前，请先执行“停止发布”"
+
+#: root/usr/share/hybrid-subscription/
+msgid "Invalid configuration field format"
+msgstr "配置字段格式无效"
+
+#: root/usr/share/hybrid-subscription/
+msgid "Subscription source does not exist"
+msgstr "指定的订阅源不存在"
+
+#: root/usr/share/hybrid-subscription/
+msgid "Subscription profile does not exist"
+msgstr "指定的订阅配置不存在"
+
+#: root/usr/share/hybrid-subscription/
+msgid "Subscription content exceeds 2 MiB"
+msgstr "订阅内容大小超出 2 MiB 限制"
+
+#: root/usr/share/hybrid-subscription/
+msgid "Subscription contains no valid nodes; previous cache retained"
+msgstr "订阅内容中未解析到有效节点，已保留上次成功的缓存"
+
+#: root/usr/share/hybrid-subscription/
+msgid "Source or cache was updated concurrently; discarding stale fetch result"
+msgstr "订阅源配置或本地缓存已被并发更新，本次拉取结果已丢弃"
+
+#: root/usr/share/hybrid-subscription/
+msgid "No subscription URL configured for this source; import a local file instead"
+msgstr "该订阅源尚未配置订阅地址，请填写地址或直接导入本地文件"
+
+#: root/usr/share/hybrid-subscription/
+msgid "Subscription source is disabled"
+msgstr "该订阅源已停用"
+
+#: root/usr/share/hybrid-subscription/
+msgid "Dedicated quota URL must not match any subscription URL"
+msgstr "独立额度查询地址不得与任何订阅下载地址相同"
+
+#: root/usr/share/hybrid-subscription/
+msgid "Invalid User-Agent for quota request"
+msgstr "额度查询请求的 User-Agent 格式无效"
+
+#: root/usr/share/hybrid-subscription/
+msgid "Source or quota query settings changed; please retry"
+msgstr "订阅源或额度查询配置已变更，请重新发起查询"
+
+#: root/usr/share/hybrid-subscription/
+msgid "No valid Subscription-Userinfo header received; previous quota state retained"
+msgstr "未收到有效的 Subscription-Userinfo 响应头，已保留原有额度信息"
+
+#: root/usr/share/hybrid-subscription/
+msgid "No quota query method configured and no local cache available; configure quota query under Subscription Sources"
+msgstr "尚未配置额度查询方式且无可用本地缓存，请在“订阅源 → 流量 / 到期”中配置"
+
+#: root/usr/share/hybrid-subscription/
+msgid "Source or quota state was updated concurrently; discarding stale quota result"
+msgstr "订阅源或额度状态已被并发更新，本次查询结果已丢弃"
+
+#: root/usr/share/hybrid-subscription/
+msgid "Region preview configuration exceeds size limit"
+msgstr "地区预览配置数据超出大小限制"
+
+#: root/usr/share/hybrid-subscription/
+msgid "Region preview requires sources and regions lists"
+msgstr "地区预览请求须包含订阅源与地区模板列表"
+
+#: root/usr/share/hybrid-subscription/
+msgid "Invalid source selection for region preview"
+msgstr "地区预览所选的订阅源无效"
+
+#: root/usr/share/hybrid-subscription/
+msgid "Invalid JSON in region preview configuration"
+msgstr "地区预览配置中的 JSON 格式无效"
+
+#: root/usr/share/hybrid-subscription/
+msgid "Invalid release identifier"
+msgstr "版本标识符无效"
+
+#: root/usr/share/hybrid-subscription/
+msgid "Select at least one export format"
+msgstr "请至少选择一种导出格式"
+
+#: root/usr/share/hybrid-subscription/
+msgid "Unsupported export format"
+msgstr "不支持的导出格式"
+
+#: root/usr/share/hybrid-subscription/
+msgid "Release does not exist"
+msgstr "指定的构建版本不存在"
+
+#: root/usr/share/hybrid-subscription/
+msgid "Rollback is only allowed for previously published releases"
+msgstr "仅可回滚至历史已发布过的版本"
+
+#: root/usr/share/hybrid-subscription/
+msgid "Draft configuration or source cache has changed; please rebuild before publishing"
+msgstr "配置草稿或订阅源缓存已发生变更，请重新构建后再发布"
+
+#: root/usr/share/hybrid-subscription/
+msgid "Please confirm all compatibility differences before publishing"
+msgstr "发布前请先勾选确认所有兼容性差异"
+
+#: root/usr/share/hybrid-subscription/
+msgid "Release artifact integrity check failed"
+msgstr "构建产物完整性校验失败"
+
+#: root/usr/share/hybrid-subscription/
+msgid "Build and publish this profile first"
+msgstr "请先构建并发布该订阅配置"
+
+#: root/usr/share/hybrid-subscription/
+msgid "Invalid job identifier"
+msgstr "任务标识符无效"
+
+#: root/usr/share/hybrid-subscription/
+msgid "Background job terminated or timed out; please resubmit"
+msgstr "后台任务已异常终止或执行超时，请重新提交"
+
+#: root/usr/share/hybrid-subscription/
+msgid "Invalid operation"
+msgstr "无效的操作请求"
+
+#: root/usr/share/hybrid-subscription/
+msgid "Profile has not been published"
+msgstr "该订阅配置尚未发布"
+
+#: root/usr/share/hybrid-subscription/
+msgid "Release does not belong to this profile"
+msgstr "指定的构建版本不属于该订阅配置"
+
+#: root/usr/share/hybrid-subscription/
+msgid "Failed to start background job; please try again later"
+msgstr "无法启动后台任务进程，请稍后重试"
+
+#: root/usr/share/hybrid-subscription/
+msgid "Job does not exist"
+msgstr "指定的任务不存在"
+
+#: root/usr/share/hybrid-subscription/
+msgid "Job has expired; please resubmit"
+msgstr "任务已过期，请重新提交"
+
+#: root/usr/share/hybrid-subscription/
+msgid "No cached nodes available for this source"
+msgstr "该订阅源尚无可用的本地节点缓存"
+
+#: root/usr/share/hybrid-subscription/
+msgid "Job is missing a target release"
+msgstr "任务缺少目标发布版本参数"
+
+#: root/usr/share/hybrid-subscription/
+msgid "Release does not include Mihomo output"
+msgstr "该发布版本未包含 Mihomo 格式产物"
+
+#: root/usr/share/hybrid-subscription/
+msgid "Unknown operation"
+msgstr "未知的操作指令"
+
+#: root/usr/share/hybrid-subscription/
+msgid "Unknown command"
+msgstr "未知的命令参数"
+
+#: root/usr/share/hybrid-subscription/
+msgid "Invalid request payload or backend state; please check the configuration"
+msgstr "请求参数格式或后台状态异常，请检查当前配置"
+
+#: root/usr/share/hybrid-subscription/
+msgid "Configuration must contain JSON-compatible values"
+msgstr "配置内容必须为合法的 JSON 数据类型"
+
+#: root/usr/share/hybrid-subscription/
+msgid "Source exceeds 2 MiB"
+msgstr "订阅源内容超出 2 MiB 限制"
+
+#: root/usr/share/hybrid-subscription/
+msgid "Source is not valid UTF-8"
+msgstr "订阅源内容不是有效的 UTF-8 编码"
+
+#: root/usr/share/hybrid-subscription/
+msgid "Source is empty"
+msgstr "订阅源内容为空"
+
+#: root/usr/share/hybrid-subscription/
+msgid "Unknown source format"
+msgstr "未知的订阅源格式"
+
+#: root/usr/share/hybrid-subscription/
+msgid "Encoded source does not contain supported node links"
+msgstr "Base64 解码后的内容未包含受支持的节点链接"
+
+#: root/usr/share/hybrid-subscription/
+msgid "Expected a Mihomo proxy list, Surge [Proxy], sing-box outbounds, or supported node links"
+msgstr "订阅格式无法识别：须为 Mihomo proxies 列表、Surge [Proxy] 段落、sing-box outbounds 或受支持的节点分享链接"
+
+#: root/usr/share/hybrid-subscription/
+msgid "Source has no proxy nodes"
+msgstr "订阅源中未包含任何代理节点"
+
+#: root/usr/share/hybrid-subscription/
+msgid "Source has too many nodes (maximum 4096)"
+msgstr "订阅源节点数量超出上限（最多 4096 个）"
+
+#: root/usr/share/hybrid-subscription/
+msgid "Invalid or unsafe YAML source (aliases and object tags are disabled)"
+msgstr "YAML 格式无效或包含受限语法（已禁用别名引用与自定义对象标签）"
+
+#: root/usr/share/hybrid-subscription/
+msgid "Malformed subscription; check its format and encoding"
+msgstr "订阅内容解析失败，请检查订阅格式与字符编码"
+
+#: root/usr/share/hybrid-subscription/
+msgid "Profile must select at least one output format"
+msgstr "订阅配置必须至少选择一种导出格式"
+
+#: root/usr/share/hybrid-subscription/
+msgid "Unknown output format"
+msgstr "未知的导出格式"
+
+#: root/usr/share/hybrid-subscription/
+msgid "Unknown profile"
+msgstr "未找到指定的订阅配置"
+
+#: root/usr/share/hybrid-subscription/
+msgid "Configuration and caches must be objects"
+msgstr "配置与缓存数据必须为对象结构"
+
+#: root/usr/share/hybrid-subscription/
+msgid "Profile contains duplicate sources or formats"
+msgstr "订阅配置中包含重复的订阅源或导出格式"
+
+#: root/usr/share/hybrid-subscription/
+msgid "Unknown profile format"
+msgstr "订阅配置包含未知的导出格式"
+
+#: root/usr/share/hybrid-subscription/
+msgid "Profile has no nodes"
+msgstr "当前订阅配置下无可用节点"
+
+#: root/usr/share/hybrid-subscription/
+msgid "Regular expression exceeded its time limit"
+msgstr "正则表达式匹配超时"
+
+#: root/usr/share/hybrid-subscription/
+msgid "Mihomo DNS must be an object"
+msgstr "Mihomo DNS 配置必须为 JSON 对象"
+
+#: root/usr/share/hybrid-subscription/
+msgid "Mihomo DNS contains unsupported settings (listeners are managed separately)"
+msgstr "Mihomo DNS 包含不受支持的字段（监听地址等运行参数由宿主环境统一管理）"
+
+#: root/usr/share/hybrid-subscription/
+msgid "Mihomo policy must be an object"
+msgstr "Mihomo 高级策略必须为 JSON 对象"
+
+#: root/usr/share/hybrid-subscription/
+msgid "Mihomo policy contains unsupported settings (API, listener and router bindings are excluded)"
+msgstr "Mihomo 高级策略包含不受支持的字段（不支持外部控制器、入站监听及网卡绑定等宿主参数）"
+
+#: root/usr/share/hybrid-subscription/
+msgid "Mihomo policy geox-url contains unsupported databases"
+msgstr "Mihomo geox-url 包含不受支持的数据库键名（仅支持 geoip、geosite、mmdb、asn）"
+
+#: root/usr/share/hybrid-subscription/
+msgid "Mihomo profile policy supports only store-selected/store-fake-ip"
+msgstr "Mihomo profile 策略仅支持 store-selected 与 store-fake-ip 选项"
+
+#: root/usr/share/hybrid-subscription/
+msgid "Mihomo geodata-loader must be standard or memconservative"
+msgstr "Mihomo geodata-loader 仅支持 standard 或 memconservative"
+
+#: root/usr/share/hybrid-subscription/
+msgid "Mihomo-specific runtime and geodata policy has no equivalent export here and will be omitted"
+msgstr "Mihomo 专属运行参数与地理数据库策略在当前目标格式中无对应实现，导出时将被忽略"
+
+#: root/usr/share/hybrid-subscription/
+msgid "Surge field contains a line break or NUL"
+msgstr "Surge 字段内容包含非法换行符或空字符"
+
+#: root/usr/share/hybrid-subscription/
+msgid "Surge built-in LAN and Mihomo GEOIP LAN may cover different reserved ranges"
+msgstr "Surge 内置 LAN 规则集与 Mihomo GEOIP,LAN 覆盖的保留网段范围可能存在细微差异"
+
+#: root/usr/share/hybrid-subscription/
+msgid "Bandwidth must be Mbps or a number followed by Mbps"
+msgstr "带宽参数须为纯数字（Mbps）或带 Mbps 单位的数值"
+
+#: root/usr/share/hybrid-subscription/
+msgid "Target bandwidth must be a whole number of Mbps"
+msgstr "目标客户端要求带宽参数必须为整数 Mbps"
+
+#: root/usr/share/hybrid-subscription/
+msgid "sing-box ip_is_private and Mihomo GEOIP LAN do not cover exactly the same reserved ranges"
+msgstr "sing-box 的 ip_is_private 与 Mihomo 的 GEOIP,LAN 覆盖的私有网段范围不完全一致"
+
+#: root/usr/share/hybrid-subscription/
+msgid "Region matching needs valid, unique source IDs"
+msgstr "地区匹配器要求提供有效且唯一的订阅源标识符列表"
+
+#: root/usr/share/hybrid-subscription/
+msgid "Regions must be a list of at most 128 objects"
+msgstr "地区模板列表最多包含 128 个条目"
+
+#: root/usr/share/hybrid-subscription/
+msgid "Region has an invalid ID"
+msgstr "地区模板标识符格式无效"
+
+#: root/usr/share/hybrid-subscription/
+msgid "Region preview needs at most 4096 node names"
+msgstr "地区预览单次最多处理 4096 个节点名称"
+
+#: root/usr/share/hybrid-subscription/
+msgid "Region matching accepts only valid node names"
+msgstr "地区匹配仅接受合法的节点名称"
+
+#: root/usr/share/hybrid-subscription/
+msgid "Region regular expression exceeded its time limit"
+msgstr "地区匹配正则表达式执行超时"
+
+#: root/usr/share/hybrid-subscription/
+msgid "Converter must use an HTTP(S) loopback URL without credentials or query parameters"
+msgstr "本地转换器必须使用不含凭据与查询参数的 HTTP(S) 本机回环地址"
+
+#: root/usr/share/hybrid-subscription/
+msgid "Invalid local converter URL"
+msgstr "本地转换器地址格式无效"
+
+#: root/usr/share/hybrid-subscription/
+msgid "Converter audit requires a non-empty node list"
+msgstr "转换器兼容性比对需要非空的节点列表"
+
+#: root/usr/share/hybrid-subscription/
+msgid "Converter audit input exceeds 2 MiB"
+msgstr "转换器比对输入数据超出 2 MiB 限制"
+
+#: root/usr/share/hybrid-subscription/
+msgid "Converter did not return a proxy list"
+msgstr "本地转换器未返回有效的代理节点列表"
+
+#: root/usr/share/hybrid-subscription/
+msgid "Converter returned invalid or unsafe YAML"
+msgstr "本地转换器返回了无效或受限的 YAML 内容"
+
+#: root/usr/share/hybrid-subscription/
+msgid "Local converter audit transport failed"
+msgstr "本地转换器通信失败"
+
+#: root/usr/share/hybrid-subscription/
+msgid "Local converter request timed out"
+msgstr "本地转换器请求超时"
+
+#: root/usr/share/hybrid-subscription/
+msgid "Converter response exceeds its size limit"
+msgstr "本地转换器响应内容超出大小限制"
+
+#: root/usr/share/hybrid-subscription/
+msgid "Local converter request failed"
+msgstr "本地转换器请求失败"
+
+#: root/usr/share/hybrid-subscription/
+msgid "curl is required for the local converter audit"
+msgstr "执行本地转换器比对需要安装 curl"
+
+#: root/usr/share/hybrid-subscription/
+msgid "Could not read the existing OpenClash subscriptions."
+msgstr "无法读取现有的 OpenClash 订阅配置。"
+
+#: root/usr/share/hybrid-subscription/
+msgid "Mihomo core is not installed."
+msgstr "未检测到已安装的 Mihomo 内核。"
+
+#: root/usr/share/hybrid-subscription/
+msgid "Exported configuration is missing or too large."
+msgstr "导出的配置文件缺失或超出大小限制。"
+
+#: root/usr/share/hybrid-subscription/
+msgid "The export is not a Mihomo configuration."
+msgstr "导出内容不是有效的 Mihomo 配置结构。"
+
+#: root/usr/share/hybrid-subscription/
+msgid "Invalid YAML configuration."
+msgstr "YAML 配置文件格式无效。"
+
+#: root/usr/share/hybrid-subscription/
+msgid "Invalid profile ID."
+msgstr "订阅配置标识符无效。"
+
+#: root/usr/share/hybrid-subscription/
+msgid "OpenClash is not installed."
+msgstr "系统未安装 OpenClash 或缺少 Mihomo 内核。"
+
+#: root/usr/share/hybrid-subscription/
+msgid "Profile does not exist."
+msgstr "指定的订阅配置不存在。"
+
+#: root/usr/share/hybrid-subscription/
+msgid "The release is not a Mihomo configuration."
+msgstr "该发布版本不是有效的 Mihomo 配置文件。"
+
+#: root/usr/share/hybrid-subscription/
+msgid "This release requires the Smart core. Install it in OpenClash before applying."
+msgstr "当前版本使用了 Smart 策略组，请先在 OpenClash 中安装 Smart 内核后再应用。"
+
+#: root/usr/share/hybrid-subscription/
+msgid "An OpenClash apply operation is already running."
+msgstr "已有另一个 OpenClash 应用任务正在执行，请稍后再试。"
+
+#: root/usr/share/hybrid-subscription/
+msgid "Apply exceeded its rollback deadline."
+msgstr "配置应用超时，已触发回滚保护阈值。"
+
+#: root/usr/share/hybrid-subscription/
+msgid "Apply failed and automatic recovery failed. Use the saved OpenClash backup in the integration backup directory."
+msgstr "应用配置失败且自动回滚异常，请使用备份目录中的 OpenClash 备份文件手动恢复。"
+
+#: root/usr/share/hybrid-subscription/
+msgid "Apply failed. Previous OpenClash configuration restored."
+msgstr "应用配置失败，已自动恢复原有的 OpenClash 配置。"
+
+#: root/usr/share/hybrid-subscription/
+msgid "This export requires the installed Mihomo Smart core."
+msgstr "该导出配置需要系统安装 Mihomo Smart 内核。"
+
+#: root/usr/share/hybrid-subscription/
+msgid "Required geodata is missing; update it in OpenClash before validating this profile."
+msgstr "缺少所需的 GeoIP / GeoSite 数据库文件，请先在 OpenClash 中更新地理数据库后再校验。"
+
+#: root/usr/share/hybrid-subscription/
+msgid "A local provider cache is missing. Import its contents before publishing."
+msgstr "缺少本地规则集或节点提供者缓存文件，请先导入对应内容后再发布。"
+
+#: root/usr/share/hybrid-subscription/
+msgid "An OpenClash command timed out."
+msgstr "OpenClash 命令执行超时。"
+
+#: root/usr/share/hybrid-subscription/
+msgid "An OpenClash command failed."
+msgstr "OpenClash 命令执行失败。"
+
+#: root/usr/share/hybrid-subscription/
+msgid "An OpenClash helper is unavailable."
+msgstr "OpenClash 辅助命令不可用。"
+
+#: root/usr/share/hybrid-subscription/
+msgid "Could not read OpenClash settings."
+msgstr "无法读取 OpenClash UCI 配置。"
+
+#: root/usr/share/hybrid-subscription/
+msgid "An OpenClash subscription changed. Re-import it before taking over updates."
+msgstr "OpenClash 订阅源地址已发生变更，请重新导入后再启用更新接管。"
+
+#: root/usr/share/hybrid-subscription/
+msgid "OpenClash did not load the published policy."
+msgstr "OpenClash 未能成功加载已发布的策略配置。"
