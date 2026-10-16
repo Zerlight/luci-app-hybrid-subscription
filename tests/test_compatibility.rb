@@ -237,7 +237,7 @@ class CompatibilityTest < Minitest::Test
     create
     built = @backend.build_profile('compatible')
     refute_empty built['warnings']
-    assert_raises(HybridSubscription::Error) { @backend.publish('release'=>built['release'], 'accepted_warnings'=>[]) }
+    assert_raises(HybridSubscription::Error) { @backend.publish({'release'=>built['release'], 'accepted_warnings'=>[]}) }
     assert_empty @backend.published
   end
 
