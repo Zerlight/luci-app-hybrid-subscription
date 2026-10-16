@@ -141,11 +141,16 @@ module HybridSubscription
         url!(settings.fetch('converter_url', 'http://127.0.0.1:25500'), loopback: true)
         c['profiles'].each do |p|
           raise Error, 'Invalid export format' unless p['formats'].is_a?(Array) && (p['formats'] - FORMATS).empty?
+          # Editor saves cannot reset the server-owned review baseline.
+          previous = current['profiles'].find { |row| row['id'] == p['id'] }
+          p.delete('compatibility')
+          p['compatibility'] = previous['compatibility'] if previous && previous.key?('compatibility')
         end
         c['rule_sets'].each { |r| %w[mihomo_url surge_url singbox_url].each { |k| url!(r[k]) unless r.fetch(k, '').empty? } }
         removed = published.keys - c['profiles'].map { |p| p['id'] }
         raise Error, 'Unpublish the profile before deleting it' unless removed.empty?
         c = c.select { |k,_| (COLLECTIONS + %w[schema settings]).include?(k) }
+        raise Error, 'Configuration exceeds the 2 MiB size limit' if JSON.generate(c).bytesize > MAX_BYTES
         atomic(path('config.json'), c)
         {'version'=>version(c)}
       end
@@ -173,27 +178,29 @@ module HybridSubscription
       locked do
         current = config
         profile(current, args['profile'])
-        Compatibility.new(current, caches(current)).report(args['profile']).merge('version'=>version(current))
+        Compatibility.new(current, caches(current)).report(args['profile'], review: args['review'] == true).merge('version'=>version(current))
       end
     end
-    def compatibility_plan(args, create: false)
+    def compatibility_plan(args, create: false, update: false)
       locked do
         current = config
         profile(current, args['profile'])
-        if create && args['version'] != version(current)
+        raise Error, 'Use compatibility update to replace an existing draft' if create && args['operation'] == 'reapply'
+        args = args.merge('operation'=>'reapply') if update
+        if (create || update) && args['version'] != version(current)
           raise Error, 'Configuration was modified in another session; please reload before saving'
         end
         draft, result = Compatibility.new(current, caches(current)).plan(args)
         result['version'] = version(current)
-        if create
-          raise Error, 'Compatibility plan changed; preview the plan again before creating the profile' unless args['plan_token'] == result['plan_token']
+        if create || update
+          raise Error, 'Compatibility plan changed; preview the plan again before saving the draft' unless args['plan_token'] == result['plan_token']
           expected = result['changes'].map { |change| change['code'] }.sort
           accepted = args['accepted_changes']
-          raise Error, 'Please confirm every compatibility change before creating the profile' unless accepted.is_a?(Array) && accepted.all? { |code| code.is_a?(String) } && accepted.sort == expected
-          raise Error, 'Resolve all compatibility errors before creating the profile' unless result['ready']
+          raise Error, 'Please confirm every compatibility change before saving the draft' unless accepted.is_a?(Array) && accepted.all? { |code| code.is_a?(String) } && accepted.sort == expected
+          raise Error, 'Resolve all compatibility errors before saving the draft' unless result['ready']
           atomic(path('config.json'), draft)
           result['version'] = version(draft)
-          result['created'] = true
+          result[update ? 'updated' : 'created'] = true
         end
         result
       end
@@ -576,6 +583,7 @@ module HybridSubscription
     end
     def status
       c=config; pub=published
+      compatibility = Compatibility.new(c, {})
       local_quotas=@quota_adapter.local_states(c['sources'])
       matcher=Regions.new(c['regions'],source_ids:c['sources'].map { |s| s['id'] })
       {'config_version'=>version(c), 'sources'=>c['sources'].map do |s|
@@ -586,7 +594,7 @@ module HybridSubscription
         x.fetch('meta',{}).merge('id'=>s['id'],'name'=>s['name'],'nodes'=>Array(x['nodes']).length,'update_mode'=>s['update_mode'],'enabled'=>s['enabled'],'regions'=>counts,'quota'=>values,'quota_status'=>details)
       end, 'profiles'=>c['profiles'].map do |p|
         rid=pub[p['id']]; m=rid ? release_meta(rid) : {}
-        {'id'=>p['id'],'name'=>p['name'],'published_release'=>rid,'formats'=>m['formats'] || [],'generated_at'=>m['created_at']}
+        {'id'=>p['id'],'name'=>p['name'],'published_release'=>rid,'formats'=>m['formats'] || [],'generated_at'=>m['created_at'], 'compatibility'=>compatibility.strategy_status(p['id'])}
       end, 'releases'=>releases.map { |r| r.merge(read(path('publication-history.json'))[r['id']] || {}).merge('ever_published'=>read(path('publication-history.json')).key?(r['id']), 'published'=>pub[r['profile']]==r['id']) }, 'jobs'=>jobs, 'openclash'=>@adapter.status,'converter'=>converter_status}
     end
     def tick
@@ -618,6 +626,7 @@ module HybridSubscription
       when 'compatibility'; compatibility(args)
       when 'compatibility_plan'; compatibility_plan(args)
       when 'compatibility_create'; compatibility_plan(args, create:true)
+      when 'compatibility_update'; compatibility_plan(args, update:true)
       when 'build'; profile(config,args['profile']); {'job'=>enqueue('build',args['profile'])}
       when 'publish'; publish(args)
       when 'rollback'; publish(args,rollback:true)

@@ -265,6 +265,46 @@ registerLocale('zh-cn', {
 		"Create Independent Draft": "创建独立草稿",
 		"Confirm every proposed change before creating the independent draft.": "请逐项确认所有变更，再创建独立草稿。",
 
+		"Confirm every change category before updating the compatible draft.": "请先勾选确认所有类别的变更，再更新兼容草稿。",
+		"Existing draft changes": "现有草稿变更",
+		"Review and Update Copy": "复核并更新",
+		"Review each change category, then confirm to update the existing draft.": "请按类别核对并勾选确认以下变更，确认无误后更新现有兼容草稿。",
+		"Review saved choices before updating this draft. Its identifier, name and download link stay the same; the original profile stays unchanged.": "复核已保存的转换设置并更新当前兼容草稿。更新后其名称、标识符与订阅下载链接均保持不变，来源配置不受影响。",
+		"Review the saved conversion choices.": "请复核已保存的转换方案。",
+		"Saved compatible copies": "已保存的兼容配置",
+		"Saved conversion": "已保存的转换方案",
+		"Saved conversion choices are up to date.": "当前转换方案已与来源配置保持同步。",
+		"Some saved choices were cleared. Review these items again:": "以下已保存的选项因来源配置变更而失效，请重新指定：",
+		"Source policy changed. Review the saved conversion choices.": "来源配置已发生变更，请复核已保存的转换方案。",
+		"Source profile: %s": "来源配置：%s",
+		"The source profile is missing. The saved copy can still be used.": "来源配置已删除，现有兼容配置仍可正常使用。",
+		"This copy has local edits. Review what updating will replace.": "该兼容草稿存在本地手动修改，更新前请核对将被覆盖的内容。",
+		"Update Compatible Draft": "更新兼容草稿",
+		"Updating saves the draft only. The published subscription stays unchanged until you build and publish this copy again.": "此操作仅更新并保存配置草稿；如需更新线上订阅内容，请前往“状态概览”重新构建并发布。",
+		"View Copy": "查看配置",
+		"View Source Profile": "查看来源配置",
+		"Compatible draft has local changes. Review before updating.": "该兼容草稿存在手动修改，更新前请先复核变更。",
+		"Review Conversion": "复核转换方案",
+		"Saved conversion needs review.": "已保存的转换方案需要复核。",
+		"Source and compatible draft changed. Review before updating.": "来源配置与当前兼容草稿均有变更，更新前请先复核。",
+		"Source profile changed. Review before updating this draft.": "来源配置已发生变更，请复核并更新当前兼容草稿。",
+		"Source profile is missing. Review this compatible draft.": "来源配置已删除，请检查当前兼容草稿。",
+		"The source content or a referenced policy changed; review this saved choice again.": "来源配置或所引用的策略已发生变更，请重新指定此项设置。",
+		"The source profile no longer exists; the current compatible draft and published release are preserved.": "来源配置已删除，现有兼容草稿与已发布版本仍会保留。",
+		"Compatibility source relationships contain a cycle": "兼容配置的来源关联存在循环引用",
+		"Compatibility source relationships exceed the depth limit": "兼容配置的来源关联层级超出上限",
+		"Only a tracked compatible profile can be updated from its source": "仅已记录来源关系的兼容配置支持从来源同步更新",
+		"The update must use the saved source profile and target format": "复核更新须使用已保存的来源配置与目标客户端格式",
+		"A managed compatibility rule set is used by another profile; resolve that reference before updating": "当前兼容配置的派生规则集正被其他配置引用，请先解除引用后再更新",
+		"The compatible draft was edited independently; replace its current contents with this reviewed conversion plan": "该兼容草稿曾被单独修改；确认后将使用本次复核的转换方案覆盖现有草稿内容",
+		"Invalid compatibility operation": "兼容性操作类型无效",
+		"Use compatibility update to replace an existing draft": "请通过“复核并更新”修改已有兼容草稿",
+		"Compatibility plan changed; preview the plan again before saving the draft": "兼容性方案或节点缓存已变化，请重新预览后再保存草稿",
+		"Please confirm every compatibility change before saving the draft": "请逐项确认全部兼容性变更后再保存草稿",
+		"Resolve all compatibility errors before saving the draft": "请先解决所有兼容性错误后再保存草稿",
+		"regional re-evaluation is no longer performed in the compatible draft": "兼容草稿将不再执行原有的地区二次匹配",
+		"Omit native Mihomo runtime and geodata policy from the compatible draft": "从兼容草稿中移除 Mihomo 专属运行参数与地理数据库设置",
+
 		// Menu & ACL
 		'Hybrid Subscription': '混合订阅',
 		'Overview': '状态概览',
@@ -288,6 +328,7 @@ registerLocale('zh-cn', {
 		'The job is still running in the background. Check the Overview page for its status.': '任务仍在后台运行，请稍后在“状态概览”页面查看进度。',
 		'The backend did not return a job identifier.': '后台未返回有效的任务标识。',
 		'Draft saved. Build and publish from the Overview page to update downloads or OpenClash.': '草稿已保存。如需更新下载内容或同步至 OpenClash，请在“状态概览”页面构建并发布。',
+		'Global settings saved.': '全局设置已保存。',
 		'Add': '添加',
 		'Identifier': '标识符',
 		'Start with a lowercase letter and use only lowercase letters, digits, underscores, or hyphens (up to 48 characters).': '须以小写字母开头，仅限小写字母、数字、下划线或连字符，长度不超过 48 个字符。',
@@ -451,8 +492,7 @@ registerLocale('zh-cn', {
 		'Linked OpenClash Source': '关联的 OpenClash 订阅源',
 		'Take Over OpenClash Subscription Updates': '接管 OpenClash 订阅更新',
 		'Applies only to sources imported from OpenClash. Disables OpenClash auto-updates for this source when applying a profile to prevent duplicate pulls.': '仅对从 OpenClash 导入的订阅源生效。应用配置时将停用 OpenClash 对该订阅的自动更新，避免重复拉取。',
-		'Update Cache': '更新缓存',
-		'Update Source Cache': '更新订阅源缓存',
+		'Update Subscription': '更新订阅',
 		'Import File': '导入文件',
 		'Subconverter Compatibility Audit': '转换器兼容性比对',
 		'Missing': '缺失',
@@ -781,6 +821,16 @@ registerLocale('zh-cn', {
 		'OpenClash did not load the published policy.': 'OpenClash 未能成功加载已发布的策略配置。'
 	},
 	patterns: [
+		[/^Update compatible draft (.+) \((.+)\) from its saved source; preserve published releases and download links$/, '根据来源配置更新兼容草稿“$1”（$2）；保留已发布版本和订阅链接'],
+		[/^(Add|Remove|Replace) target (profile|groups|rematches|sub_rules|rules|rule_sets) (.+) \((.+)\)(?:; changed fields: (.+))?$/, function(_, action, kind, name, id, fields) {
+			const actions = { Add: '添加', Remove: '移除', Replace: '更新' };
+			const kinds = { profile: '配置', groups: '策略组', rematches: '重匹配项', sub_rules: '子规则', rules: '分流规则', rule_sets: '规则集' };
+			const labels = { name: '名称', sources: '订阅源', formats: '导出格式', final_policy: '兜底策略', mihomo_core: 'Mihomo 内核', mihomo_dns: 'DNS 策略', mihomo_policy: '高级策略', members: '候选策略', default_member: '默认策略', empty_fallback: '空组回退策略', region: '地区', filter: '筛选条件', exclude_filter: '排除条件', mihomo_type: 'Mihomo 模式', surge_type: 'Surge 模式', singbox_type: 'sing-box 模式', url: '测速地址', interval: '间隔', tolerance: '容差', type: '规则类型', value: '匹配内容', policy: '出口策略', conditions: '匹配条件', sub_rule: '所属子规则', enabled: '启用状态', no_resolve: '跳过解析', target_sub_rule: '目标子规则', rematch_name: '重匹配名称', mihomo_proxy: '下载策略', inline_rules: '内联规则', source_type: '来源类型', behavior: '规则集类型' };
+			return actions[action] + '兼容草稿中的' + kinds[kind] + '“' + name + '”（' + id + '）' + (fields ? '；变更字段：' + fields.split(', ').map(function(field) { return labels[field] || field; }).join('、') : '');
+		}],
+		[/^Update the order of target (groups|rematches|sub_rules|rules|rule_sets)$/, function(_, kind) {
+			return '调整兼容草稿中的' + ({ groups: '策略组', rematches: '重匹配项', sub_rules: '子规则', rules: '分流规则', rule_sets: '规则集' })[kind] + '顺序';
+		}],
 		[/^Change group (.+) \((.+)\) for (.+): (.+) -> (.+) \(Mihomo reference: (.+)\); (.+)$/, function(_, name, id, target, before, after, baseline, detail) {
 			return '将策略组“' + name + '”（' + id + '）在 ' + target + ' 中的模式从 ' + before + ' 改为 ' + after + '（Mihomo 参考模式：' + baseline + '）；' + translateMessage(detail);
 		}],
@@ -793,6 +843,10 @@ registerLocale('zh-cn', {
 		[/^(.+): sing-box manual selection requires client selection controls or its API; otherwise the first candidate is used$/, '$1：sing-box 手动选择需要客户端切换界面或 API，否则将使用第一个候选策略'],
 		[/^(.+): Surge uses native test URL settings and does not preserve this per-group health-check URL$/, '$1：Surge 使用原生测速地址设置，无法保留该策略组单独配置的健康检查地址'],
 		[/^Create independent (.+) profile (.+) \((.+)\); preserve the original profile and its export formats$/, '创建独立的 $1 配置“$2”（$3），保留原配置及其导出格式'],
+		[/^Replace rematch (.+) with policy (.+); regional re-evaluation is no longer performed in the compatible draft$/, '将重匹配项 $1 替换为策略 $2；兼容草稿将不再执行该地区二次匹配'],
+		[/^Omit sub-rule (.+) \((.+)\) and its (\d+) scoped rules from the compatible draft$/, '从兼容草稿中移除子规则“$1”（$2）及其 $3 条内部规则'],
+		[/^Omit scoped rule (.+) \((.+), (.+)\) from sub-rule (.+) in the compatible draft$/, '从兼容草稿的子规则 $4 中移除规则“$1”（$2，$3）'],
+		[/^Disable rule (.+) \((.+)\) in the compatible draft; matching traffic will follow later rules or the final policy$/, '在兼容草稿中停用规则 $1（$2）；对应流量将继续匹配后续规则或使用兜底策略'],
 		[/^Replace rematch (.+) with policy (.+); regional re-evaluation is no longer performed in the new profile$/, '将重匹配项 $1 替换为策略 $2；新配置将不再执行该地区二次匹配'],
 		[/^Omit sub-rule (.+) \((.+)\) and its (\d+) scoped rules from the new profile$/, '从新配置中移除子规则“$1”（$2）及其 $3 条内部规则'],
 		[/^Omit scoped rule (.+) \((.+), (.+)\) from sub-rule (.+) in the new profile$/, '从新配置的子规则 $4 中移除规则“$1”（$2，$3）'],
@@ -919,9 +973,10 @@ const fields = {
 	refresh: ['source'], import_source: ['source', 'content'], import_openclash: [], compare_converter: ['source'],
 	refresh_quota: ['source'], region_defaults: [], preview_regions: ['config', 'sources'],
 	validate: ['profile'], preview: ['profile', 'format'], build: ['profile'],
-	compatibility: ['profile'],
-	compatibility_plan: ['profile', 'format', 'id', 'name', 'resolutions'],
+	compatibility: ['profile', 'review'],
+	compatibility_plan: ['profile', 'format', 'id', 'name', 'resolutions', 'operation'],
 	compatibility_create: ['profile', 'format', 'id', 'name', 'resolutions', 'version', 'plan_token', 'accepted_changes'],
+	compatibility_update: ['profile', 'format', 'id', 'name', 'resolutions', 'version', 'plan_token', 'accepted_changes'],
 	publish: ['release', 'accepted_warnings'], rollback: ['release'],
 	unpublish: ['profile'],
 	download_info: ['profile'], rotate_token: ['profile'], apply_openclash: ['profile'],
@@ -1044,6 +1099,13 @@ function runJob(method, args, label) {
 	});
 }
 
+function regionMatchSignature(regions) {
+	// Names and display order do not change which nodes enter generated groups.
+	return JSON.stringify((regions || []).map(function(region) {
+		return [region.id, region.pattern, Object.entries(region.source_patterns || {}).sort()];
+	}).sort(function(a, b) { return a[0].localeCompare(b[0]); }));
+}
+
 function createMap(owner, payload, collections, title, description) {
 	owner.config = JSON.parse(JSON.stringify(payload.config));
 	owner.version = payload.version;
@@ -1095,6 +1157,7 @@ function createMap(owner, payload, collections, title, description) {
 			collections.forEach(function(key) {
 				next[key] = key === 'settings' ? clean(m.data.get('json', 'settings')) : m.data.sections('json', key).map(clean);
 			});
+			const settingsOnly = collections.indexOf('settings') >= 0 && regionMatchSignature(next.regions) === regionMatchSignature(owner.config.regions);
 			const sourceFlags = {};
 			(next.sources || []).forEach(function(source) {
 				const previous = (owner.config.sources || []).find(function(row) { return row.id === source.id; }) || {};
@@ -1110,7 +1173,7 @@ function createMap(owner, payload, collections, title, description) {
 					if (source) { row.url = ''; row.quota_url = ''; row.clear_quota_url = '0'; row.has_url = source.has_url; row.has_quota_url = source.has_quota_url; }
 				});
 				owner.version = result.version; owner.config = next;
-				ui.addNotification(null, E('p', {}, _('Draft saved. Build and publish from the Overview page to update downloads or OpenClash.')), 'info');
+				ui.addNotification(null, E('p', {}, settingsOnly ? _('Global settings saved.') : _('Draft saved. Build and publish from the Overview page to update downloads or OpenClash.')), 'info');
 			});
 		});
 	};

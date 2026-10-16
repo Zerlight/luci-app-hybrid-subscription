@@ -22,6 +22,7 @@
         "luci.hybrid_subscription": [
           "save_config",
           "compatibility_create",
+          "compatibility_update",
           "refresh",
           "refresh_quota",
           "import_source",

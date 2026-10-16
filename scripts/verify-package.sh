@@ -37,7 +37,7 @@ PY
  *) exit 2 ;;
 esac
 if [[ "$name" == luci-app-hybrid-subscription ]]; then
- for file in /usr/share/hybrid-subscription/{backend,engine,cli,quota,regions,openclash,converter,compatibility,download}.rb \
+ for file in /usr/share/hybrid-subscription/{backend,engine,cli,quota,regions,openclash,converter,compatibility,compatibility_strategy,download}.rb \
              /usr/share/hybrid-subscription/{LICENSE,NOTICE} \
              /www/luci-static/resources/hybrid-subscription.js \
              /www/luci-static/resources/view/hybrid-subscription/{overview,sources,profiles,rules,compatibility,settings}.js \

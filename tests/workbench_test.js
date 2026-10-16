@@ -33,6 +33,40 @@ assert.match(renderQuota(null), /No quota data/);
 let workbench = JSON.stringify(page.statusContent.call({config:{profiles:[{id:'p',name:'Profile',formats:['mihomo']}]}},{profiles:[{id:'p',published_release:'r1',formats:['mihomo']}]}));
 for (const action of ['Edit Profile','Build & Publish','Download / QR Code','Release Management']) assert.ok(workbench.includes(action));
 
+// Saved conversion drift is advisory and opens review for the existing target.
+function renderCompatibility(state) {
+ return page.statusContent.call({config:{profiles:[{id:'compatible_copy',name:'Surge copy'}]}}, {
+  profiles:[{id:'compatible_copy',published_release:'r1',formats:['surge'],compatibility:state}]
+ });
+}
+function elements(value) {
+ if (Array.isArray(value)) return value.flatMap(elements);
+ if (!value || typeof value !== 'object') return [];
+ return [value].concat(elements(value.children));
+}
+const tracked = {source_profile:'main',format:'surge',source_changed:false,target_changed:false,source_missing:false,needs_review:false};
+for (const state of [undefined, tracked]) {
+ const content = JSON.stringify(renderCompatibility(state));
+ assert.doesNotMatch(content, /Review Conversion|alert-message warning/, 'unchanged or independent drafts need no drift notice');
+}
+for (const [flags, message] of [
+ [{source_changed:true}, 'Source profile changed. Review before updating this draft.'],
+ [{target_changed:true}, 'Compatible draft has local changes. Review before updating.'],
+ [{source_changed:true,target_changed:true}, 'Source and compatible draft changed. Review before updating.'],
+ [{source_missing:true,source_changed:true,target_changed:true}, 'Source profile is missing. Review this compatible draft.'],
+ [{}, 'Saved conversion needs review.']
+]) {
+ const rendered = renderCompatibility({...tracked,...flags,needs_review:true}), content = JSON.stringify(rendered);
+ const alerts = elements(rendered).filter(node => node.attrs && node.attrs.class === 'alert-message warning');
+ assert.equal(alerts.length, 1, 'show one compact notice for a compatible copy');
+ assert.equal(alerts[0].children[0], message);
+ const review = elements(alerts[0]).find(node => node.tag === 'a');
+ assert.equal(review.children, 'Review Conversion');
+ assert.equal(review.attrs.href, '/admin/services/hybrid-subscription/compatibility?profile=compatible_copy&review=1', 'review selects the existing target, even if its source is missing');
+ assert.match(content, /Download \/ QR Code/, 'the notice does not hide the published download');
+ assert.match(content, /Build & Publish/, 'the notice does not silently replace existing publish actions');
+}
+
 // Verify Simplified Chinese (zh-cn / zh_Hans) output
 realHs.setLocale('zh_Hans');
 assert.match(renderQuota({upload:1073741824,total:10737418240}), /已用 未知 \/ 10\.00 GiB/);
@@ -44,4 +78,4 @@ assert.match(renderQuota(null), /暂无流量数据/);
 workbench = JSON.stringify(page.statusContent.call({config:{profiles:[{id:'p',name:'Profile',formats:['mihomo']}]}},{profiles:[{id:'p',published_release:'r1',formats:['mihomo']}]}));
 for (const action of ['编辑配置','构建并发布','下载 / 二维码','版本管理']) assert.ok(workbench.includes(action));
 
-console.log('Workbench actions and partial quota/expiry display pass in both English and Simplified Chinese.');
+console.log('Workbench actions, conversion drift notices, review links and partial quota/expiry display pass.');

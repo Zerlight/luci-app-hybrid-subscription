@@ -44,8 +44,8 @@ function node(tag, attrs = {}, children = []) {
 		focus() { this.focused = true; }, scrollIntoView() { this.scrolled = true; }
 	};
 }
-const document = { createElementNS: (_, tag) => node(tag) }, selects = [];
-const ui = { addNotification() {}, Select: class {
+const document = { createElementNS: (_, tag) => node(tag) }, selects = [], notifications = [];
+const ui = { addNotification(title, content, level) { notifications.push({ title, content, level }); }, Select: class {
 	constructor(value, choices, options) { this.value = value; this.choices = choices; this.options = options; selects.push(this); }
 	render() { return this.node = node('select'); }
 	getValue() { return this.value; }
@@ -69,6 +69,9 @@ assert.equal(hs.t('Overview'), '状态概览');
 assert.equal(hs.translateMessage('Invalid identifier'), '标识符格式无效');
 assert.equal(hs.translateMessage('Group proxy has no members after filtering; Rule r1: invalid IP prefix'), '策略组 proxy 在筛选后无可用节点或成员；分流规则 r1：IP 网段（CIDR）格式无效');
 assert.equal(hs.translateMessage('Source alpha, node 2: missing password'), '订阅源 alpha 第 2 个节点：缺少必填字段 password');
+assert.equal(hs.translateMessage('Update compatible draft Surge (copy) from its saved source; preserve published releases and download links'), '根据来源配置更新兼容草稿“Surge”（copy）；保留已发布版本和订阅链接');
+assert.equal(hs.translateMessage('Replace target rules Test rule (rule_1); changed fields: policy, value'), '更新兼容草稿中的分流规则“Test rule”（rule_1）；变更字段：出口策略、匹配内容');
+assert.equal(hs.translateMessage('Omit sub-rule Scope (scope) and its 2 scoped rules from the compatible draft'), '从兼容草稿中移除子规则“Scope”（scope）及其 2 条内部规则');
 
 hs.registerLocale('ja', {
 	separator: '・',
@@ -156,6 +159,12 @@ assert.equal(japanNode.focused, true);
 assert.equal(japanNode.scrolled, true);
 
 async function editorChecks() {
+	const publishNotice = 'Draft saved. Build and publish from the Overview page to update downloads or OpenClash.';
+	const settingsNotice = 'Global settings saved.';
+	function assertNotice(expected, reason) {
+		assert.equal(notifications.at(-1).content.children[0], expected, reason);
+		assert.equal(notifications.at(-1).level, 'info');
+	}
 	const addButton = node('button'), actionSection = { renderSectionAdd(extraClass) { return node('div', { class: extraClass }, [addButton]); } };
 	hs.sectionActions(actionSection, () => [node('button', {}, 'Import')]);
 	const actions = actionSection.renderSectionAdd('cbi-tblsection-create');
@@ -222,6 +231,7 @@ async function editorChecks() {
 	assert.equal(state.profile, 'b'); assert.deepEqual(visible().map(row => row.id), ['b1']);
 	assert.equal(filtered.data.sections('json', 'rules').length, 3, 'changing filters must keep all underlying rows');
 	await filteredOwner.handleSave();
+	assertNotice(publishNotice, 'routing edits retain the publication reminder');
 	const saved = JSON.parse(sent.filter(call => call.method === 'save_config').at(-1).args[0]);
 	assert.deepEqual(saved.rules.map(row => row.id), ['a2', 'a1', 'b1']);
 	assert.equal(saved.rules[1].value, 'retained-draft'); assert.equal(saved.rules[2].value, 'keep-hidden');
@@ -258,6 +268,55 @@ async function editorChecks() {
 	assert.equal(owner.config.sources[1].clear_quota_url, false);
 	assert.equal(m.data.sections('json', 'sources')[1].clear_quota_url, '0');
 	assert.equal(owner.version, 'v2');
-	console.log(`${modules} modules parse; i18n (en/zh-cn/extensible), JSONMap, native tabs, filter/sort draft preservation, display names, quota RPC/secret cleanup, native JSON, rule normalization and graph zoom/navigation pass.`);
+	assertNotice(publishNotice, 'source and routing edits retain the publication reminder');
+
+	function settingsEditor(regions) {
+		const owner = {};
+		const config = { schema: 1, settings: { access_mode: 'lan_token', base_url: '', openclash_auto_apply: false, openclash_profile: '', converter_url: 'http://127.0.0.1:25500' },
+			sources: [{ id: 'a', url: '', quota_url: '', has_url: true, has_quota_url: false }, { id: 'b', url: '', quota_url: '', has_url: true, has_quota_url: false }],
+			profiles: [], groups: [], rematches: [], sub_rules: [], rules: [], rule_sets: [], regions };
+		return { owner, map: hs.createMap(owner, { config, version: 'settings-v1' }, ['settings', 'regions']) };
+	}
+	const flags = settingsEditor([{ id: 'jp', name: 'Japan', pattern: 'JP' }]);
+	flags.map.data.get('json', 'settings').openclash_auto_apply = '1';
+	// Native override controls materialize an empty object when parsing an unset override.
+	flags.map.data.get('json', 'regions_0').source_patterns = {};
+	await flags.owner.handleSave();
+	assertNotice(settingsNotice, 'a settings flag and materialized empty overrides do not require publication');
+	assert.equal(flags.owner.config.settings.openclash_auto_apply, true);
+	assert.equal(sent.at(-1).args[1], 'settings-v1');
+	await flags.owner.handleSave();
+	assertNotice(settingsNotice, 'repeated settings-only saves remain neutral');
+	assert.equal(sent.at(-1).args[1], 'v2', 'repeat save uses the returned configuration version');
+
+	const regions = [{ id: 'jp', name: 'Japan', pattern: 'JP', source_patterns: { a: 'Japan A', b: 'Japan B' } }, { id: 'us', name: 'United States', pattern: 'US' }];
+	const display = settingsEditor(regions);
+	display.map.data.get('json', 'regions_0').name = '日本';
+	display.map.data.get('json', 'regions_0').source_patterns = { b: 'Japan B', a: 'Japan A' };
+	display.map.data.move('json', 'regions_1', 'regions_0', false);
+	await display.owner.handleSave();
+	assertNotice(settingsNotice, 'region labels, display order and override key order do not change matching');
+	assert.deepEqual(display.owner.config.regions.map(region => region.id), ['us', 'jp'], 'display edits are still saved');
+
+	for (const [reason, edit] of [
+		['general regex', map => { map.data.get('json', 'regions_0').pattern = 'JP|Japan'; }],
+		['source override', map => { map.data.get('json', 'regions_0').source_patterns = { a: 'Changed A', b: 'Japan B' }; }],
+		['removed override', map => { map.data.get('json', 'regions_0').source_patterns = {}; }],
+		['new region', map => { Object.assign(map.data.get('json', map.data.add('json', 'regions')), { id: 'sg', name: 'Singapore', pattern: 'SG' }); }],
+		['removed region', map => { map.data.remove('json', 'regions_0'); }],
+		['region identifier', map => { map.data.get('json', 'regions_0').id = 'japan'; }],
+		['mixed settings and region matching', map => { map.data.get('json', 'settings').access_mode = 'session'; map.data.get('json', 'regions_0').pattern = 'Japan'; }]
+	]) {
+		const changed = settingsEditor(regions);
+		edit(changed.map);
+		await changed.owner.handleSave();
+		assertNotice(publishNotice, `${reason} changes retain the publication reminder`);
+	}
+	const sourceOwner = {}, sourceMap = hs.createMap(sourceOwner, { config: { sources: [{ id: 'a', url: '', has_url: true }] }, version: 'source-v1' }, ['sources']);
+	sourceMap.data.get('json', 'sources_0').url = 'https://example.invalid/subscription';
+	await sourceOwner.handleSave();
+	assertNotice(publishNotice, 'source-only edits retain the publication reminder');
+	assert.equal(sourceOwner.config.sources[0].url, '', 'notification classification does not alter secret cleanup');
+	console.log(`${modules} modules parse; i18n (en/zh-cn/extensible), JSONMap, native tabs, filter/sort draft preservation, save notifications, display names, quota RPC/secret cleanup, native JSON, rule normalization and graph zoom/navigation pass.`);
 }
 editorChecks().catch(error => { console.error(error); process.exitCode = 1; });

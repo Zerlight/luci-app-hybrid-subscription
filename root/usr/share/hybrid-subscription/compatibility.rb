@@ -1,9 +1,11 @@
 # frozen_string_literal: true
 require_relative 'engine'
+require_relative 'compatibility_strategy'
 
 module HybridSubscription
   # Plans are regenerated from the saved draft and caches before any write.
   class Compatibility
+    include CompatibilityStrategy
     SCOPED = %w[groups rematches sub_rules rules].freeze
     RESOLUTIONS = %w[rematches group_modes abandon_sub_rules omit_dns omit_mihomo_policy disable_rules].freeze
     GROUP_MODES = {
@@ -210,14 +212,19 @@ module HybridSubscription
       {'code'=>"#{kind}:#{item['id']}", 'kind'=>kind, 'id'=>item['id'], 'name'=>item['name'] || item['id'], 'severity'=>severity, 'message'=>message, 'resolution'=>resolution}
     end
 
-    def report(id)
+    def report(id, review: false)
+      strategy = strategy_status(id, details: true)
+      if review && strategy && !strategy['source_missing']
+        return report(strategy['source_profile']).merge('strategy'=>strategy)
+      end
       p = profile(id)
       targets = Engine::FORMATS.map { |format| target(id, format) }
       affected_groups = Hash.new { |groups, key| groups[key] = [] }
       targets.each do |target|
         target['issues'].select { |item| item['kind'] == 'group' }.each { |item| affected_groups[item['id']] << target['format'] }
       end
-      {'profile'=>{'id'=>id, 'name'=>p['name']}, 'targets'=>targets,
+      {'profile'=>{'id'=>id, 'name'=>p['name']}, 'targets'=>targets, 'strategy'=>strategy,
+       'derived_profiles'=>@config['profiles'].select { |row| row['compatibility'].is_a?(Hash) && row['compatibility']['source_profile'] == id }.map { |row| strategy_status(row['id']) }.compact,
        'choices'=>{
          'policies'=>Engine::BUILTINS.map { |value| {'id'=>value, 'name'=>value} } + rows('groups', id).map { |g| g.slice('id', 'name') },
          'groups'=>rows('groups', id).map do |group|
@@ -255,7 +262,7 @@ module HybridSubscription
       end
       modes = value.fetch('group_modes', {})
       group_ids = rows('groups', id).map { |row| row['id'] }
-      raise Error, 'Choose an existing group and a supported alternative mode for this target' unless modes.is_a?(Hash) && modes.all? { |group, mode| group_ids.include?(group) && GROUP_MODES[format].key?(mode) }
+      raise Error, 'Choose an existing group and a supported alternative mode for this target' unless modes.is_a?(Hash) && modes.all? { |group, mode| group_ids.include?(group) && (mode == 'keep' || GROUP_MODES[format].key?(mode)) }
       disabled = value.fetch('disable_rules', [])
       rule_ids = rows('rules', id).select { |r| r['enabled'] != false }.map { |r| r['id'] }
       raise Error, 'Choose existing enabled rules to disable' unless disabled.is_a?(Array) && disabled.uniq == disabled && (disabled - rule_ids).empty?
@@ -289,14 +296,26 @@ module HybridSubscription
     def plan(args)
       old_id, new_id, format = args.values_at('profile', 'id', 'format')
       original = profile(old_id)
+      operation = args.fetch('operation', 'create')
+      raise Error, 'Invalid compatibility operation' unless %w[create reapply].include?(operation)
       raise Error, 'Invalid export format' unless Engine::FORMATS.include?(format)
       raise Error, 'Invalid identifier' unless new_id.is_a?(String) && Engine::ID.match?(new_id)
-      raise Error, 'An independent profile requires a new unused identifier' if @config['profiles'].any? { |p| p['id'] == new_id }
+      check_ancestry(old_id, new_id)
+      raise Error, 'An independent profile requires a new unused identifier' if operation == 'create' && @config['profiles'].any? { |p| p['id'] == new_id }
+      draft = Engine.copy(@config)
       name = args['name']
+      old_sets = []
+      name, old_sets = prepare_reapply(draft, new_id, old_id, format) if operation == 'reapply'
       raise Error, 'Profile name must contain 1–256 characters without control characters' unless name.is_a?(String) && !name.strip.empty? && name.length <= 256 && !name.match?(/[\x00-\x1f\x7f]/)
       choices = resolutions(args['resolutions'], old_id, format)
-      draft = Engine.copy(@config)
-      changes = [{'code'=>'create-profile', 'message'=>"Create independent #{format} profile #{name} (#{new_id}); preserve the original profile and its export formats"}]
+      changes = if operation == 'reapply'
+                  [{'code'=>'update-profile', 'message'=>"Update compatible draft #{name} (#{new_id}) from its saved source; preserve published releases and download links"}]
+                else
+                  [{'code'=>'create-profile', 'message'=>"Create independent #{format} profile #{name} (#{new_id}); preserve the original profile and its export formats"}]
+                end
+      if operation == 'reapply' && strategy_status(new_id)['target_changed']
+        changes << {'code'=>'replace-target', 'message'=>'The compatible draft was edited independently; replace its current contents with this reviewed conversion plan'}
+      end
       cloned = {}
       maps = {}
       SCOPED.each do |key|
@@ -330,6 +349,7 @@ module HybridSubscription
         cloned['rematches'].reject! { |row| row['id'] == maps['rematches'][rematch] }
       end
       choices.fetch('group_modes', {}).each do |id, mode|
+        next if mode == 'keep'
         group = cloned['groups'].find { |row| row['id'] == maps['groups'][id] }
         before, baseline = group_type(group, format), group_type(group, 'mihomo')
         group[format + '_type'] = GROUP_MODES[format][mode]
@@ -352,7 +372,7 @@ module HybridSubscription
         rule['enabled'] = false
         changes << {'code'=>"disable-rule:#{id}", 'message'=>"Disable rule #{id} (#{rule['type']}) in the new profile; matching traffic will follow later rules or the final policy"}
       end
-      copy = Engine.copy(original).merge('id'=>new_id, 'name'=>name, 'formats'=>[format])
+      copy = Engine.copy(without_strategy(original)).merge('id'=>new_id, 'name'=>name, 'formats'=>[format])
       copy['final_policy'] = policy_map.fetch(copy['final_policy'], copy['final_policy'])
       %w[dns mihomo_policy].each do |key|
         field = key == 'dns' ? 'mihomo_dns' : key
@@ -389,6 +409,10 @@ module HybridSubscription
       copy['mihomo_dns'] = remap_dns(copy['mihomo_dns'], set_map) if copy['mihomo_dns']
       draft['profiles'] << copy
       SCOPED.each { |key| draft[key] ||= []; draft[key].concat(cloned[key]) }
+      planned = self.class.new(draft, @caches)
+      new_sets = set_map.values
+      changes.concat(target_changes(owned_state(new_id, old_sets), planned.owned_state(new_id, new_sets))) if operation == 'reapply'
+      copy['compatibility'] = {'schema'=>1, 'source_profile'=>old_id, 'format'=>format, 'resolutions'=>Engine.copy(choices), 'source_digest'=>source_fingerprint(old_id), 'target_digest'=>fingerprint(planned.owned_state(new_id, new_sets)), 'decision_digests'=>decision_fingerprints(old_id, choices), 'managed_rule_sets'=>new_sets}
       raise Error, 'Configuration exceeds the 2 MiB size limit' if JSON.generate(draft).bytesize > Engine::MAX_INPUT
       %w[profiles groups rematches sub_rules rules rule_sets].each { |key| raise Error, "#{key} exceeds the 5000 item limit" if draft[key].length > 5000 }
       validation = Engine.new(draft, @caches).validate(new_id)
@@ -402,7 +426,8 @@ module HybridSubscription
           validation['warnings'] << {'code'=>"singbox:manual-controls:#{id}", 'message'=>"#{name}: sing-box manual selection requires client selection controls or its API; otherwise the first candidate is used", 'target'=>'singbox'}
         end
       end
-      output = validation.merge('profile'=>new_id, 'format'=>format, 'changes'=>changes, 'ready'=>validation['errors'].empty?)
+      changes.each { |change| change['message'] = change['message'].gsub('new profile', 'compatible draft') } if operation == 'reapply'
+      output = validation.merge('profile'=>new_id, 'format'=>format, 'operation'=>operation, 'updated_target'=>operation == 'reapply', 'changes'=>changes, 'ready'=>validation['errors'].empty?)
       output['plan_token'] = Digest::SHA256.hexdigest(JSON.generate([@config, @caches.transform_values { |value| value['nodes'] }, draft, changes]))
       [draft, output]
     end

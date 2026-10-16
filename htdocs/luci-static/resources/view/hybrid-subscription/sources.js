@@ -49,8 +49,8 @@ return view.extend({
 		o = hs.value(s, form.Value, 'user_agent', _('Download User-Agent'), _('Leave blank to use the default User-Agent.'), ''); o.rmempty = false;
 		o = hs.value(s, form.DummyValue, 'openclash_section', _('Linked OpenClash Source'));
 		o = hs.value(s, form.Flag, 'takeover', _('Take Over OpenClash Subscription Updates'), _('Applies only to sources imported from OpenClash. Disables OpenClash auto-updates for this source when applying a profile to prevent duplicate pulls.'), '0'); o.rmempty = false;
-		hs.rowAction(s, '_refresh', _('Update Cache'), function(row) {
-			return self.handleSave().then(function() { return hs.runJob('refresh', { source: row.id }, _('Update Source Cache')); }).then(function() { window.location.reload(); });
+		hs.rowAction(s, '_refresh', _('Update Subscription'), function(row) {
+			return self.handleSave().then(function() { return hs.runJob('refresh', { source: row.id }, _('Update Subscription')); }).then(function() { window.location.reload(); });
 		});
 		o = hs.rowAction(s, '_import', _('Import File'), function(row) {
 			return self.handleSave().then(function() { hs.importSource(row); });

@@ -117,6 +117,10 @@ msgstr ""
 msgid "Draft saved. Build and publish from the Overview page to update downloads or OpenClash."
 msgstr ""
 
+#: htdocs/luci-static/resources/hybrid-subscription.js
+msgid "Global settings saved."
+msgstr ""
+
 #: htdocs/luci-static/resources/hybrid-subscription.js:938
 msgid "Add"
 msgstr ""
@@ -1379,11 +1383,8 @@ msgid "Applies only to sources imported from OpenClash. Disables OpenClash auto-
 msgstr ""
 
 #: htdocs/luci-static/resources/view/hybrid-subscription/sources.js:52
-msgid "Update Cache"
-msgstr ""
-
 #: htdocs/luci-static/resources/view/hybrid-subscription/sources.js:53
-msgid "Update Source Cache"
+msgid "Update Subscription"
 msgstr ""
 
 #: htdocs/luci-static/resources/view/hybrid-subscription/sources.js:55
@@ -2704,4 +2705,160 @@ msgstr ""
 #: htdocs/luci-static/resources/view/hybrid-subscription/compatibility.js
 #, javascript-format
 msgid "%s group choices updated."
+msgstr ""
+
+#: htdocs/luci-static/resources/hybrid-subscription.js
+msgid "Confirm every change category before updating the compatible draft."
+msgstr ""
+
+#: htdocs/luci-static/resources/hybrid-subscription.js
+msgid "Existing draft changes"
+msgstr ""
+
+#: htdocs/luci-static/resources/hybrid-subscription.js
+msgid "Review and Update Copy"
+msgstr ""
+
+#: htdocs/luci-static/resources/hybrid-subscription.js
+msgid "Review each change category, then confirm to update the existing draft."
+msgstr ""
+
+#: htdocs/luci-static/resources/hybrid-subscription.js
+msgid "Review saved choices before updating this draft. Its identifier, name and download link stay the same; the original profile stays unchanged."
+msgstr ""
+
+#: htdocs/luci-static/resources/hybrid-subscription.js
+msgid "Review the saved conversion choices."
+msgstr ""
+
+#: htdocs/luci-static/resources/hybrid-subscription.js
+msgid "Saved compatible copies"
+msgstr ""
+
+#: htdocs/luci-static/resources/hybrid-subscription.js
+msgid "Saved conversion"
+msgstr ""
+
+#: htdocs/luci-static/resources/hybrid-subscription.js
+msgid "Saved conversion choices are up to date."
+msgstr ""
+
+#: htdocs/luci-static/resources/hybrid-subscription.js
+msgid "Some saved choices were cleared. Review these items again:"
+msgstr ""
+
+#: htdocs/luci-static/resources/hybrid-subscription.js
+msgid "Source policy changed. Review the saved conversion choices."
+msgstr ""
+
+#: htdocs/luci-static/resources/hybrid-subscription.js
+msgid "Source profile: %s"
+msgstr ""
+
+#: htdocs/luci-static/resources/hybrid-subscription.js
+msgid "The source profile is missing. The saved copy can still be used."
+msgstr ""
+
+#: htdocs/luci-static/resources/hybrid-subscription.js
+msgid "This copy has local edits. Review what updating will replace."
+msgstr ""
+
+#: htdocs/luci-static/resources/hybrid-subscription.js
+msgid "Update Compatible Draft"
+msgstr ""
+
+#: htdocs/luci-static/resources/hybrid-subscription.js
+msgid "Updating saves the draft only. The published subscription stays unchanged until you build and publish this copy again."
+msgstr ""
+
+#: htdocs/luci-static/resources/hybrid-subscription.js
+msgid "View Copy"
+msgstr ""
+
+#: htdocs/luci-static/resources/hybrid-subscription.js
+msgid "View Source Profile"
+msgstr ""
+
+#: htdocs/luci-static/resources/hybrid-subscription.js
+msgid "Compatible draft has local changes. Review before updating."
+msgstr ""
+
+#: htdocs/luci-static/resources/hybrid-subscription.js
+msgid "Review Conversion"
+msgstr ""
+
+#: htdocs/luci-static/resources/hybrid-subscription.js
+msgid "Saved conversion needs review."
+msgstr ""
+
+#: htdocs/luci-static/resources/hybrid-subscription.js
+msgid "Source and compatible draft changed. Review before updating."
+msgstr ""
+
+#: htdocs/luci-static/resources/hybrid-subscription.js
+msgid "Source profile changed. Review before updating this draft."
+msgstr ""
+
+#: htdocs/luci-static/resources/hybrid-subscription.js
+msgid "Source profile is missing. Review this compatible draft."
+msgstr ""
+
+#: htdocs/luci-static/resources/hybrid-subscription.js
+msgid "The source content or a referenced policy changed; review this saved choice again."
+msgstr ""
+
+#: htdocs/luci-static/resources/hybrid-subscription.js
+msgid "The source profile no longer exists; the current compatible draft and published release are preserved."
+msgstr ""
+
+#: htdocs/luci-static/resources/hybrid-subscription.js
+msgid "Compatibility source relationships contain a cycle"
+msgstr ""
+
+#: htdocs/luci-static/resources/hybrid-subscription.js
+msgid "Compatibility source relationships exceed the depth limit"
+msgstr ""
+
+#: htdocs/luci-static/resources/hybrid-subscription.js
+msgid "Only a tracked compatible profile can be updated from its source"
+msgstr ""
+
+#: htdocs/luci-static/resources/hybrid-subscription.js
+msgid "The update must use the saved source profile and target format"
+msgstr ""
+
+#: htdocs/luci-static/resources/hybrid-subscription.js
+msgid "A managed compatibility rule set is used by another profile; resolve that reference before updating"
+msgstr ""
+
+#: htdocs/luci-static/resources/hybrid-subscription.js
+msgid "The compatible draft was edited independently; replace its current contents with this reviewed conversion plan"
+msgstr ""
+
+#: htdocs/luci-static/resources/hybrid-subscription.js
+msgid "Invalid compatibility operation"
+msgstr ""
+
+#: htdocs/luci-static/resources/hybrid-subscription.js
+msgid "Use compatibility update to replace an existing draft"
+msgstr ""
+
+#: htdocs/luci-static/resources/hybrid-subscription.js
+msgid "Compatibility plan changed; preview the plan again before saving the draft"
+msgstr ""
+
+#: htdocs/luci-static/resources/hybrid-subscription.js
+msgid "Please confirm every compatibility change before saving the draft"
+msgstr ""
+
+#: htdocs/luci-static/resources/hybrid-subscription.js
+msgid "Resolve all compatibility errors before saving the draft"
+msgstr ""
+
+#: htdocs/luci-static/resources/hybrid-subscription.js
+msgid "regional re-evaluation is no longer performed in the compatible draft"
+msgstr ""
+
+#: htdocs/luci-static/resources/hybrid-subscription.js
+msgid "Omit native Mihomo runtime and geodata policy from the compatible draft"
 msgstr ""

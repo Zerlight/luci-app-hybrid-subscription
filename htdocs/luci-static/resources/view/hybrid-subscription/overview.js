@@ -10,6 +10,18 @@ function link(page, label, profile) {
 	return E('a', { 'class': 'cbi-button cbi-button-action', href: L.url('admin/services/hybrid-subscription/' + page) + (profile ? '?profile=' + encodeURIComponent(profile) : '') }, label);
 }
 function bytes(value) { return value == null ? _('Unknown') : (Number(value) / 1073741824).toFixed(2) + ' GiB'; }
+function compatibilityNotice(profile, current) {
+	const state = current.compatibility;
+	if (!state || !(state.needs_review || state.source_changed || state.target_changed || state.source_missing)) return '';
+	const message = state.source_missing ? _('Source profile is missing. Review this compatible draft.') :
+		state.source_changed && state.target_changed ? _('Source and compatible draft changed. Review before updating.') :
+		state.source_changed ? _('Source profile changed. Review before updating this draft.') :
+		state.target_changed ? _('Compatible draft has local changes. Review before updating.') : _('Saved conversion needs review.');
+	return E('p', { 'class': 'alert-message warning' }, [message, ' ', E('a', {
+		'class': 'cbi-button cbi-button-action',
+		href: L.url('admin/services/hybrid-subscription/compatibility') + '?profile=' + encodeURIComponent(profile.id) + '&review=1'
+	}, _('Review Conversion'))]);
+}
 function confirmPublish(release, done) {
 	const checks = (release.warnings || []).map(function(w) { return { warning: w, field: new ui.Checkbox('0') }; });
 	ui.showModal(_('Confirm Publication'), [
@@ -88,6 +100,7 @@ return view.extend({
 				return E('div', { 'class': 'cbi-section' }, [
 					E('h4', {}, p.name || p.id),
 					E('p', {}, current.published_release ? _('Published · ') + (current.formats || []).join(' / ') + ' · ' + hs.time(current.generated_at) : _('Draft · Unpublished')),
+					compatibilityNotice(p, current),
 					E('p', {}, [link('profiles', _('Edit Profile'), p.id), ' ', link('compatibility', _('Compatibility'), p.id), ' ', hs.button(_('Build & Publish'), function() {
 						return hs.runJob('build', { profile: p.id }, _('Validate and Build Release')).then(function(job) {
 							const result = job.result || {};

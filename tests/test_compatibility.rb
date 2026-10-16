@@ -579,4 +579,296 @@ class CompatibilityTest < Minitest::Test
     assert_empty @backend.published
     %w[private-url-token private-node-password secret-server.invalid private-dns-token].each { |secret| refute_includes JSON.generate(report), secret }
   end
+
+  def strategy(config = @backend.config, id = 'compatible')
+    HybridSubscription::Compatibility.new(config, @backend.caches).strategy_status(id, details:true)
+  end
+
+  def reapply(resolutions = {}, target = 'compatible', source = 'main', format = 'surge')
+    {'operation'=>'reapply', 'profile'=>source, 'id'=>target, 'format'=>format, 'name'=>'Must not rename target', 'resolutions'=>resolutions}
+  end
+
+  def test_created_strategy_is_private_persistent_and_reviewed_from_its_source
+    create(args('surge', 'group_modes'=>{'proxy'=>'url-test'}))
+    metadata = @backend.config['profiles'].last['compatibility']
+    assert_equal 1, metadata['schema']
+    assert_equal 'main', metadata['source_profile']
+    assert_equal({'group_modes'=>{'proxy'=>'url-test'}}, metadata['resolutions'])
+    assert_match(/\A[a-f0-9]{64}\z/, metadata['source_digest'])
+    refute strategy['needs_review']
+    report = @backend.compatibility('profile'=>'compatible', 'review'=>true)
+    assert_equal 'main', report['profile']['id']
+    assert_equal 'compatible', report['strategy']['id']
+    assert_equal metadata['resolutions'], report['strategy']['resolutions']
+    assert_equal 'compatible', report['derived_profiles'][0]['id']
+    %w[private-url-token private-node-password secret-server.invalid].each { |secret| refute_includes JSON.generate(metadata) + JSON.generate(report), secret }
+  end
+
+  def test_strategy_fingerprint_ignores_cache_quota_runtime_and_unrelated_configuration
+    @config['regions'] = [{'id'=>'jp', 'name'=>'Japan', 'pattern'=>'Node', 'source_patterns'=>{}}, {'id'=>'hk', 'name'=>'Hong Kong', 'pattern'=>'HK', 'source_patterns'=>{}}]
+    @config['groups'][0]['region'] = 'jp'
+    save
+    create
+    changed = @backend.config
+    changed['settings']['access_mode'] = 'session'
+    changed['sources'][0].merge!('quota_url'=>'https://quota.invalid/private', 'quota_max_age'=>120, 'update_mode'=>'scheduled', 'interval'=>300, 'takeover'=>true)
+    changed['regions'][0]['name'] = 'Display rename'
+    changed['regions'][1]['pattern'] = 'Unrelated'
+    changed['groups'] << {'id'=>'unrelated', 'profile'=>'other', 'name'=>'Other', 'members'=>[]}
+    changed['rule_sets'] << {'id'=>'unrelated', 'source_type'=>'inline', 'inline_rules'=>'DOMAIN,unrelated.test'}
+    @backend.put_source('source', YAML.dump('proxies'=>[@node.merge('name'=>'Replacement cached node')]), 'mihomo')
+    before = JSON.generate(changed)
+    refute strategy(changed)['source_changed']
+    refute strategy(changed)['target_changed']
+    assert_equal before, JSON.generate(changed)
+  end
+
+  def test_strategy_tracks_relevant_regions_sources_nested_sets_and_dns_dependencies
+    @config['regions'] = [{'id'=>'jp', 'name'=>'Japan', 'pattern'=>'Node', 'source_patterns'=>{}}]
+    @config['groups'][0]['region'] = 'jp'
+    @config['rule_sets'] = %w[nested dns].map { |id| {'id'=>id, 'source_type'=>'inline', 'behavior'=>'classical', 'inline_rules'=>"DOMAIN,#{id}.test"} }
+    @config['rules'][0].merge!('type'=>'AND', 'conditions'=>[{'type'=>'DOMAIN', 'value'=>'one.test'}, {'type'=>'RULE-SET', 'value'=>'nested'}])
+    @config['rules'][0].delete('value')
+    @config['profiles'][0]['mihomo_dns'] = {'nameserver-policy'=>{'rule-set:dns'=>'system'}}
+    save
+    plan = preview(args('mihomo'))
+    assert plan['ready'], plan['errors'].inspect
+    create(args('mihomo'), plan)
+    base = @backend.config
+    mutations = [
+      ->(c) { c['regions'][0]['pattern'] = 'Changed' },
+      ->(c) { c['regions'][0]['source_patterns']['source'] = 'Changed' },
+      ->(c) { c['sources'][0]['name'] = 'Changed' },
+      ->(c) { c['sources'][0]['exclude_filter'] = 'Changed' },
+      ->(c) { c['sources'][0]['enabled'] = false },
+      ->(c) { c['sources'][0]['url'] = 'https://provider.invalid/new' },
+      ->(c) { c['rule_sets'][0]['inline_rules'] = 'DOMAIN,changed.test' },
+      ->(c) { c['rule_sets'][1]['inline_rules'] = 'DOMAIN,changed.test' },
+      ->(c) { c['rule_sets'].delete_at(0) },
+      ->(c) { c['regions'].clear }
+    ]
+    mutations.each do |mutation|
+      current = HybridSubscription::Engine.copy(base)
+      mutation.call(current)
+      assert strategy(current)['source_changed']
+      refute strategy(current)['target_changed'], 'Shared dependency edits are not manual target edits'
+    end
+  end
+
+  def test_strategy_canonicalizes_hashes_but_preserves_rule_and_candidate_order
+    @config['rules'] << {'id'=>'second', 'profile'=>'main', 'type'=>'DOMAIN', 'value'=>'second.test', 'policy'=>'DIRECT'}
+    save
+    create
+    base = @backend.config
+    reordered_hash = HybridSubscription::Engine.copy(base)
+    reordered_hash['groups'][0] = reordered_hash['groups'][0].to_a.reverse.to_h
+    refute strategy(reordered_hash)['source_changed']
+    reordered_rules = HybridSubscription::Engine.copy(base)
+    reordered_rules['rules'][0], reordered_rules['rules'][1] = reordered_rules['rules'][1], reordered_rules['rules'][0]
+    assert strategy(reordered_rules)['source_changed']
+    refute strategy(reordered_rules)['target_changed']
+    changed_target = HybridSubscription::Engine.copy(base)
+    changed_target['groups'].last['name'] = 'Manual edit'
+    assert strategy(changed_target)['target_changed']
+    refute strategy(changed_target)['source_changed']
+  end
+
+  def test_changed_destructive_choices_are_removed_from_prefill_without_changing_saved_strategy
+    native_graph
+    choices = {'rematches'=>{'follow'=>'proxy'}, 'abandon_sub_rules'=>true, 'omit_dns'=>true, 'disable_rules'=>['geosite']}
+    create(args('surge', choices))
+    base = @backend.config
+    mutations = {
+      'disable_rules:geosite'=>->(c) { c['rules'].find { |r| r['id']=='geosite' }['value']='private' },
+      'omit_dns'=>->(c) { c['profiles'][0]['mihomo_dns']['nameserver']=['https://new-resolver.invalid/private-token'] },
+      'abandon_sub_rules'=>->(c) { c['rules'] << {'id'=>'new_scoped', 'profile'=>'main', 'sub_rule'=>'region', 'type'=>'DOMAIN', 'value'=>'new.test', 'policy'=>'proxy'} },
+      'rematches:follow'=>->(c) { c['groups'][0]['name']='Changed candidate' }
+    }
+    mutations.each do |code, mutation|
+      current = HybridSubscription::Engine.copy(base)
+      mutation.call(current)
+      result = strategy(current)
+      assert_includes result['invalidated'].map { |item| item['code'] }, code
+      key, id = code.split(':', 2)
+      case key
+      when 'disable_rules' then refute_includes result['resolutions'][key], id
+      when 'rematches' then refute result['resolutions'][key].key?(id)
+      else refute result['resolutions'][key]
+      end
+      assert_equal choices, current['profiles'].last['compatibility']['resolutions']
+      refute_includes JSON.generate(result), 'private-token'
+    end
+  end
+
+  def test_missing_candidates_invalidate_entire_saved_rematch_choice
+    native_graph
+    choices = {'rematches'=>{'follow'=>{'mode'=>'manual', 'members'=>['proxy','DIRECT']}}, 'abandon_sub_rules'=>true, 'omit_dns'=>true}
+    choices['disable_rules'] = ['geosite']
+    create(args('surge', choices))
+    current = @backend.config
+    current['groups'].reject! { |group| group['id']=='proxy' }
+    result = strategy(current)
+    assert_empty result['resolutions']['rematches']
+    assert_includes result['invalidated'].map { |item| item['code'] }, 'rematches:follow'
+    assert_equal ['proxy','DIRECT'], current['profiles'].last['compatibility']['resolutions']['rematches']['follow']['members']
+  end
+
+  def test_missing_source_preserves_target_and_reports_orphan_without_guessing_legacy_origins
+    assert_nil strategy(@backend.config, 'main')
+    create
+    @config = @backend.config
+    @config['profiles'].reject! { |profile| profile['id']=='main' }
+    save
+    before = @backend.config
+    report = @backend.compatibility('profile'=>'compatible', 'review'=>true)
+    assert_equal 'compatible', report['profile']['id']
+    assert report['strategy']['source_missing']
+    assert report['strategy']['needs_review']
+    assert_empty report['strategy']['resolutions']
+    assert_equal before, @backend.config
+  end
+
+  def test_noop_reapply_keeps_target_identity_and_requires_only_update_acknowledgement
+    create
+    before = @backend.config
+    plan = preview(reapply)
+    assert plan['ready'], plan['errors'].inspect
+    assert_equal ['update-profile'], plan['changes'].map { |change| change['code'] }
+    assert_equal before, @backend.config
+    result = @backend.compatibility_plan(reapply.merge('version'=>plan['version'], 'plan_token'=>plan['plan_token'], 'accepted_changes'=>['update-profile']), update:true)
+    assert result['updated']
+    assert_equal 'Compatible', @backend.config['profiles'].last['name']
+    refute strategy['needs_review']
+    assert_empty @backend.published
+    assert_empty @backend.releases
+  end
+
+  def test_reapply_lists_manual_target_removals_and_new_source_rows
+    create
+    @config = @backend.config
+    @config['rules'] << {'id'=>'new_source_rule', 'profile'=>'main', 'type'=>'DOMAIN', 'value'=>'new.test', 'policy'=>'proxy'}
+    @config['groups'] << {'id'=>'manual_target_group', 'profile'=>'compatible', 'name'=>'Manual target group', 'sources'=>['source'], 'members'=>[]}
+    @config['rules'].find { |rule| rule['profile']=='compatible' }['value']='manual.test'
+    save
+    plan = preview(reapply)
+    assert plan['ready'], plan['errors'].inspect
+    codes = plan['changes'].map { |change| change['code'] }
+    assert_includes codes, 'replace-target'
+    assert_includes codes, 'target-remove:groups:manual_target_group'
+    assert codes.any? { |code| code.start_with?('target-add:rules:') }
+    assert codes.any? { |code| code.start_with?('target-replace:rules:') }
+    assert plan['changes'].all? { |change| !change['message'].include?('new profile') }
+  end
+
+  def test_reapply_replaces_only_managed_rule_sets_and_refuses_external_references
+    @config['rule_sets'] = [{'id'=>'bound', 'source_type'=>'inline', 'behavior'=>'classical', 'inline_rules'=>'DOMAIN,one.test', 'mihomo_proxy'=>'proxy'}, {'id'=>'shared', 'source_type'=>'inline', 'behavior'=>'classical', 'inline_rules'=>'DOMAIN,shared.test'}]
+    @config['rules'][0].merge!('type'=>'RULE-SET', 'value'=>'bound')
+    save
+    create(args('mihomo'))
+    @config = @backend.config
+    managed = @config['profiles'].last['compatibility']['managed_rule_sets']
+    assert_equal 1, managed.length
+    @config['rule_sets'][0]['inline_rules']='DOMAIN,two.test'
+    save
+    draft, result = HybridSubscription::Compatibility.new(@backend.config, @backend.caches).plan(reapply({}, 'compatible', 'main', 'mihomo'))
+    assert result['ready'], result['errors'].inspect
+    assert_equal 'DOMAIN,two.test', draft['rule_sets'].find { |set| set['id']==managed[0] }['inline_rules']
+    assert_equal @config['rule_sets'][1], draft['rule_sets'].find { |set| set['id']=='shared' }
+    assert_equal 3, draft['rule_sets'].length
+    @config['profiles'][0]['mihomo_dns']={'nameserver-policy'=>{"rule-set:#{managed[0]}"=>'system'}}
+    save
+    assert_match(/used by another profile/, assert_raises(HybridSubscription::Error) { preview(reapply({}, 'compatible', 'main', 'mihomo')) }.message)
+  end
+
+  def test_reapply_rejects_wrong_source_format_untracked_target_and_ancestry_cycles
+    create
+    assert_raises(HybridSubscription::Error) { preview(reapply({}, 'compatible', 'main', 'singbox')) }
+    assert_raises(HybridSubscription::Error) { preview(reapply({}, 'main', 'compatible')) }
+    assert_raises(HybridSubscription::Error) { preview(reapply({}, 'compatible', 'compatible')) }
+    current = @backend.config
+    current['profiles'][0]['compatibility'] = {'schema'=>1, 'source_profile'=>'compatible'}
+    planner = HybridSubscription::Compatibility.new(current, @backend.caches)
+    assert_match(/cycle/, assert_raises(HybridSubscription::Error) { planner.plan(reapply) }.message)
+  end
+
+  def test_rematch_prefill_is_invalidated_by_shared_conditions_and_candidate_filters
+    native_graph
+    @config['regions'] = [{'id'=>'jp', 'name'=>'Japan', 'pattern'=>'Node', 'source_patterns'=>{}}]
+    @config['groups'][0]['region'] = 'jp'
+    @config['rule_sets'] = [{'id'=>'scoped_set', 'source_type'=>'inline', 'behavior'=>'classical', 'inline_rules'=>'DOMAIN,one.test'}]
+    @config['rules'].find { |rule| rule['id']=='regional' }.merge!('type'=>'RULE-SET', 'value'=>'scoped_set')
+    save
+    create(args('surge', 'rematches'=>{'follow'=>'proxy'}, 'abandon_sub_rules'=>true, 'omit_dns'=>true, 'disable_rules'=>['geosite']))
+    base = @backend.config
+    [->(c) { c['regions'][0]['source_patterns']['source']='Changed' },
+     ->(c) { c['sources'][0]['exclude_filter']='Changed' },
+     ->(c) { c['rule_sets'][0]['inline_rules']='DOMAIN,two.test' }].each do |mutation|
+      current = HybridSubscription::Engine.copy(base)
+      mutation.call(current)
+      result = strategy(current)
+      assert_includes result['invalidated'].map { |item| item['code'] }, 'rematches:follow'
+      assert_empty result['resolutions']['rematches']
+    end
+  end
+
+  def test_policy_dependency_fingerprint_does_not_expand_shared_paths_exponentially
+    # Each level shares both descendants: a tree expansion would exceed 100 MiB.
+    20.times do |level|
+      %w[a b].each do |side|
+        members = level == 19 ? ['DIRECT'] : ["level#{level + 1}a", "level#{level + 1}b"]
+        @config['groups'] << {'id'=>"level#{level}#{side}", 'profile'=>'main', 'name'=>"Level #{level} #{side}", 'sources'=>[], 'members'=>members}
+      end
+    end
+    planner = HybridSubscription::Compatibility.new(@config, {})
+    graph = planner.policy_dependencies('main', 'level0a')
+    assert_equal 40, graph['policies'].length
+    assert_operator JSON.generate(graph).bytesize, :<, 20_000
+    # A cycle is recorded as graph edges once and cannot recurse indefinitely.
+    @config['groups'].last['members'] = ['level0a']
+    cyclic = HybridSubscription::Compatibility.new(@config, {}).policy_dependencies('main', 'level0a')
+    assert_equal 40, cyclic['policies'].length
+  end
+
+  def test_unrelated_region_source_overrides_and_disabled_rule_edits_are_distinguished
+    @config['sources'] << {'id'=>'other', 'name'=>'Other', 'enabled'=>true, 'url'=>''}
+    @config['regions'] = [{'id'=>'jp', 'name'=>'Japan', 'pattern'=>'Node', 'source_patterns'=>{}}]
+    @config['groups'][0]['region']='jp'
+    @config['rules'] << {'id'=>'disabled', 'profile'=>'main', 'enabled'=>false, 'type'=>'DOMAIN', 'value'=>'disabled.test', 'policy'=>'DIRECT'}
+    save
+    create
+    current = @backend.config
+    current['regions'][0]['source_patterns']['other']='Unrelated'
+    refute strategy(current)['source_changed']
+    current['rules'].find { |rule| rule['id']=='disabled' }['value']='edited.test'
+    assert strategy(current)['source_changed'], 'Disabled source rows are still part of the saved conversion draft'
+    refute strategy(current)['target_changed']
+  end
+
+  def test_explicit_keep_is_saved_as_a_decision_without_changing_the_group_mode
+    choices = {'group_modes'=>{'proxy'=>'keep'}}
+    request = args('surge', choices)
+    plan = preview(request)
+    assert plan['ready'], plan['errors'].inspect
+    assert_equal ['create-profile'], plan['changes'].map { |change| change['code'] }
+    create(request, plan)
+    current = @backend.config
+    assert_equal 'select', current['groups'].last['surge_type']
+    assert_equal choices, current['profiles'].last['compatibility']['resolutions']
+    assert_equal choices, strategy['resolutions']
+    update_plan = preview(reapply(strategy['resolutions']))
+    assert_equal ['update-profile'], update_plan['changes'].map { |change| change['code'] }
+    current['groups'][0]['surge_type']='url-test'
+    invalidated = strategy(current)
+    assert_empty invalidated['resolutions']['group_modes']
+    assert_includes invalidated['invalidated'].map { |item| item['code'] }, 'group_modes:proxy'
+  end
+
+  def test_keep_does_not_make_an_unsupported_group_mode_compatible
+    @config['groups'][0]['singbox_type']='fallback'
+    save
+    plan = preview(args('singbox', 'group_modes'=>{'proxy'=>'keep'}))
+    refute plan['ready']
+    assert_equal ['create-profile'], plan['changes'].map { |change| change['code'] }
+    assert_raises(HybridSubscription::Error) { preview(args('surge', 'group_modes'=>{'missing'=>'keep'})) }
+  end
 end

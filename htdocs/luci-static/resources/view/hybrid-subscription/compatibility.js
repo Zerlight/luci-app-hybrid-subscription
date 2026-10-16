@@ -23,6 +23,23 @@ function targetStatus(target) {
 		target.warnings.length || issues.some(function(issue) { return issue.severity === 'warning'; }) ? _('Review Differences') : _('Compatible');
 }
 function suggestion(item, format) { return (item.suggestions || {})[format]; }
+function strategyStatus(strategy) {
+	const status = [];
+	if (strategy.source_missing) status.push(_('The source profile is missing. The saved copy can still be used.'));
+	else if (strategy.source_changed) status.push(_('Source policy changed. Review the saved conversion choices.'));
+	if (strategy.target_changed) status.push(_('This copy has local edits. Review what updating will replace.'));
+	return status.length ? status.join(' ') : strategy.needs_review ? _('Review the saved conversion choices.') : _('Saved conversion choices are up to date.');
+}
+function invalidatedChoices(items, choices) {
+	const titles = { group_modes: _('Policy Groups'), rematches: _('Conditional routing'), disable_rules: _('Disabled rules'),
+		abandon_sub_rules: _('Sub-rule removal'), omit_dns: _('DNS policy'), omit_mihomo_policy: _('Runtime settings') };
+	return E('ul', {}, items.map(function(item) {
+		const rows = item.resolution === 'group_modes' ? choices.groups : item.resolution === 'rematches' ? choices.rematches : choices.rules;
+		const row = item.id && (rows || []).find(function(row) { return row.id === item.id; });
+		const label = (titles[item.resolution] || item.resolution) + (item.id ? ' · ' + (row && row.name || item.id) + (row && row.name !== item.id ? ' (' + item.id + ')' : '') : '');
+		return E('li', {}, [E('strong', {}, label), ': ', hs.translateMessage(item.message)]);
+	}));
+}
 function issueGroups(target, choices) {
 	const buckets = new Map();
 	const titles = { group: _('Policy group modes'), rematch: _('Conditional routing'), sub_rules: _('Sub-rules'),
@@ -41,7 +58,9 @@ function issueGroups(target, choices) {
 	return Array.from(buckets.values());
 }
 function changeGroups(changes) {
-	const titles = { 'create-profile': _('New profile'), 'group-mode': _('Policy group modes'), 'replace-rematch': _('Conditional routing'),
+	const titles = { 'create-profile': _('New profile'), 'update-profile': _('Existing draft changes'), 'replace-target': _('Existing draft changes'),
+		'target-add': _('Existing draft changes'), 'target-remove': _('Existing draft changes'), 'target-replace': _('Existing draft changes'), 'target-reorder': _('Existing draft changes'),
+		'group-mode': _('Policy group modes'), 'replace-rematch': _('Conditional routing'),
 		'omit-subrule': _('Sub-rule removal'), 'omit-rule': _('Sub-rule removal'), 'disable-rule': _('Disabled rules'),
 		'omit-mihomo_dns': _('DNS policy'), 'omit-mihomo_policy': _('Runtime settings'), 'copy-ruleset': _('Rule set copies') };
 	const groups = new Map();
@@ -59,7 +78,7 @@ return view.extend({
 		const self = this, profiles = data.config.profiles || [];
 		this.config = data.config;
 		if (!profiles.length) return E('div', { 'class': 'cbi-map' }, [E('h2', {}, _('Compatibility')), E('p', {}, _('Create a subscription profile before checking compatibility.'))]);
-		const requested = new URLSearchParams(window.location.search).get('profile');
+		const query = new URLSearchParams(window.location.search), requested = query.get('profile');
 		const m = new form.JSONMap({ selection: { profile: profiles.some(function(p) { return p.id === requested; }) ? requested : profiles[0].id } });
 		const s = m.section(form.NamedSection, 'selection', 'selection');
 		const o = s.option(form.ListValue, 'profile', _('Profile'));
@@ -76,14 +95,34 @@ return view.extend({
 				E('p', { 'class': 'cbi-map-descr' }, _('Compare clients, review the differences, then prepare a separate draft. Checks use saved settings and cached nodes.')),
 				node, E('p', {}, hs.button(_('Check Compatibility'), check)), output]);
 			// JSONMap controls must be mounted before parsing their current values.
-			return hs.api('compatibility', { profile: m.data.get('json', 'selection', 'profile') }).then(function(report) { dom.content(output, self.reportContent(report)); return page; });
+			return hs.api('compatibility', { profile: m.data.get('json', 'selection', 'profile') }).then(function(report) {
+				dom.content(output, self.reportContent(report));
+				if (query.get('review') === '1' && report.strategy && !report.strategy.source_missing && L.hasViewPermission()) return self.review(report.strategy.id).then(function() { return page; }).catch(function(error) { hs.notify(error); return page; });
+				return page;
+			});
+		});
+	},
+	review: function(id) {
+		const self = this;
+		return hs.api('compatibility', { profile: id, review: true }).then(function(report) {
+			if (!report.strategy || report.strategy.source_missing) throw new Error(_('The source profile is missing. The saved copy can still be used.'));
+			return self.wizard(report, report.strategy.format, false, report.strategy);
 		});
 	},
 	reportContent: function(report) {
 		const self = this, panel = E('div', { 'aria-live': 'polite' });
 		function select(target) { dom.content(panel, self.targetContent(report, target)); }
 		select(report.targets.find(function(target) { return target.errors.length || (target.issues || []).length; }) || report.targets[0]);
-		return E('div', {}, [hs.table([_('Target Client'), _('Status'), _('Items to review'), _('Actions')], report.targets.map(function(target) {
+		const strategy = report.strategy, copies = report.derived_profiles || [];
+		return E('div', {}, [strategy ? E('div', { 'class': 'cbi-section' }, [E('h3', {}, _('Saved conversion')),
+			E('p', {}, _('Source profile: %s').format(strategy.source_profile)), E('p', {}, strategyStatus(strategy)),
+			!strategy.source_missing ? E('p', {}, [editorLink('compatibility', _('View Source Profile'), strategy.source_profile), ' ', hs.button(_('Review and Update Copy'), function() { return self.review(strategy.id); }, 'cbi-button-positive', true)]) : '']) : '',
+			copies.length ? E('div', { 'class': 'cbi-section' }, [E('h3', {}, _('Saved compatible copies')),
+				hs.table([_('Profile'), _('Target Client'), _('Status'), _('Actions')], copies.map(function(copy) {
+					return [copy.name || copy.id, clients[copy.format], strategyStatus(copy), E('div', {}, [editorLink('compatibility', _('View Copy'), copy.id), ' ',
+						!copy.source_missing ? hs.button(_('Review and Update Copy'), function() { return self.review(copy.id); }, null, true) : ''])];
+				}))]) : '',
+			hs.table([_('Target Client'), _('Status'), _('Items to review'), _('Actions')], report.targets.map(function(target) {
 			return [clients[target.format], targetStatus(target), (target.issues || []).length,
 				hs.button(_('View Suggestions'), function() { select(target); })];
 		})), panel]);
@@ -108,16 +147,24 @@ return view.extend({
 			target.errors.length || warnings.length ? E('details', {}, [E('summary', {}, _('Export validation details')), messages(target.errors), messages(warnings)]) : ''
 		]);
 	},
-	wizard: function(report, format, useSuggestions) {
+	wizard: function(report, format, useSuggestions, strategy) {
 		const self = this, choices = report.choices, source = report.profile;
+		const saved = strategy ? strategy.resolutions || {} : {};
 		const target = report.targets.find(function(item) { return item.format === format; });
 		const affected = new Set((target.issues || []).filter(function(issue) { return issue.kind === 'group'; }).map(function(issue) { return issue.id; }));
 		const base = source.id.slice(0, 34) + '_' + format;
-		let id = base, n = 2, showAllGroups = false, feedback = '';
-		while (this.config.profiles.some(function(p) { return p.id === id; })) id = base + '_' + n++;
-		const groups = (choices.groups || []).map(function(row, index) { return { '.name': 'group_' + index, id: row.id, name: row.name || row.id, mode: '' }; });
-		const rematches = (choices.rematches || []).map(function(row, index) { return { '.name': 'rematch_' + index, id: row.id, name: row.name || row.id, replacement: '', members: [] }; });
-		const m = new form.JSONMap({ copy: { id: id, name: (source.name || source.id) + ' · ' + clients[format], disable_rules: [], batch_mode: 'recommended' }, group: groups, rematch: rematches });
+		let id = strategy ? strategy.id : base, n = 2, showAllGroups = false, feedback = '';
+		if (!strategy) while (this.config.profiles.some(function(p) { return p.id === id; })) id = base + '_' + n++;
+		const groups = (choices.groups || []).map(function(row, index) { return { '.name': 'group_' + index, id: row.id, name: row.name || row.id, mode: (saved.group_modes || {})[row.id] || '' }; });
+		const rematches = (choices.rematches || []).map(function(row, index) {
+			const replacement = (saved.rematches || {})[row.id];
+			return { '.name': 'rematch_' + index, id: row.id, name: row.name || row.id,
+				replacement: replacement && typeof replacement === 'object' ? '__' + replacement.mode : replacement || '',
+				members: replacement && typeof replacement === 'object' ? replacement.members.slice() : [] };
+		});
+		const copy = { id: id, name: strategy ? strategy.name : (source.name || source.id) + ' · ' + clients[format], disable_rules: (saved.disable_rules || []).slice(), batch_mode: 'recommended' };
+		['abandon_sub_rules', 'omit_dns', 'omit_mihomo_policy'].forEach(function(key) { if (saved[key] === true) copy[key] = '1'; });
+		const m = new form.JSONMap({ copy: copy, group: groups, rematch: rematches });
 		function fillSuggestions() {
 			let count = 0;
 			groups.forEach(function(row, index) {
@@ -144,9 +191,9 @@ return view.extend({
 			s.tab('settings', _('Client Settings'));
 		}
 		let o = s.taboption('general', form.Value, 'id', _('Identifier'));
-		o.rmempty = false;
+		o.rmempty = false; o.readonly = !!strategy;
 		o.validate = function(sid, value) { return /^[a-z][a-z0-9_-]{0,47}$/.test(value) || _('Start with a lowercase letter and use only lowercase letters, digits, underscores, or hyphens (up to 48 characters).'); };
-		o = s.taboption('general', form.Value, 'name', _('Name')); o.rmempty = false;
+		o = s.taboption('general', form.Value, 'name', _('Name')); o.rmempty = false; o.readonly = !!strategy;
 		o = s.taboption('automation', form.ListValue, 'batch_mode', _('Batch choice'));
 		o.value('recommended', _('Suggested modes'));
 		['manual', 'url-test'].concat(format === 'singbox' ? [] : ['fallback']).forEach(function(mode) { o.value(mode, modeLabel(mode)); });
@@ -197,7 +244,7 @@ return view.extend({
 				o = s.taboption('routing', form.Flag, 'abandon_sub_rules', _('Remove sub-rule routing in the copy'), _('Removes the named sub-rules and their scoped rules. Review every removal in the next step.'));
 				o.default = '0'; o.rmempty = false;
 			}
-			const incompatibleRules = choices.rules.filter(function(rule) { return rule.targets.indexOf(format) >= 0; });
+			const incompatibleRules = choices.rules.filter(function(rule) { return rule.targets.indexOf(format) >= 0 || copy.disable_rules.indexOf(rule.id) >= 0; });
 			if (incompatibleRules.length) {
 				o = s.taboption('routing', form.MultiValue, 'disable_rules', _('Disable incompatible rules'), _('Optional. Unselected rules stay enabled and may still block export. Rules inside removed sub-rules are already covered by that removal.'));
 				incompatibleRules.forEach(function(rule) { o.value(rule.id, (rule.name && rule.name !== rule.id ? rule.name + ' · ' : '') + rule.id + ' · ' + rule.type); });
@@ -219,7 +266,9 @@ return view.extend({
 				// Preserve LuCI widget bindings when showModal clears its previous content.
 				node.remove();
 				ui.showModal(_('Compatibility Wizard') + ' · ' + clients[format], [
-					E('p', {}, _('Suggestions fill choices for review. Saving creates a separate draft; the original profile stays unchanged.')),
+					E('p', {}, strategy ? _('Review saved choices before updating this draft. Its identifier, name and download link stay the same; the original profile stays unchanged.') : _('Suggestions fill choices for review. Saving creates a separate draft; the original profile stays unchanged.')),
+					strategy ? E('p', {}, strategyStatus(strategy)) : '',
+					strategy && (strategy.invalidated || []).length ? E('div', { 'class': 'alert-message warning' }, [E('p', {}, _('Some saved choices were cleared. Review these items again:')), invalidatedChoices(strategy.invalidated, choices)]) : '',
 					feedback ? E('p', { 'class': 'alert-message info', 'role': 'status' }, feedback) : '',
 					format === 'singbox' ? E('p', { 'class': 'cbi-section-descr' }, _('Manual selection in sing-box needs client controls; otherwise it uses the first candidate.')) : '', node,
 					E('div', { 'class': 'right' }, [hs.button(_('Cancel'), ui.hideModal), ' ',
@@ -231,9 +280,10 @@ return view.extend({
 									if (selected === '__manual' || selected === '__url-test') resolutions.rematches[row.id] = { mode: selected.slice(2), members: m.data.get('json', row['.name'], 'members') || [] };
 									else if (selected) resolutions.rematches[row.id] = selected;
 								});
-								groups.forEach(function(row) { const mode = m.data.get('json', row['.name'], 'mode'); if (mode && mode !== 'keep') resolutions.group_modes[row.id] = mode; });
+								groups.forEach(function(row) { const mode = m.data.get('json', row['.name'], 'mode'); if (mode) resolutions.group_modes[row.id] = mode; });
 								['abandon_sub_rules', 'omit_dns', 'omit_mihomo_policy'].forEach(function(key) { resolutions[key] = values[key] === '1' || values[key] === true; });
-								const args = { profile: source.id, format: format, id: values.id, name: values.name, resolutions: JSON.stringify(resolutions) };
+								const args = { profile: source.id, format: format, id: strategy ? strategy.id : values.id, name: strategy ? strategy.name : values.name, resolutions: JSON.stringify(resolutions) };
+								if (strategy) args.operation = 'reapply';
 								return hs.api('compatibility_plan', args).then(function(plan) { node.remove(); self.confirmPlan(plan, args, show); });
 							});
 						}, 'cbi-button-positive')])
@@ -243,9 +293,10 @@ return view.extend({
 		return show();
 	},
 	confirmPlan: function(plan, args, back) {
+		const updating = args.operation === 'reapply';
 		const checks = changeGroups(plan.changes).map(function(group) { return Object.assign(group, { field: new ui.Checkbox('0') }); });
 		ui.showModal(_('Review Compatibility Changes'), [
-			E('p', {}, plan.ready ? _('Review each change category, then confirm to create the draft.') : _('Unresolved issues still block this target. Go back to adjust decisions or edit the original draft.')),
+			E('p', {}, plan.ready ? updating ? _('Review each change category, then confirm to update the existing draft.') : _('Review each change category, then confirm to create the draft.') : _('Unresolved issues still block this target. Go back to adjust decisions or edit the original draft.')),
 			messages(plan.errors),
 			plan.warnings.length ? E('details', {}, [E('summary', {}, _('Remaining export warnings')), messages(plan.warnings)]) : '',
 			E('div', {}, checks.map(function(item) {
@@ -253,10 +304,10 @@ return view.extend({
 				return E('div', { 'class': 'cbi-section' }, [E('div', { 'class': 'control-group' }, [node, ' ', E('label', { 'for': input.id }, _('%s · %s changes').format(item.title, item.changes.length))]),
 					E('details', {}, [E('summary', {}, _('Show Changes')), E('ul', {}, item.changes.map(function(change) { return E('li', {}, hs.translateMessage(change.message)); }))])]);
 			})),
-			E('p', { 'class': 'cbi-section-descr' }, _('Creation saves a draft only. Build and publish it from Overview after reviewing the resulting profile.')),
-			E('div', { 'class': 'right' }, [hs.button(_('Back'), back), ' ', hs.button(_('Cancel'), ui.hideModal), ' ', plan.ready ? hs.button(_('Create Independent Draft'), function() {
-				if (checks.some(function(item) { return !item.field.isChecked(); })) throw new Error(_('Confirm every change category before creating the independent draft.'));
-				return hs.api('compatibility_create', Object.assign({}, args, { version: plan.version, plan_token: plan.plan_token, accepted_changes: checks.flatMap(function(item) { return item.changes.map(function(change) { return change.code; }); }) })).then(function() {
+			E('p', { 'class': 'cbi-section-descr' }, updating ? _('Updating saves the draft only. The published subscription stays unchanged until you build and publish this copy again.') : _('Creation saves a draft only. Build and publish it from Overview after reviewing the resulting profile.')),
+			E('div', { 'class': 'right' }, [hs.button(_('Back'), back), ' ', hs.button(_('Cancel'), ui.hideModal), ' ', plan.ready ? hs.button(updating ? _('Update Compatible Draft') : _('Create Independent Draft'), function() {
+				if (checks.some(function(item) { return !item.field.isChecked(); })) throw new Error(updating ? _('Confirm every change category before updating the compatible draft.') : _('Confirm every change category before creating the independent draft.'));
+				return hs.api(updating ? 'compatibility_update' : 'compatibility_create', Object.assign({}, args, { version: plan.version, plan_token: plan.plan_token, accepted_changes: checks.flatMap(function(item) { return item.changes.map(function(change) { return change.code; }); }) })).then(function() {
 					ui.hideModal(); window.location.href = L.url('admin/services/hybrid-subscription/profiles') + '?profile=' + encodeURIComponent(args.id);
 				});
 			}, 'cbi-button-positive', true) : ''])

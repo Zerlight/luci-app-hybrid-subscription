@@ -137,6 +137,10 @@ Switching a group to manual selection only changes how that group chooses its im
 
 Compatibility reflects the mappings verified by this exporter rather than every capability of every client version. Drafts created through the wizard may still report field-level differences that require confirmation at publish time, and the wizard never publishes a release or reloads OpenClash automatically.
 
+When creating a compatible draft, the wizard records its source profile and conversion choices for future reuse. **Overview** and **Compatibility** flag relevant changes to the source profile's policy groups, routing rules, DNS settings, or referenced dependencies, whereas routine node-cache refreshes, quota updates, and unrelated global settings never trigger a review notice. Opening a review restores all choices that remain valid and highlights any items whose upstream definitions changed.
+
+Confirming an update writes the regenerated configuration back to the existing compatible draft while preserving its name, identifier, and download URL; the live subscription artifact changes only after you build and publish the updated draft. Any manual edits made directly to the compatible draft are surfaced for overwrite confirmation before saving, and if the source profile is deleted, the compatible draft and its published release remain usable as a standalone profile. Profiles created before strategy tracking was introduced do not carry source metadata and must be recreated once through the wizard to enable change tracking.
+
 ### Quota & Expiration Queries
 
 Quota parsing supports the standard `Subscription-Userinfo` response header (`upload; download; total; expire`) used by [OpenClash](https://github.com/vernesong/OpenClash/blob/master/luci-app-openclash/luasrc/controller/openclash.lua):

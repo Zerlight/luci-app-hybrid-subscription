@@ -92,6 +92,74 @@ class BackendTest < Minitest::Test
     r2=@b.call('save_config','config'=>JSON.generate(r['config']),'version'=>r['version']);assert r2['ok']
     assert_equal @c['sources'][0]['url'],@b.config['sources'][0]['url']
   end
+  def create_tracked_profile
+    @b.put_source('test', YAML.dump('proxies'=>[@node.merge('type'=>'trojan')]), 'mihomo')
+    request = {'profile'=>'main', 'format'=>'surge', 'id'=>'compatible', 'name'=>'Compatible', 'resolutions'=>'{}'}
+    plan = @b.call('compatibility_plan', request)
+    assert plan['ok'] && plan['ready'], plan.inspect
+    result = @b.call('compatibility_create', request.merge('version'=>plan['version'], 'plan_token'=>plan['plan_token'], 'accepted_changes'=>plan['changes'].map { |change| change['code'] }))
+    assert result['ok'] && result['created'], result.inspect
+    request
+  end
+  def test_editor_cannot_forge_or_reset_conversion_strategy_baselines
+    create_tracked_profile
+    saved = @b.config['profiles'].last['compatibility']
+    refute_nil saved
+    c = @b.sanitized_config
+    c['profiles'].last['compatibility']['source_digest'] = 'forged'
+    c['profiles'].first['compatibility'] = {'source_profile'=>'compatible'}
+    @b.save_config('config'=>JSON.generate(c), 'version'=>@b.version)
+    assert_equal saved, @b.config['profiles'].last['compatibility']
+    refute @b.config['profiles'].first.key?('compatibility')
+    c = @b.sanitized_config
+    c['profiles'].last.delete('compatibility')
+    c['profiles'].last['name'] = 'My edited copy'
+    @b.save_config('config'=>JSON.generate(c), 'version'=>@b.version)
+    assert_equal saved, @b.config['profiles'].last['compatibility']
+    status = @b.status['profiles'].find { |item| item['id'] == 'compatible' }['compatibility']
+    assert status['target_changed']
+    refute status['source_changed']
+    review = @b.call('compatibility', 'profile'=>'compatible', 'review'=>true)
+    assert review['ok'], review.inspect
+    assert_equal 'main', review['profile']['id']
+    assert_equal 'compatible', review['strategy']['id']
+    c = @b.config
+    c['profiles'].last.delete('compatibility')
+    c['profiles'].first['notes'] = 'x' * (HybridSubscription::Backend::MAX_BYTES - JSON.generate(c).bytesize - 20)
+    raw = JSON.generate(c)
+    assert_operator raw.bytesize, :<=, HybridSubscription::Backend::MAX_BYTES
+    assert_match(/size limit/, assert_raises(HybridSubscription::Error) { @b.save_config('config'=>raw, 'version'=>@b.version) }.message)
+    assert_equal saved, @b.config['profiles'].last['compatibility']
+  end
+  def test_compatibility_update_only_changes_draft_after_fresh_exact_confirmation
+    request = create_tracked_profile
+    built = @b.build_profile('compatible')
+    @b.publish({'release'=>built['release'], 'accepted_warnings'=>built['warnings'].map { |warning| warning['code'] }})
+    info = @b.download_info('compatible')
+    files = Dir.glob(File.join(@b.dir, '**', '*')).select { |file| File.file?(file) && !%w[config.json state.lock].include?(File.basename(file)) }.to_h { |file| [file, File.binread(file)] }
+    c = @b.config
+    c['groups'].find { |group| group['profile'] == 'main' }['name'] = 'Updated source group'
+    c['profiles'].last['name'] = 'My Surge subscription'
+    @b.save_config('config'=>JSON.generate(c), 'version'=>@b.version)
+    plan = @b.call('compatibility_plan', request.merge('operation'=>'reapply'))
+    assert plan['ok'] && plan['ready'], plan.inspect
+    apply = request.merge('version'=>plan['version'], 'plan_token'=>plan['plan_token'], 'accepted_changes'=>plan['changes'].map { |change| change['code'] })
+    before = @b.config
+    refute @b.call('compatibility_update', apply.merge('accepted_changes'=>[]))['ok']
+    refute @b.call('compatibility_update', apply.merge('accepted_changes'=>apply['accepted_changes'] + [apply['accepted_changes'].first]))['ok']
+    refute @b.call('compatibility_update', apply.merge('plan_token'=>'stale'))['ok']
+    refute @b.call('compatibility_update', apply.merge('version'=>'stale'))['ok']
+    refute @b.call('compatibility_create', apply.merge('operation'=>'reapply'))['ok']
+    assert_equal before, @b.config
+    result = @b.call('compatibility_update', apply)
+    assert result['ok'] && result['updated'], result.inspect
+    assert_equal 'My Surge subscription', @b.config['profiles'].last['name']
+    assert_equal 'Updated source group', @b.config['groups'].find { |group| group['profile'] == 'compatible' }['name']
+    assert_equal info, @b.download_info('compatible')
+    files.each { |file, content| assert_equal content, File.binread(file), file }
+    state = @b.status['profiles'].find { |item| item['id'] == 'compatible' }['compatibility']
+    refute state['needs_review'], state.inspect
+  end
   def quota_app
     @quota_adapter=QuotaAdapter.new
     QuotaApp.new(@b.dir,File.join(@tmp,'run'),adapter:Adapter.new,quota_adapter:@quota_adapter)

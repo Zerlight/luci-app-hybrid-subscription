@@ -121,6 +121,10 @@ msgstr "后台未返回有效的任务标识。"
 msgid "Draft saved. Build and publish from the Overview page to update downloads or OpenClash."
 msgstr "草稿已保存。如需更新下载内容或同步至 OpenClash，请在“状态概览”页面构建并发布。"
 
+#: htdocs/luci-static/resources/hybrid-subscription.js
+msgid "Global settings saved."
+msgstr "全局设置已保存。"
+
 #: htdocs/luci-static/resources/hybrid-subscription.js:938
 msgid "Add"
 msgstr "添加"
@@ -1383,12 +1387,9 @@ msgid "Applies only to sources imported from OpenClash. Disables OpenClash auto-
 msgstr "仅对从 OpenClash 导入的订阅源生效。应用配置时将停用 OpenClash 对该订阅的自动更新，避免重复拉取。"
 
 #: htdocs/luci-static/resources/view/hybrid-subscription/sources.js:52
-msgid "Update Cache"
-msgstr "更新缓存"
-
 #: htdocs/luci-static/resources/view/hybrid-subscription/sources.js:53
-msgid "Update Source Cache"
-msgstr "更新订阅源缓存"
+msgid "Update Subscription"
+msgstr "更新订阅"
 
 #: htdocs/luci-static/resources/view/hybrid-subscription/sources.js:55
 msgid "Import File"
@@ -2709,3 +2710,159 @@ msgstr "批量更新受影响策略组的切换方式，其他策略组保持不
 #, javascript-format
 msgid "%s group choices updated."
 msgstr "已更新 %s 个策略组的切换方式。"
+
+#: htdocs/luci-static/resources/hybrid-subscription.js
+msgid "Confirm every change category before updating the compatible draft."
+msgstr "请先勾选确认所有类别的变更，再更新兼容草稿。"
+
+#: htdocs/luci-static/resources/hybrid-subscription.js
+msgid "Existing draft changes"
+msgstr "现有草稿变更"
+
+#: htdocs/luci-static/resources/hybrid-subscription.js
+msgid "Review and Update Copy"
+msgstr "复核并更新"
+
+#: htdocs/luci-static/resources/hybrid-subscription.js
+msgid "Review each change category, then confirm to update the existing draft."
+msgstr "请按类别核对并勾选确认以下变更，确认无误后更新现有兼容草稿。"
+
+#: htdocs/luci-static/resources/hybrid-subscription.js
+msgid "Review saved choices before updating this draft. Its identifier, name and download link stay the same; the original profile stays unchanged."
+msgstr "复核已保存的转换设置并更新当前兼容草稿。更新后其名称、标识符与订阅下载链接均保持不变，来源配置不受影响。"
+
+#: htdocs/luci-static/resources/hybrid-subscription.js
+msgid "Review the saved conversion choices."
+msgstr "请复核已保存的转换方案。"
+
+#: htdocs/luci-static/resources/hybrid-subscription.js
+msgid "Saved compatible copies"
+msgstr "已保存的兼容配置"
+
+#: htdocs/luci-static/resources/hybrid-subscription.js
+msgid "Saved conversion"
+msgstr "已保存的转换方案"
+
+#: htdocs/luci-static/resources/hybrid-subscription.js
+msgid "Saved conversion choices are up to date."
+msgstr "当前转换方案已与来源配置保持同步。"
+
+#: htdocs/luci-static/resources/hybrid-subscription.js
+msgid "Some saved choices were cleared. Review these items again:"
+msgstr "以下已保存的选项因来源配置变更而失效，请重新指定："
+
+#: htdocs/luci-static/resources/hybrid-subscription.js
+msgid "Source policy changed. Review the saved conversion choices."
+msgstr "来源配置已发生变更，请复核已保存的转换方案。"
+
+#: htdocs/luci-static/resources/hybrid-subscription.js
+msgid "Source profile: %s"
+msgstr "来源配置：%s"
+
+#: htdocs/luci-static/resources/hybrid-subscription.js
+msgid "The source profile is missing. The saved copy can still be used."
+msgstr "来源配置已删除，现有兼容配置仍可正常使用。"
+
+#: htdocs/luci-static/resources/hybrid-subscription.js
+msgid "This copy has local edits. Review what updating will replace."
+msgstr "该兼容草稿存在本地手动修改，更新前请核对将被覆盖的内容。"
+
+#: htdocs/luci-static/resources/hybrid-subscription.js
+msgid "Update Compatible Draft"
+msgstr "更新兼容草稿"
+
+#: htdocs/luci-static/resources/hybrid-subscription.js
+msgid "Updating saves the draft only. The published subscription stays unchanged until you build and publish this copy again."
+msgstr "此操作仅更新并保存配置草稿；如需更新线上订阅内容，请前往“状态概览”重新构建并发布。"
+
+#: htdocs/luci-static/resources/hybrid-subscription.js
+msgid "View Copy"
+msgstr "查看配置"
+
+#: htdocs/luci-static/resources/hybrid-subscription.js
+msgid "View Source Profile"
+msgstr "查看来源配置"
+
+#: htdocs/luci-static/resources/hybrid-subscription.js
+msgid "Compatible draft has local changes. Review before updating."
+msgstr "该兼容草稿存在手动修改，更新前请先复核变更。"
+
+#: htdocs/luci-static/resources/hybrid-subscription.js
+msgid "Review Conversion"
+msgstr "复核转换方案"
+
+#: htdocs/luci-static/resources/hybrid-subscription.js
+msgid "Saved conversion needs review."
+msgstr "已保存的转换方案需要复核。"
+
+#: htdocs/luci-static/resources/hybrid-subscription.js
+msgid "Source and compatible draft changed. Review before updating."
+msgstr "来源配置与当前兼容草稿均有变更，更新前请先复核。"
+
+#: htdocs/luci-static/resources/hybrid-subscription.js
+msgid "Source profile changed. Review before updating this draft."
+msgstr "来源配置已发生变更，请复核并更新当前兼容草稿。"
+
+#: htdocs/luci-static/resources/hybrid-subscription.js
+msgid "Source profile is missing. Review this compatible draft."
+msgstr "来源配置已删除，请检查当前兼容草稿。"
+
+#: htdocs/luci-static/resources/hybrid-subscription.js
+msgid "The source content or a referenced policy changed; review this saved choice again."
+msgstr "来源配置或所引用的策略已发生变更，请重新指定此项设置。"
+
+#: htdocs/luci-static/resources/hybrid-subscription.js
+msgid "The source profile no longer exists; the current compatible draft and published release are preserved."
+msgstr "来源配置已删除，现有兼容草稿与已发布版本仍会保留。"
+
+#: htdocs/luci-static/resources/hybrid-subscription.js
+msgid "Compatibility source relationships contain a cycle"
+msgstr "兼容配置的来源关联存在循环引用"
+
+#: htdocs/luci-static/resources/hybrid-subscription.js
+msgid "Compatibility source relationships exceed the depth limit"
+msgstr "兼容配置的来源关联层级超出上限"
+
+#: htdocs/luci-static/resources/hybrid-subscription.js
+msgid "Only a tracked compatible profile can be updated from its source"
+msgstr "仅已记录来源关系的兼容配置支持从来源同步更新"
+
+#: htdocs/luci-static/resources/hybrid-subscription.js
+msgid "The update must use the saved source profile and target format"
+msgstr "复核更新须使用已保存的来源配置与目标客户端格式"
+
+#: htdocs/luci-static/resources/hybrid-subscription.js
+msgid "A managed compatibility rule set is used by another profile; resolve that reference before updating"
+msgstr "当前兼容配置的派生规则集正被其他配置引用，请先解除引用后再更新"
+
+#: htdocs/luci-static/resources/hybrid-subscription.js
+msgid "The compatible draft was edited independently; replace its current contents with this reviewed conversion plan"
+msgstr "该兼容草稿曾被单独修改；确认后将使用本次复核的转换方案覆盖现有草稿内容"
+
+#: htdocs/luci-static/resources/hybrid-subscription.js
+msgid "Invalid compatibility operation"
+msgstr "兼容性操作类型无效"
+
+#: htdocs/luci-static/resources/hybrid-subscription.js
+msgid "Use compatibility update to replace an existing draft"
+msgstr "请通过“复核并更新”修改已有兼容草稿"
+
+#: htdocs/luci-static/resources/hybrid-subscription.js
+msgid "Compatibility plan changed; preview the plan again before saving the draft"
+msgstr "兼容性方案或节点缓存已变化，请重新预览后再保存草稿"
+
+#: htdocs/luci-static/resources/hybrid-subscription.js
+msgid "Please confirm every compatibility change before saving the draft"
+msgstr "请逐项确认全部兼容性变更后再保存草稿"
+
+#: htdocs/luci-static/resources/hybrid-subscription.js
+msgid "Resolve all compatibility errors before saving the draft"
+msgstr "请先解决所有兼容性错误后再保存草稿"
+
+#: htdocs/luci-static/resources/hybrid-subscription.js
+msgid "regional re-evaluation is no longer performed in the compatible draft"
+msgstr "兼容草稿将不再执行原有的地区二次匹配"
+
+#: htdocs/luci-static/resources/hybrid-subscription.js
+msgid "Omit native Mihomo runtime and geodata policy from the compatible draft"
+msgstr "从兼容草稿中移除 Mihomo 专属运行参数与地理数据库设置"
