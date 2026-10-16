@@ -2414,3 +2414,294 @@ msgstr ""
 #: htdocs/luci-static/resources/hybrid-subscription.js
 msgid "regional re-evaluation is no longer performed in the new profile"
 msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/compatibility.js
+msgid "Policy group modes"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/compatibility.js
+msgid "Conditional routing"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/compatibility.js
+msgid "Sub-rules"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/compatibility.js
+msgid "DNS policy"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/compatibility.js
+msgid "Runtime settings"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/compatibility.js
+msgid "Routing rules"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/compatibility.js
+#, javascript-format
+msgid "Mihomo: %s → %s: %s"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/compatibility.js
+msgid "New profile"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/compatibility.js
+msgid "Sub-rule removal"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/compatibility.js
+msgid "Disabled rules"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/compatibility.js
+msgid "Rule set copies"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/compatibility.js
+msgid "Other changes"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/compatibility.js
+msgid "Compare clients, review the differences, then prepare a separate draft. Checks use saved settings and cached nodes."
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/compatibility.js
+msgid "Items to review"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/compatibility.js
+msgid "View Suggestions"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/compatibility.js
+#, javascript-format
+msgid "%s issue types. Expand a row to see the affected items."
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/compatibility.js
+msgid "Issue"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/compatibility.js
+msgid "Details and suggestions"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/compatibility.js
+#, javascript-format
+msgid "%s · %s items"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/compatibility.js
+#, javascript-format
+msgid "%s suggestions can fill unset choices. Rules and DNS settings still need your decision."
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/compatibility.js
+msgid "Use Suggestions"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/compatibility.js
+msgid "Adjust Manually"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/compatibility.js
+msgid "Export validation details"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/compatibility.js
+#, javascript-format
+msgid "%s unset choices filled. Existing choices were kept."
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/compatibility.js
+msgid "Manual selects a candidate; URL Test selects by latency; Fallback follows availability and order. Changes apply only to the listed groups."
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/compatibility.js
+msgid "Replacing conditional routing changes how traffic selects a policy. Review the proposed candidates; rules are never removed automatically."
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/compatibility.js
+msgid "Batch choice"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/compatibility.js
+msgid "Suggested modes"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/compatibility.js
+msgid "Affected groups only"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/compatibility.js
+msgid "Fill Unset Groups"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/compatibility.js
+msgid "Group visibility"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/compatibility.js
+msgid "Show All Groups"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/compatibility.js
+msgid "Policy Group"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/compatibility.js
+msgid "Mihomo → target"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/compatibility.js
+msgid "Use in the copy"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/compatibility.js
+msgid "Keep current mode"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/compatibility.js
+msgid "Conditional entry"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/compatibility.js
+msgid "Replacement"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/compatibility.js
+msgid "Needs a decision"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/compatibility.js
+msgid "Manual candidate group"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/compatibility.js
+msgid "Latency-test candidate group"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/compatibility.js
+msgid "Candidates in order"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/compatibility.js
+msgid "Disable incompatible rules"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/compatibility.js
+msgid "Optional. Unselected rules stay enabled and may still block export. Rules inside removed sub-rules are already covered by that removal."
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/compatibility.js
+msgid "Show Affected Groups"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/compatibility.js
+msgid "Suggestions fill choices for review. Saving creates a separate draft; the original profile stays unchanged."
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/compatibility.js
+msgid "Manual selection in sing-box needs client controls; otherwise it uses the first candidate."
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/compatibility.js
+msgid "Fill Unset Suggestions"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/compatibility.js
+msgid "Review each change category, then confirm to create the draft."
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/compatibility.js
+msgid "Remaining export warnings"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/compatibility.js
+#, javascript-format
+msgid "%s · %s changes"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/compatibility.js
+msgid "Show Changes"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/compatibility.js
+msgid "Confirm every change category before creating the independent draft."
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/compatibility.js
+msgid "No choice yet"
+msgstr ""
+
+#: root/usr/share/hybrid-subscription/compatibility.rb
+msgid "Latency testing is a simpler alternative to Smart selection; it does not preserve Smart decisions."
+msgstr ""
+
+#: root/usr/share/hybrid-subscription/compatibility.rb
+msgid "Use manual selection to match the source group mode; automatic switching will stop."
+msgstr ""
+
+#: root/usr/share/hybrid-subscription/compatibility.rb
+msgid "Use the target client latency testing; client timing and selection behavior may differ."
+msgstr ""
+
+#: root/usr/share/hybrid-subscription/compatibility.rb
+msgid "Ordered fallback keeps priority-based availability selection; native client behavior may still differ."
+msgstr ""
+
+#: root/usr/share/hybrid-subscription/compatibility.rb
+msgid "This target has no native fallback mode; latency testing loses ordered failover priority."
+msgstr ""
+
+#: root/usr/share/hybrid-subscription/compatibility.rb
+msgid "Latency testing selects by delay and does not preserve load balancing."
+msgstr ""
+
+#: root/usr/share/hybrid-subscription/compatibility.rb
+msgid "No suggestion is available because the Mihomo group mode is unknown."
+msgstr ""
+
+#: root/usr/share/hybrid-subscription/compatibility.rb
+msgid "The target already uses this alternative; its remaining behavior difference still requires review."
+msgstr ""
+
+#: root/usr/share/hybrid-subscription/compatibility.rb
+msgid "Candidates come from enabled scoped rules and final policies in their original order. Manual selection does not preserve rule conditions, REMATCH-NAME matching, or regional re-evaluation; the first candidate becomes the initial selection."
+msgstr ""
+
+#: root/usr/share/hybrid-subscription/compatibility.rb
+msgid "A scoped policy includes DIRECT or REJECT; review these routing decisions manually instead of inferring candidates."
+msgstr ""
+
+#: root/usr/share/hybrid-subscription/compatibility.rb
+msgid "A rematch, sub-rule, or candidate policy reference is missing or ambiguous; choose candidates manually."
+msgstr ""
+
+#: root/usr/share/hybrid-subscription/compatibility.rb
+msgid "The policy graph contains a cycle or a candidate depends on this rematch; choose candidates manually."
+msgstr ""
+
+#: root/usr/share/hybrid-subscription/compatibility.rb
+msgid "The policy graph exceeds the suggestion depth limit; choose candidates manually."
+msgstr ""
+
+#: root/usr/share/hybrid-subscription/compatibility.rb
+msgid "Scoped rules contain unsupported or malformed conditions; choose candidates manually."
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/compatibility.js
+msgid "Apply to Affected Groups"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/compatibility.js
+msgid "Replaces choices for affected groups. Other groups are kept."
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/compatibility.js
+#, javascript-format
+msgid "%s group choices updated."
+msgstr ""

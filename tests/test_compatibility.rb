@@ -433,4 +433,150 @@ class CompatibilityTest < Minitest::Test
     assert_match(/plan changed/, assert_raises(HybridSubscription::Error) { create(rematch_alternative('singbox', 'manual', ['DIRECT', 'proxy']), plan) }.message)
     assert_equal 1, @backend.config['profiles'].length
   end
+
+  def test_group_suggestions_only_cover_affected_modes_and_explain_losses
+    assert_empty @backend.compatibility('profile'=>'main')['choices']['groups'][0]['suggestions']
+    [
+      ['smart', 'select', 'selector', 'url-test', 'url-test', /does not preserve Smart/],
+      ['select', 'url-test', 'urltest', 'manual', 'manual', /automatic switching will stop/],
+      ['fallback', 'select', 'selector', 'fallback', 'url-test', /priority/],
+      ['load-balance', 'select', 'selector', 'url-test', 'url-test', /does not preserve load balancing/]
+    ].each do |baseline, surge, singbox, surge_mode, singbox_mode, reason|
+      @config['groups'][0].merge!('mihomo_type'=>baseline, 'surge_type'=>surge, 'singbox_type'=>singbox)
+      save
+      suggestions = @backend.compatibility('profile'=>'main')['choices']['groups'][0]['suggestions']
+      assert_equal surge_mode, suggestions['surge']['mode']
+      assert_equal singbox_mode, suggestions['singbox']['mode']
+      assert_match reason, suggestions['surge']['reason']
+      refute suggestions.key?('mihomo')
+    end
+    @config['groups'][0].merge!('mihomo_type'=>'smart', 'singbox_type'=>'urltest')
+    save
+    unchanged = @backend.compatibility('profile'=>'main')['choices']['groups'][0]['suggestions']['singbox']
+    refute unchanged['available']
+    refute unchanged.key?('mode')
+    assert_match(/already uses this alternative/, unchanged['reason'])
+  end
+
+  def test_group_suggestions_reject_unknown_source_modes_and_correct_invalid_target_spellings
+    %w[unknown manual selector urltest].each do |baseline|
+      @config['groups'][0].merge!('mihomo_type'=>baseline, 'surge_type'=>'invalid', 'singbox_type'=>'invalid')
+      save
+      suggestions = @backend.compatibility('profile'=>'main')['choices']['groups'][0]['suggestions']
+      suggestions.each_value do |suggestion|
+        refute suggestion['available']
+        refute suggestion.key?('mode')
+        assert_match(/mode is unknown/, suggestion['reason'])
+      end
+    end
+    @config['groups'][0].merge!('mihomo_type'=>'url-test', 'singbox_type'=>'url-test')
+    save
+    suggestion = @backend.compatibility('profile'=>'main')['choices']['groups'][0]['suggestions']['singbox']
+    assert suggestion['available']
+    assert_equal 'url-test', suggestion['mode']
+    assert preview(args('singbox', 'group_modes'=>{'proxy'=>suggestion['mode']}))['ready']
+  end
+
+  def rematch_suggestion(id = 'follow')
+    @backend.compatibility('profile'=>'main')['choices']['rematches'].find { |item| item['id'] == id }['suggestions']['surge']
+  end
+
+  def test_rematch_suggestions_preserve_policy_order_resolve_rematches_and_ignore_disabled_rules
+    native_graph
+    %w[backup fast].each do |id|
+      @config['groups'] << {'id'=>id, 'profile'=>'main', 'name'=>id.capitalize, 'sources'=>['source'], 'members'=>[]}
+    end
+    @config['rematches'] << {'id'=>'next', 'profile'=>'main', 'name'=>'Nested', 'target_sub_rule'=>'next_scope'}
+    @config['sub_rules'] << {'id'=>'next_scope', 'profile'=>'main', 'name'=>'Nested scope', 'final_policy'=>'fast'}
+    @config['rules'] << {'id'=>'nested_choice', 'profile'=>'main', 'sub_rule'=>'region', 'type'=>'DOMAIN', 'value'=>'nested.test', 'policy'=>'next'}
+    @config['rules'] << {'id'=>'nested_backup', 'profile'=>'main', 'sub_rule'=>'next_scope', 'type'=>'DOMAIN', 'value'=>'backup.test', 'policy'=>'backup'}
+    @config['rules'] << {'id'=>'disabled_choice', 'profile'=>'main', 'sub_rule'=>'region', 'type'=>'UNKNOWN', 'policy'=>'missing', 'enabled'=>false}
+    @config['rules'] << {'id'=>'unrelated', 'profile'=>'other', 'sub_rule'=>'region', 'type'=>'DOMAIN', 'value'=>'unrelated.test', 'policy'=>'DIRECT'}
+    save
+    suggestion = rematch_suggestion
+    assert suggestion['available']
+    assert_equal 'manual', suggestion['mode']
+    assert_equal %w[proxy backup fast], suggestion['members']
+    assert_match(/does not preserve rule conditions, REMATCH-NAME/, suggestion['reason'])
+    assert_match(/first candidate becomes the initial selection/, suggestion['reason'])
+    refute_includes suggestion['members'], 'next'
+  end
+
+  def test_rematch_suggestions_skip_entire_builtin_or_missing_paths_without_filtering
+    native_graph
+    %w[DIRECT REJECT missing].each do |policy|
+      @config['sub_rules'][0]['final_policy'] = policy
+      save
+      suggestion = rematch_suggestion
+      refute suggestion['available']
+      refute suggestion.key?('members')
+      refute suggestion.key?('mode')
+      assert_match(policy == 'missing' ? /missing or ambiguous/ : /includes DIRECT or REJECT/, suggestion['reason'])
+    end
+    @config['rematches'][0]['target_sub_rule'] = 'missing'
+    save
+    assert_match(/missing or ambiguous/, rematch_suggestion['reason'])
+  end
+
+  def test_rematch_suggestions_reject_cycles_and_transitive_candidate_dependencies
+    native_graph
+    @config['sub_rules'][0]['final_policy'] = 'follow'
+    save
+    refute rematch_suggestion['available']
+    assert_match(/cycle/, rematch_suggestion['reason'])
+    @config['sub_rules'][0]['final_policy'] = 'proxy'
+    @config['groups'][0]['members'] = ['bridge']
+    @config['groups'] << {'id'=>'bridge', 'profile'=>'main', 'name'=>'Bridge', 'sources'=>[], 'members'=>['follow']}
+    save
+    refute rematch_suggestion['available']
+    assert_match(/candidate depends on this rematch/, rematch_suggestion['reason'])
+    @config['groups'].last['members'] = ['proxy']
+    save
+    refute rematch_suggestion['available']
+    assert_match(/cycle/, rematch_suggestion['reason'])
+  end
+
+  def test_rematch_suggestions_bound_depth_and_reject_unsupported_conditions
+    native_graph
+    initial = HybridSubscription::Engine.copy(@config)
+    @config['rules'].find { |rule| rule['id'] == 'regional' }['type'] = 'UNKNOWN'
+    save
+    refute rematch_suggestion['available']
+    assert_match(/unsupported or malformed conditions/, rematch_suggestion['reason'])
+    @config = HybridSubscription::Engine.copy(initial)
+    @config['rules'].find { |rule| rule['id'] == 'regional' }.merge!('type'=>'AND', 'conditions'=>['invalid'])
+    save
+    refute rematch_suggestion['available']
+    assert_match(/unsupported or malformed conditions/, rematch_suggestion['reason'])
+    @config = initial
+    @config['sub_rules'][0]['final_policy'] = 'nested0'
+    18.times do |i|
+      @config['rematches'] << {'id'=>"nested#{i}", 'profile'=>'main', 'name'=>"Nested #{i}", 'target_sub_rule'=>"scope#{i}"}
+      @config['sub_rules'] << {'id'=>"scope#{i}", 'profile'=>'main', 'name'=>"Scope #{i}", 'final_policy'=>i == 17 ? 'proxy' : "nested#{i + 1}"}
+    end
+    save
+    refute rematch_suggestion['available']
+    assert_match(/depth limit/, rematch_suggestion['reason'])
+  end
+
+  def test_suggestions_are_read_only_private_and_never_authorize_policy_removal
+    native_graph
+    @config['groups'][0]['mihomo_type'] = 'smart'
+    save
+    before, cache = @backend.config, @backend.caches
+    report = @backend.compatibility('profile'=>'main')
+    proposal = report['choices']['rematches'][0]['suggestions']['surge']
+    assert proposal['available']
+    refute report['choices']['rematches'][0]['suggestions'].key?('mihomo')
+    refute report['choices'].key?('resolutions')
+    rules = {'rematches'=>{'follow'=>proposal.slice('mode', 'members')}, 'group_modes'=>{'proxy'=>report['choices']['groups'][0]['suggestions']['surge']['mode']}}
+    plan = preview(args('surge', rules))
+    refute plan['ready']
+    assert_equal %w[create-profile replace-rematch:follow group-mode:proxy], plan['changes'].map { |change| change['code'] }
+    assert_equal before, @backend.config
+    assert_equal cache, @backend.caches
+    assert_empty @backend.releases
+    assert_empty @backend.published
+    %w[private-url-token private-node-password secret-server.invalid private-dns-token].each { |secret| refute_includes JSON.generate(report), secret }
+  end
 end

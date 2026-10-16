@@ -7,24 +7,57 @@ const E = (tag, attrs = {}, children = []) => ({ tag, attrs, children: Array.isA
 const nodes = value => value && typeof value === 'object' ? [value, ...(value.children || []).flatMap(nodes)] : [];
 const maps = [], checks = [], calls = [];
 let modal;
+class Section {
+	constructor(map, type) { this.map = map; this.type = type; map.sections.push(this); }
+	tab() {}
+	option(type, key, title, ...args) {
+		const option = { key, type, title, section: this, choices: [], value(id, name) { this.choices.push([id, name]); }, depends() {} };
+		if (type === 'SectionValue') option.subsection = new Section(this.map, args[0]);
+		this.map.options.push(option); return option;
+	}
+	taboption(tab, ...args) { const option = this.option(...args); option.tab = tab; return option; }
+}
 class JSONMap {
 	constructor(data) {
-		this.rows = data; this.options = [];
-		this.data = { get: (_, id, key) => key ? data[id][key] : data[id] };
+		this.rows = {}; this.options = []; this.sections = []; this.parses = 0;
+		this.root = Object.assign(E('form'), { attached: false, bindingPurged: false,
+			addEventListener() {}, remove() { this.attached = false; } });
+		Object.entries(data).forEach(([type, value]) => (Array.isArray(value) ? value : [value]).forEach(row => {
+			const name = row['.name'] || type; this.rows[name] = { ...row, '.type': type, '.name': name };
+		}));
+		this.data = { get: (_, id, key) => key ? this.rows[id][key] : this.rows[id],
+			set: (_, id, key, value) => { this.rows[id][key] = value; } };
 		maps.push(this);
 	}
-	section() {
-		const map = this;
-		return { tab() {}, taboption(tab, type, key, title) {
-			const option = { key, type, title, choices: [], value(id, name) { this.choices.push([id, name]); }, depends() {} };
-			map.options.push(option); return option;
-		}, option(type, key, title) { return this.taboption('', type, key, title); } };
+	section(type, id) { return new Section(this, id); }
+	parse() {
+		if (this.root.bindingPurged) throw new Error('LuCI form bindings were purged before parse');
+		this.parses++; return Promise.resolve();
 	}
-	parse() { return Promise.resolve(); }
-	render() { return Promise.resolve(E('form')); }
+	render() {
+		if (this.root.bindingPurged) throw new Error('LuCI form bindings were purged before render');
+		return Promise.resolve(this.root);
+	}
+}
+function purgeModalBindings() {
+	// LuCI clears widget bindings on roots still attached to the replaced modal.
+	nodes(modal).filter(node => node.tag === 'form' && node.attached).forEach(node => {
+		node.bindingPurged = true; node.attached = false;
+	});
 }
 const ui = {
-	showModal: (title, children) => { modal = E('modal', { title }, children); }, hideModal() {},
+	showModal: (title, children) => {
+		purgeModalBindings(); modal = E('modal', { title }, children);
+		nodes(modal).filter(node => node.tag === 'form').forEach(node => { node.attached = true; });
+	},
+	hideModal() { purgeModalBindings(); modal = undefined; },
+	cancelModal(event) {
+		if (event.key !== 'Escape') return;
+		// Native LuCI activates the first footer button; it does not look up Cancel by label.
+		const footer = nodes(modal).find(node => node.attrs && node.attrs.class === 'right');
+		const first = footer && footer.children.find(node => node && node.tag === 'button');
+		if (first) return first.attrs.action();
+	},
 	Checkbox: class {
 		constructor() { this.checked = false; this.id = 'check-' + checks.length; checks.push(this); }
 		render() { return { querySelector: () => ({ id: this.id }) }; }
@@ -36,18 +69,30 @@ const native = new Function('baseclass', 'form', 'rpc', 'ui', 'poll', 'uqr', 'L'
 	{ extend: x => x }, {}, { declare: spec => (...args) => { calls.push({ method: spec.method, args }); return Promise.resolve({ ok: true }); } }, ui, {}, {},
 	{ env: { lang: 'en' } }, E, x => x, {}
 );
+const proposed = { available: true, mode: 'url-test', reason: 'Use latency testing; Smart decisions are not preserved.' };
+const group = (id, modes = ['smart', 'smart', 'selector']) => ({ id, name: id, modes: { mihomo: modes[0], surge: modes[1], singbox: modes[2] },
+	alternatives: { mihomo: ['manual', 'url-test', 'fallback'], surge: ['manual', 'url-test', 'fallback'], singbox: ['manual', 'url-test'] },
+	suggestions: id === 'stable' ? {} : { surge: proposed, singbox: proposed } });
+const issues = ['proxy', 'backup'].map(id => ({ id, code: 'group:' + id, kind: 'group', severity: 'warning', message: 'Repeated warning for ' + id }));
+issues.push({ id: 'entry', code: 'rematch:entry', kind: 'rematch', severity: 'error', message: 'Choose a replacement' });
 const report = {
 	profile: { id: 'main', name: 'Main' },
 	targets: [
 		{ format: 'mihomo', errors: [], warnings: [], issues: [] },
-		{ format: 'surge', errors: ['rematch policy'], warnings: [], issues: [{ id: 'entry', message: 'Choose a replacement' }] },
-		{ format: 'singbox', errors: [], warnings: [{ message: 'Review DNS behavior' }], issues: [] }
+		{ format: 'surge', errors: ['Unsupported node transport'], warnings: issues.slice(0, 2).map(issue => ({ code: 'surge:' + issue.code, message: issue.message })), issues },
+		{ format: 'singbox', errors: [], warnings: [{ message: 'Review DNS behavior' }], issues: issues.slice(0, 2) }
 	],
-	choices: { policies: [{ id: 'DIRECT', name: 'DIRECT' }, { id: 'REJECT', name: 'REJECT' }, { id: 'proxy', name: 'Proxy' }], rematches: [{ id: 'entry', name: 'Entry' }],
-		groups: [{ id: 'proxy', name: 'Proxy', modes: { mihomo: 'smart', surge: 'smart', singbox: 'selector' }, alternatives: { mihomo: ['manual', 'url-test', 'fallback'], surge: ['manual', 'url-test', 'fallback'], singbox: ['manual', 'url-test'] } }],
-		rules: [{ id: 'geo', name: 'Geo rule', type: 'GEOSITE', targets: ['surge', 'singbox'] }], sub_rules: [{ id: 'branch' }], has_dns: true, has_mihomo_policy: true }
+	choices: { policies: [{ id: 'DIRECT', name: 'DIRECT' }, { id: 'REJECT', name: 'REJECT' }, { id: 'proxy', name: 'Proxy' }, { id: 'backup', name: 'Backup' }],
+		rematches: [{ id: 'entry', name: 'Entry', suggestions: { surge: { available: true, mode: 'manual', members: ['proxy', 'backup'], reason: 'Review the candidate order.' },
+			singbox: { available: false, reason: 'Choose candidates manually.' } } }],
+		groups: [group('proxy'), group('backup'), group('stable', ['select', 'select', 'selector'])],
+		rules: [{ id: 'geo', name: 'Geo rule', type: 'GEOSITE', targets: ['surge', 'singbox'] }, { id: 'domain', name: 'Domain', type: 'DOMAIN', targets: [] }],
+		sub_rules: [{ id: 'branch' }], has_dns: true, has_mihomo_policy: true }
 };
-const plan = { version: 'version-1', plan_token: 'cache-bound-token', ready: true, changes: [{ code: 'drop:geo', message: 'Disable geo' }], errors: [], warnings: [] };
+const plan = { version: 'version-1', plan_token: 'cache-bound-token', ready: true, changes: [
+	{ code: 'group-mode:proxy', message: 'Change proxy mode' }, { code: 'group-mode:backup', message: 'Change backup mode' },
+	{ code: 'omit-mihomo_dns', message: 'Change DNS behavior' }, { code: 'future:change', message: 'A future change' }
+], errors: [], warnings: [] };
 const requests = [];
 const hs = {
 	translateMessage: native.translateMessage,
@@ -56,67 +101,111 @@ const hs = {
 	api: async (method, args) => { requests.push({ method, args }); return method === 'compatibility' ? report : method === 'compatibility_plan' ? plan : {}; }
 };
 const window = { location: { search: '?profile=main' } };
+const types = Object.fromEntries(['NamedSection', 'TableSection', 'SectionValue', 'DummyValue', 'Button', 'ListValue', 'Value', 'Flag', 'MultiValue', 'DynamicList'].map(t => [t, t]));
 const page = new Function('view', 'form', 'ui', 'dom', 'hs', 'E', '_', 'L', 'window',
 	fs.readFileSync(path.join(root, 'htdocs/luci-static/resources/view/hybrid-subscription/compatibility.js'), 'utf8'))(
-	{ extend: x => x }, { JSONMap, NamedSection: {}, ListValue: {}, Value: {}, Flag: {}, MultiValue: {}, DynamicList: {} }, ui,
-	{ content: (node, child) => { node.children = [child]; } }, hs, E, native.t, { url: x => '/' + x }, window
+	{ extend: x => x }, { JSONMap, ...types }, ui, { content: (node, child) => { node.children = [child]; } }, hs, E, native.t, { url: x => '/' + x }, window
 );
 const button = label => nodes(modal).find(node => node.tag === 'button' && node.children[0] === label);
+const option = (map, key) => map.options.find(o => o.key === key);
 (async () => {
 	const rendered = await page.render({ config: { profiles: [{ id: 'main', name: 'Main' }, { id: 'main_surge' }] } });
-	assert.match(JSON.stringify(rendered), /Blocked/);
-	assert.match(JSON.stringify(rendered), /Review Differences/);
-	const modeDifference = { ...report, targets: [{ format: 'surge', errors: [], warnings: [], issues: [{ severity: 'warning', message: 'Automation differs' }] }] };
-	assert.match(JSON.stringify(page.reportContent(modeDifference)), /Review Differences/, 'automation differences require review even when syntax is compatible');
-	assert.equal(requests.length, 1, 'initial report reads only, without creating or refreshing');
+	const renderedText = JSON.stringify(rendered);
+	assert.match(renderedText, /Blocked/); assert.match(renderedText, /Review Differences/);
+	assert.equal(requests.length, 1, 'initial report reads only');
+	assert.equal((renderedText.match(/Use latency testing; Smart decisions are not preserved\./g) || []).length, 1, 'same-mode group explanation appears once');
+	assert.doesNotMatch(renderedText, /Repeated warning/, 'renderer warnings mirrored by issues are not printed again');
+	assert.match(renderedText, /Unsupported node transport/, 'unassociated export blockers remain visible in diagnostics');
+	assert.doesNotMatch(renderedText, /Review DNS behavior/, 'only the selected client has details');
+	await nodes(rendered).filter(n => n.tag === 'button' && n.children[0] === 'View Suggestions')[2].attrs.action();
+	assert.match(JSON.stringify(rendered), /Review DNS behavior/);
+	assert.doesNotMatch(JSON.stringify(rendered), /Unsupported node transport/, 'switching client replaces the details');
 	native.setLocale('zh_Hans');
-	assert.match(JSON.stringify(page.reportContent(report)), /兼容性向导/);
 	assert.match(JSON.stringify(page.reportContent(report)), /存在阻塞项/);
-	assert.match(native.translateMessage('Change group Proxy (proxy) for singbox: fallback -> urltest (Mihomo reference: fallback); latency testing selects by measured delay; it does not preserve Smart or regional matching behavior'), /延迟测速按测得的延迟选择候选策略；不保留 Smart 智能选择或地区匹配行为/);
-	assert.match(native.translateMessage('Replace rematch Region (entry) with manual group; candidates: Proxy (proxy), DIRECT; manual selection does not automatically switch candidates or preserve Smart behavior; sing-box manual selection requires client selection controls or its API; otherwise the first candidate is used; regional re-evaluation is no longer performed in the new profile'), /否则将使用第一个候选策略；新配置将不再执行原有的地区二次匹配/);
+	assert.match(native.translateMessage('Change group Proxy (proxy) for singbox: fallback -> urltest (Mihomo reference: fallback); latency testing selects by measured delay; it does not preserve Smart or regional matching behavior'), /延迟测速/);
 	native.setLocale('en');
 	await page.wizard(report, 'surge');
+	const canceled = maps.at(-1), beforeCancel = requests.length;
+	await ui.cancelModal({ key: 'Escape' });
+	assert.equal(modal, undefined, 'native Escape must close the wizard');
+	assert.equal(canceled.parses, 0, 'cancel must not parse or fill suggestions');
+	assert.equal(canceled.rows.group_0.mode, ''); assert.equal(canceled.rows.rematch_0.replacement, '');
+	assert.equal(requests.length, beforeCancel, 'cancel must not preview or save');
+	await page.wizard(report, 'surge');
 	const wizard = maps.at(-1);
+	const wizardRoot = wizard.root;
+	assert.equal(wizardRoot.attached, true);
 	assert.equal(wizard.rows.copy.id, 'main_surge_2');
-	assert.equal(wizard.rows.copy.omit_dns, undefined, 'DNS removal must not be preselected');
-	assert.equal(wizard.rows.copy.rematch_0, undefined, 'never pick a replacement policy automatically');
-	wizard.rows.copy.rematch_0 = 'proxy';
-	wizard.rows.copy.abandon_sub_rules = '1';
-	wizard.rows.copy.omit_dns = '1';
-	wizard.rows.copy.disable_rules = ['geo'];
+	assert.equal(wizard.rows.copy.omit_dns, undefined);
+	assert.equal(wizard.rows.rematch_0.replacement, '', 'manual path does not preselect an adaptation');
+	const groupTable = wizard.sections.find(s => s.type === 'group');
+	assert.equal(groupTable.filter('group_0'), true); assert.equal(groupTable.filter('group_2'), false, 'compatible groups are hidden by default');
+	assert.deepEqual(option(wizard, 'disable_rules').choices.map(c => c[0]), ['geo'], 'rule picker only offers target-incompatible rules');
+	wizard.rows.copy.name = 'Edited name';
+	wizard.rows.group_0.mode = 'keep';
+	await button('Fill Unset Suggestions').attrs.action();
+	assert.equal(wizard.root, wizardRoot, 'LuCI reuses the form root when the wizard is rerendered');
+	assert.equal(wizardRoot.bindingPurged, false, 'rerender must detach the root before replacing the modal');
+	assert.equal(wizardRoot.attached, true);
+	assert.ok(wizard.parses > 0, 'capture live form edits before filling suggestions');
+	assert.equal(wizard.rows.copy.name, 'Edited name');
+	assert.equal(wizard.rows.group_0.mode, 'keep', 'explicit keep choice survives applying suggestions');
+	assert.equal(wizard.rows.group_1.mode, 'url-test');
+	assert.equal(wizard.rows.group_2.mode, '', 'compatible groups stay unchanged');
+	assert.equal(wizard.rows.rematch_0.replacement, '__manual');
+	assert.deepEqual(wizard.rows.rematch_0.members, ['proxy', 'backup']);
+	assert.equal(wizard.rows.copy.omit_dns, undefined); assert.equal(wizard.rows.copy.abandon_sub_rules, undefined);
+	assert.deepEqual(wizard.rows.copy.disable_rules, [], 'suggestions never opt into deletions');
+	wizard.rows.copy.batch_mode = 'manual';
+	await option(wizard, '_batch').onclick();
+	assert.equal(wizard.rows.group_0.mode, 'manual', 'explicit batch action replaces an affected group keep choice');
+	assert.equal(wizard.rows.group_1.mode, 'manual', 'explicit batch action replaces an affected group suggestion');
+	assert.equal(wizard.rows.group_2.mode, '', 'batch action leaves unaffected groups unchanged');
+	await option(wizard, '_show_groups').onclick(); assert.equal(groupTable.filter('group_2'), true);
+	wizard.rows.group_2.mode = 'url-test';
+	await option(wizard, '_show_groups').onclick(); assert.equal(groupTable.filter('group_2'), true, 'a changed group remains visible when filtering');
+	wizard.rows.copy.abandon_sub_rules = '1'; wizard.rows.copy.omit_dns = '1'; wizard.rows.copy.disable_rules = ['geo'];
 	await button('Preview Changes').attrs.action();
+	assert.equal(wizardRoot.attached, false, 'preview preserves the detached form for Back');
+	assert.equal(wizardRoot.bindingPurged, false, 'confirmation must not purge the reusable wizard bindings');
 	const preview = requests.at(-1);
 	assert.equal(preview.method, 'compatibility_plan');
-	assert.deepEqual(JSON.parse(preview.args.resolutions), { rematches: { entry: 'proxy' }, group_modes: {}, disable_rules: ['geo'], abandon_sub_rules: true, omit_dns: true, omit_mihomo_policy: false });
-	assert.throws(() => button('Create Independent Draft').attrs.action(), /Confirm every/);
-	assert.equal(requests.at(-1).method, 'compatibility_plan', 'unconfirmed plan must not write');
+	assert.deepEqual(JSON.parse(preview.args.resolutions), { rematches: { entry: { mode: 'manual', members: ['proxy', 'backup'] } }, group_modes: { proxy: 'manual', backup: 'manual', stable: 'url-test' }, disable_rules: ['geo'], abandon_sub_rules: true, omit_dns: true, omit_mihomo_policy: false });
+	assert.equal(checks.length, 3, 'four exact changes require three category acknowledgments, with unknown changes kept');
+	assert.match(JSON.stringify(modal), /Change proxy mode/); assert.match(JSON.stringify(modal), /Change backup mode/); assert.match(JSON.stringify(modal), /A future change/);
+	assert.throws(() => button('Create Independent Draft').attrs.action(), /Confirm every change category/);
+	checks.at(-1).checked = true; checks.at(-2).checked = true;
+	assert.throws(() => button('Create Independent Draft').attrs.action(), /Confirm every change category/);
 	await button('Back').attrs.action();
-	assert.equal(wizard.rows.copy.rematch_0, 'proxy', 'back preserves explicit decisions');
+	assert.equal(wizard.root, wizardRoot); assert.equal(wizardRoot.attached, true, 'Back reattaches the original form root');
+	assert.equal(wizard.rows.group_1.mode, 'manual'); assert.equal(wizard.rows.copy.name, 'Edited name');
 	await button('Preview Changes').attrs.action();
-	checks.at(-1).checked = true;
+	assert.equal(checks.at(-1).checked, false, 'a new preview resets category consent');
+	checks.slice(-3).forEach(check => { check.checked = true; });
 	await button('Create Independent Draft').attrs.action();
-	assert.deepEqual(requests.at(-1).args.accepted_changes, ['drop:geo']);
-	assert.equal(requests.at(-1).args.plan_token, 'cache-bound-token');
-	assert.equal(requests.at(-1).args.version, 'version-1');
+	assert.deepEqual(requests.at(-1).args.accepted_changes, plan.changes.map(change => change.code), 'submit all exact change codes, never category IDs');
+	assert.equal(requests.at(-1).args.plan_token, 'cache-bound-token'); assert.equal(requests.at(-1).args.version, 'version-1');
 	assert.match(window.location.href, /profile=main_surge_2$/);
-	await page.wizard(report, 'singbox');
+	await page.wizard(report, 'surge', true);
+	const suggested = maps.at(-1);
+	assert.equal(suggested.rows.group_0.mode, 'url-test'); assert.equal(suggested.rows.rematch_0.replacement, '__manual');
+	assert.equal(suggested.rows.copy.omit_dns, undefined);
+	suggested.rows.group_2.mode = 'fallback'; suggested.rows.copy.batch_mode = 'manual';
+	await option(suggested, '_batch').onclick();
+	assert.equal(suggested.rows.group_0.mode, 'manual'); assert.equal(suggested.rows.group_1.mode, 'manual', 'prefilled groups can switch mode in one batch action');
+	assert.equal(suggested.rows.group_2.mode, 'fallback', 'batch action preserves an unaffected group override');
+	assert.equal(suggested.rows.rematch_0.replacement, '__manual'); assert.deepEqual(suggested.rows.rematch_0.members, ['proxy', 'backup']);
+	assert.equal(suggested.rows.copy.omit_dns, undefined); assert.equal(suggested.rows.copy.abandon_sub_rules, undefined); assert.deepEqual(suggested.rows.copy.disable_rules, []);
+	await button('Fill Unset Suggestions').attrs.action();
+	assert.equal(suggested.rows.group_0.mode, 'manual'); assert.equal(suggested.rows.group_1.mode, 'manual', 'ordinary suggestions still preserve explicit batch choices');
+	await page.wizard(report, 'singbox', true);
 	const downgrade = maps.at(-1);
-	assert.match(JSON.stringify(modal), /requires a client with selector controls/);
-	assert.equal(downgrade.rows.copy.group_mode_0, undefined, 'never preselect an automation downgrade');
-	assert.equal(downgrade.options.find(o => o.key === 'group_mode_0').choices.some(choice => choice[0] === 'fallback'), false, 'do not offer unsupported fallback mode in sing-box');
-	assert.equal(downgrade.options.find(o => o.key === 'rematch_members_0').choices.some(choice => choice[0] === 'REJECT'), false, 'sing-box cannot select a reject outbound');
-	downgrade.rows.copy.rematch_0 = '__manual';
-	downgrade.rows.copy.rematch_members_0 = ['proxy', 'DIRECT'];
-	downgrade.rows.copy.group_mode_0 = 'url-test';
-	await button('Preview Changes').attrs.action();
-	const reduced = JSON.parse(requests.at(-1).args.resolutions);
-	assert.deepEqual(reduced.rematches.entry, { mode: 'manual', members: ['proxy', 'DIRECT'] });
-	assert.deepEqual(reduced.group_modes, { proxy: 'url-test' });
-	await button('Back').attrs.action();
-	assert.deepEqual(downgrade.rows.copy.rematch_members_0, ['proxy', 'DIRECT'], 'back retains the chosen candidates');
+	assert.equal(downgrade.rows.rematch_0.replacement, '', 'unavailable suggestions never guess a replacement');
+	assert.equal(option(downgrade, 'mode').choices.some(c => c[0] === 'fallback'), false);
+	assert.equal(option(downgrade, 'members').choices.some(c => c[0] === 'REJECT'), false);
 	page.confirmPlan({ ...plan, ready: false, errors: ['Still blocked'] }, preview.args, () => {});
 	assert.equal(button('Create Independent Draft'), undefined, 'unresolved blockers cannot be saved as compatible');
 	await native.api('compatibility_create', { profile: 'main', format: 'surge', id: 'copy', name: 'Copy', resolutions: '{}', version: 'v', plan_token: 't', accepted_changes: ['c'] });
 	assert.deepEqual(calls.at(-1), { method: 'compatibility_create', args: ['main', 'surge', 'copy', 'Copy', '{}', 'v', 't', ['c']] });
-	console.log('Compatibility UI: client reports, native form decisions, localization, confirmation gates, stale-plan fields and blocked creation pass.');
+	console.log('Compatibility UI: grouped reports, native tables, conservative suggestions, explicit affected-group batches and exact grouped consent pass.');
 })().catch(error => { console.error(error); process.exitCode = 1; });

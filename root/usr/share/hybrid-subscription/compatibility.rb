@@ -16,6 +16,22 @@ module HybridSubscription
       'url-test'=>'latency testing selects by measured delay; it does not preserve Smart or regional matching behavior',
       'fallback'=>'fallback selects the first available candidate in order; it does not preserve Smart behavior'
     }.freeze
+    SUGGESTION_REASONS = {
+      'smart'=>'Latency testing is a simpler alternative to Smart selection; it does not preserve Smart decisions.',
+      'manual'=>'Use manual selection to match the source group mode; automatic switching will stop.',
+      'url-test'=>'Use the target client latency testing; client timing and selection behavior may differ.',
+      'fallback'=>'Ordered fallback keeps priority-based availability selection; native client behavior may still differ.',
+      'fallback-loss'=>'This target has no native fallback mode; latency testing loses ordered failover priority.',
+      'load-balance'=>'Latency testing selects by delay and does not preserve load balancing.',
+      'unknown'=>'No suggestion is available because the Mihomo group mode is unknown.',
+      'unchanged'=>'The target already uses this alternative; its remaining behavior difference still requires review.',
+      'candidates'=>'Candidates come from enabled scoped rules and final policies in their original order. Manual selection does not preserve rule conditions, REMATCH-NAME matching, or regional re-evaluation; the first candidate becomes the initial selection.',
+      'builtins'=>'A scoped policy includes DIRECT or REJECT; review these routing decisions manually instead of inferring candidates.',
+      'missing'=>'A rematch, sub-rule, or candidate policy reference is missing or ambiguous; choose candidates manually.',
+      'cycle'=>'The policy graph contains a cycle or a candidate depends on this rematch; choose candidates manually.',
+      'depth'=>'The policy graph exceeds the suggestion depth limit; choose candidates manually.',
+      'conditions'=>'Scoped rules contain unsupported or malformed conditions; choose candidates manually.'
+    }.freeze
 
     def initialize(config, caches)
       @config, @caches = Engine.copy(config), Engine.copy(caches)
@@ -46,6 +62,81 @@ module HybridSubscription
     def policy_label(id, profile_id)
       group = rows('groups', profile_id).find { |row| row['id'] == id }
       group ? "#{group['name']} (#{id})" : id
+    end
+
+    def group_suggestion(group, format)
+      native = group_type(group, 'mihomo')
+      return {'available'=>false, 'reason'=>SUGGESTION_REASONS['unknown']} unless %w[select url-test fallback load-balance smart].include?(native)
+      baseline = group_behavior(native)
+      mode, reason = case baseline
+                     when 'smart', 'load-balance' then ['url-test', baseline]
+                     when 'manual', 'url-test' then [baseline, baseline]
+                     when 'fallback' then GROUP_MODES[format].key?('fallback') ? ['fallback', 'fallback'] : ['url-test', 'fallback-loss']
+                     else return {'available'=>false, 'reason'=>SUGGESTION_REASONS['unknown']}
+                     end
+      return {'available'=>false, 'reason'=>SUGGESTION_REASONS['unchanged']} if group_type(group, format) == GROUP_MODES[format][mode]
+      {'available'=>true, 'mode'=>mode, 'reason'=>SUGGESTION_REASONS[reason]}
+    end
+
+    def rematch_suggestion(profile_id, original)
+      maps = %w[groups rematches sub_rules].to_h do |key|
+        items = rows(key, profile_id)
+        map = items.to_h { |row| [row['id'], row] }
+        raise Error, SUGGESTION_REASONS['missing'] unless items.length == map.length
+        [key, map]
+      end
+      raise Error, SUGGESTION_REASONS['missing'] unless (maps['groups'].keys & maps['rematches'].keys).empty?
+      scoped = rows('rules', profile_id).reject { |rule| rule['enabled'] == false }.group_by { |rule| rule['sub_rule'] }
+      scopes = {}
+      scope_policies = lambda do |id|
+        scopes[id] ||= begin
+          rematch = maps['rematches'][id]
+          sub = rematch && maps['sub_rules'][rematch['target_sub_rule']]
+          raise Error, SUGGESTION_REASONS['missing'] unless sub
+          rules = scoped.fetch(sub['id'], [])
+          rules.each do |rule|
+            begin
+              valid = conditions(rule).all? { |condition| Engine::RULE_TYPES.include?(condition['type']) && Array(condition['conditions']).all? { |child| child.is_a?(Hash) } }
+            rescue Error
+              valid = false
+            end
+            raise Error, SUGGESTION_REASONS['conditions'] unless valid
+          end
+          rules.map { |rule| rule['policy'] } + [sub['final_policy']]
+        end
+      end
+      resolved = {}
+      resolve = lambda do |policy, trail|
+        raise Error, SUGGESTION_REASONS['depth'] if trail.length >= 16
+        raise Error, SUGGESTION_REASONS['builtins'] if Engine::BUILTINS.include?(policy)
+        next [policy] if maps['groups'].key?(policy)
+        raise Error, SUGGESTION_REASONS['missing'] unless maps['rematches'].key?(policy)
+        raise Error, SUGGESTION_REASONS['cycle'] if trail.include?(policy)
+        resolved[policy] ||= scope_policies.call(policy).flat_map { |child| resolve.call(child, trail + [policy]) }.uniq
+      end
+      candidates = resolve.call(original['id'], [])
+      checked = {}
+      check = lambda do |policy, trail|
+        raise Error, SUGGESTION_REASONS['depth'] if trail.length >= 16
+        next if Engine::BUILTINS.include?(policy)
+        raise Error, SUGGESTION_REASONS['cycle'] if policy == original['id'] || trail.include?(policy)
+        next if checked[policy]
+        group = maps['groups'][policy]
+        edges = if group
+                  raise Error, SUGGESTION_REASONS['missing'] unless group.fetch('members', []).is_a?(Array)
+                  Array(group['members']) + %w[default_member empty_fallback].map { |key| group[key] }.compact.reject { |id| id == '' }
+                elsif maps['rematches'].key?(policy)
+                  scope_policies.call(policy)
+                else
+                  raise Error, SUGGESTION_REASONS['missing']
+                end
+        edges.each { |child| check.call(child, trail + [policy]) }
+        checked[policy] = true
+      end
+      candidates.each { |candidate| check.call(candidate, []) }
+      {'available'=>true, 'mode'=>'manual', 'members'=>candidates, 'reason'=>SUGGESTION_REASONS['candidates']}
+    rescue Error => e
+      {'available'=>false, 'reason'=>e.message}
     end
 
     def conditions(rule, depth = 0)
@@ -121,11 +212,21 @@ module HybridSubscription
 
     def report(id)
       p = profile(id)
-      {'profile'=>{'id'=>id, 'name'=>p['name']}, 'targets'=>Engine::FORMATS.map { |format| target(id, format) },
+      targets = Engine::FORMATS.map { |format| target(id, format) }
+      affected_groups = Hash.new { |groups, key| groups[key] = [] }
+      targets.each do |target|
+        target['issues'].select { |item| item['kind'] == 'group' }.each { |item| affected_groups[item['id']] << target['format'] }
+      end
+      {'profile'=>{'id'=>id, 'name'=>p['name']}, 'targets'=>targets,
        'choices'=>{
          'policies'=>Engine::BUILTINS.map { |value| {'id'=>value, 'name'=>value} } + rows('groups', id).map { |g| g.slice('id', 'name') },
-         'groups'=>rows('groups', id).map { |group| group.slice('id', 'name').merge('modes'=>Engine::FORMATS.to_h { |format| [format, group_type(group, format)] }, 'alternatives'=>GROUP_MODES.transform_values(&:keys)) },
-         'rematches'=>rows('rematches', id).map { |r| r.slice('id', 'name') },
+         'groups'=>rows('groups', id).map do |group|
+           group.slice('id', 'name').merge('modes'=>Engine::FORMATS.to_h { |format| [format, group_type(group, format)] }, 'alternatives'=>GROUP_MODES.transform_values(&:keys), 'suggestions'=>affected_groups[group['id']].to_h { |format| [format, group_suggestion(group, format)] })
+         end,
+         'rematches'=>rows('rematches', id).map do |rematch|
+           suggestion = rematch_suggestion(id, rematch)
+           rematch.slice('id', 'name').merge('suggestions'=>%w[surge singbox].to_h { |format| [format, Engine.copy(suggestion)] })
+         end,
          'sub_rules'=>rows('sub_rules', id).map { |r| r.slice('id', 'name').merge('rules'=>rows('rules', id).count { |rule| rule['sub_rule'] == r['id'] && rule['enabled'] != false }) },
          'has_dns'=>p['mihomo_dns'].is_a?(Hash) && !p['mihomo_dns'].empty?,
          'has_mihomo_policy'=>p['mihomo_policy'].is_a?(Hash) && !p['mihomo_policy'].empty?,

@@ -2418,3 +2418,294 @@ msgstr "否则将使用第一个候选策略"
 #: htdocs/luci-static/resources/hybrid-subscription.js
 msgid "regional re-evaluation is no longer performed in the new profile"
 msgstr "新配置将不再执行原有的地区二次匹配"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/compatibility.js
+msgid "Policy group modes"
+msgstr "策略组切换方式"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/compatibility.js
+msgid "Conditional routing"
+msgstr "重匹配分流"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/compatibility.js
+msgid "Sub-rules"
+msgstr "子规则"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/compatibility.js
+msgid "DNS policy"
+msgstr "DNS 策略"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/compatibility.js
+msgid "Runtime settings"
+msgstr "运行设置"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/compatibility.js
+msgid "Routing rules"
+msgstr "分流规则"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/compatibility.js
+#, javascript-format
+msgid "Mihomo: %s → %s: %s"
+msgstr "Mihomo：%s → %s：%s"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/compatibility.js
+msgid "New profile"
+msgstr "新配置"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/compatibility.js
+msgid "Sub-rule removal"
+msgstr "移除子规则"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/compatibility.js
+msgid "Disabled rules"
+msgstr "停用规则"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/compatibility.js
+msgid "Rule set copies"
+msgstr "规则集副本"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/compatibility.js
+msgid "Other changes"
+msgstr "其他变更"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/compatibility.js
+msgid "Compare clients, review the differences, then prepare a separate draft. Checks use saved settings and cached nodes."
+msgstr "基于已保存配置与本地节点缓存，比对各客户端的兼容性差异，并按需派生独立的客户端草稿。"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/compatibility.js
+msgid "Items to review"
+msgstr "待处理项"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/compatibility.js
+msgid "View Suggestions"
+msgstr "查看建议"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/compatibility.js
+#, javascript-format
+msgid "%s issue types. Expand a row to see the affected items."
+msgstr "共 %s 类待处理项，点击展开可查看涉及的具体条目。"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/compatibility.js
+msgid "Issue"
+msgstr "问题类型"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/compatibility.js
+msgid "Details and suggestions"
+msgstr "说明与处理建议"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/compatibility.js
+#, javascript-format
+msgid "%s · %s items"
+msgstr "%s · %s 项"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/compatibility.js
+#, javascript-format
+msgid "%s suggestions can fill unset choices. Rules and DNS settings still need your decision."
+msgstr "共有 %s 项推荐设置可供自动填入；分流规则与 DNS 策略仍需手动确认。"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/compatibility.js
+msgid "Use Suggestions"
+msgstr "使用推荐设置"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/compatibility.js
+msgid "Adjust Manually"
+msgstr "手动调整"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/compatibility.js
+msgid "Export validation details"
+msgstr "导出校验详情"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/compatibility.js
+#, javascript-format
+msgid "%s unset choices filled. Existing choices were kept."
+msgstr "已自动填入 %s 项未设置项，原有手动选择保持不变。"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/compatibility.js
+msgid "Manual selects a candidate; URL Test selects by latency; Fallback follows availability and order. Changes apply only to the listed groups."
+msgstr "手动选择需人工切换节点；延迟测速按最低延迟自动优选；故障转移按列表顺序选择首个可用项。此处仅调整列表中策略组的自身模式。"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/compatibility.js
+msgid "Replacing conditional routing changes how traffic selects a policy. Review the proposed candidates; rules are never removed automatically."
+msgstr "替换重匹配入口将改变流量的二次分流方式。请核对候选策略列表；原有分流规则不会被自动删除。"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/compatibility.js
+msgid "Batch choice"
+msgstr "批量设置模式"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/compatibility.js
+msgid "Suggested modes"
+msgstr "推荐模式"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/compatibility.js
+msgid "Affected groups only"
+msgstr "仅针对受影响的策略组"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/compatibility.js
+msgid "Fill Unset Groups"
+msgstr "填入未设置的策略组"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/compatibility.js
+msgid "Group visibility"
+msgstr "显示范围"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/compatibility.js
+msgid "Show All Groups"
+msgstr "显示全部策略组"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/compatibility.js
+msgid "Policy Group"
+msgstr "策略组"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/compatibility.js
+msgid "Mihomo → target"
+msgstr "Mihomo → 目标端"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/compatibility.js
+msgid "Use in the copy"
+msgstr "新配置采用模式"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/compatibility.js
+msgid "Keep current mode"
+msgstr "保持当前模式"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/compatibility.js
+msgid "Conditional entry"
+msgstr "重匹配入口"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/compatibility.js
+msgid "Replacement"
+msgstr "替代方式"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/compatibility.js
+msgid "Needs a decision"
+msgstr "请选择处理方式"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/compatibility.js
+msgid "Manual candidate group"
+msgstr "手动选择组"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/compatibility.js
+msgid "Latency-test candidate group"
+msgstr "延迟测速组"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/compatibility.js
+msgid "Candidates in order"
+msgstr "候选策略（按顺序）"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/compatibility.js
+msgid "Disable incompatible rules"
+msgstr "停用不兼容规则"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/compatibility.js
+msgid "Optional. Unselected rules stay enabled and may still block export. Rules inside removed sub-rules are already covered by that removal."
+msgstr "选填。未勾选的规则将保持启用（若不兼容仍会拦截导出）；已随子规则一并移除的规则无需在此重复勾选。"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/compatibility.js
+msgid "Show Affected Groups"
+msgstr "仅显示受影响策略组"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/compatibility.js
+msgid "Suggestions fill choices for review. Saving creates a separate draft; the original profile stays unchanged."
+msgstr "推荐设置仅用于预填表单供你核对；确认创建后将生成独立草稿，不会修改原配置。"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/compatibility.js
+msgid "Manual selection in sing-box needs client controls; otherwise it uses the first candidate."
+msgstr "sing-box 的手动选择（selector）需配合客户端切换界面或 Clash API 使用，否则将固定使用第一个候选策略。"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/compatibility.js
+msgid "Fill Unset Suggestions"
+msgstr "填入推荐设置"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/compatibility.js
+msgid "Review each change category, then confirm to create the draft."
+msgstr "请按类别核对并勾选确认以下变更，确认无误后创建独立草稿。"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/compatibility.js
+msgid "Remaining export warnings"
+msgstr "剩余导出警告"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/compatibility.js
+#, javascript-format
+msgid "%s · %s changes"
+msgstr "%s · %s 项变更"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/compatibility.js
+msgid "Show Changes"
+msgstr "查看变更明细"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/compatibility.js
+msgid "Confirm every change category before creating the independent draft."
+msgstr "请先勾选确认所有类别的变更，再创建独立草稿。"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/compatibility.js
+msgid "No choice yet"
+msgstr "暂未选择"
+
+#: root/usr/share/hybrid-subscription/compatibility.rb
+msgid "Latency testing is a simpler alternative to Smart selection; it does not preserve Smart decisions."
+msgstr "建议将 Smart 简化为延迟测速优选（不保留 Smart 历史权重与决策逻辑）。"
+
+#: root/usr/share/hybrid-subscription/compatibility.rb
+msgid "Use manual selection to match the source group mode; automatic switching will stop."
+msgstr "建议与 Mihomo 原模式保持一致，改为手动选择（不再自动测速切换）。"
+
+#: root/usr/share/hybrid-subscription/compatibility.rb
+msgid "Use the target client latency testing; client timing and selection behavior may differ."
+msgstr "建议改用目标客户端的延迟测速模式（测速触发时机与选路细节可能略有差异）。"
+
+#: root/usr/share/hybrid-subscription/compatibility.rb
+msgid "Ordered fallback keeps priority-based availability selection; native client behavior may still differ."
+msgstr "建议改用故障转移模式，按候选顺序选择首个可用节点（不同客户端的健康检查细节可能略有差异）。"
+
+#: root/usr/share/hybrid-subscription/compatibility.rb
+msgid "This target has no native fallback mode; latency testing loses ordered failover priority."
+msgstr "该客户端无原生故障转移模式；建议改用延迟测速模式（不再按固定先后顺序故障回退）。"
+
+#: root/usr/share/hybrid-subscription/compatibility.rb
+msgid "Latency testing selects by delay and does not preserve load balancing."
+msgstr "建议改用延迟测速模式（按延迟优选单节点，不再分摊流量）。"
+
+#: root/usr/share/hybrid-subscription/compatibility.rb
+msgid "No suggestion is available because the Mihomo group mode is unknown."
+msgstr "未能识别原 Mihomo 策略组模式，无法自动生成推荐设置。"
+
+#: root/usr/share/hybrid-subscription/compatibility.rb
+msgid "The target already uses this alternative; its remaining behavior difference still requires review."
+msgstr "目标客户端当前已采用该替代模式，但与原模式仍存在行为差异，请核对确认。"
+
+#: root/usr/share/hybrid-subscription/compatibility.rb
+msgid "Candidates come from enabled scoped rules and final policies in their original order. Manual selection does not preserve rule conditions, REMATCH-NAME matching, or regional re-evaluation; the first candidate becomes the initial selection."
+msgstr "候选策略已按子规则内启用规则及兜底策略的原有顺序提取。改为手动选择组后，不再执行原规则条件、REMATCH-NAME 识别或地区二次匹配，初始默认选中第一项。"
+
+#: root/usr/share/hybrid-subscription/compatibility.rb
+msgid "A scoped policy includes DIRECT or REJECT; review these routing decisions manually instead of inferring candidates."
+msgstr "目标子规则包含 DIRECT 或 REJECT 出口，无法自动推导候选策略组，请手动指定替代方式。"
+
+#: root/usr/share/hybrid-subscription/compatibility.rb
+msgid "A rematch, sub-rule, or candidate policy reference is missing or ambiguous; choose candidates manually."
+msgstr "重匹配入口、子规则或候选策略的引用缺失或存在冲突，请手动指定候选策略。"
+
+#: root/usr/share/hybrid-subscription/compatibility.rb
+msgid "The policy graph contains a cycle or a candidate depends on this rematch; choose candidates manually."
+msgstr "策略引用存在循环依赖，或候选策略反向引用了当前重匹配入口，请手动指定候选策略。"
+
+#: root/usr/share/hybrid-subscription/compatibility.rb
+msgid "The policy graph exceeds the suggestion depth limit; choose candidates manually."
+msgstr "策略嵌套层级超出自动推导上限，请手动指定候选策略。"
+
+#: root/usr/share/hybrid-subscription/compatibility.rb
+msgid "Scoped rules contain unsupported or malformed conditions; choose candidates manually."
+msgstr "子规则中包含不支持或格式有误的匹配条件，请手动指定候选策略。"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/compatibility.js
+msgid "Apply to Affected Groups"
+msgstr "应用至受影响策略组"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/compatibility.js
+msgid "Replaces choices for affected groups. Other groups are kept."
+msgstr "批量更新受影响策略组的切换方式，其他策略组保持不变。"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/compatibility.js
+#, javascript-format
+msgid "%s group choices updated."
+msgstr "已更新 %s 个策略组的切换方式。"
