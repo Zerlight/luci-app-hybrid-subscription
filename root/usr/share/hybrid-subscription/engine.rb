@@ -444,6 +444,7 @@ module HybridSubscription
     end
 
     def inline_conditions(c, set)
+      raise Error, "Rule set #{set['id']}: inline rules require classical behavior" unless set.fetch('behavior', 'classical') == 'classical'
       text = set['inline_rules']
       raise Error, "Rule set #{set['id']}: inline rules must be text (maximum 512 KiB)" unless text.is_a?(String) && text.bytesize <= 524_288
       rules = text.lines.map(&:strip).reject { |line| line.empty? || line.start_with?('#', '//') }
@@ -464,12 +465,16 @@ module HybridSubscription
       incompatible << 'native Mihomo DNS policy' if c[:profile]['mihomo_dns'].is_a?(Hash) && !c[:profile]['mihomo_dns'].empty?
       types = []
       collect = lambda do |r|
-        types << r['type'] if %w[GEOSITE REMATCH-NAME AND OR NOT].include?(r['type'])
+        types << r['type'] if %w[GEOSITE REMATCH-NAME].include?(r['type'])
         Array(r['conditions']).each { |child| collect.call(child) }
       end
       c[:all_rules].each { |r| collect.call(r) }
+      used_sets(c).each do |set|
+        source_type = set.fetch('source_type', 'remote')
+        raise Error, "Rule set #{set['id']}: invalid source type" unless %w[remote inline].include?(source_type)
+        inline_conditions(c, set).each { |r| collect.call(r) } if source_type == 'inline'
+      end
       incompatible.concat(types.uniq)
-      incompatible << 'inline rule sets (currently Mihomo only)' if used_sets(c).any? { |r| r['source_type'] == 'inline' }
       raise Error, "#{format}: this profile requires #{incompatible.join(', ')}; create a separate compatible profile instead of discarding these policies" unless incompatible.empty?
     end
 
@@ -590,7 +595,40 @@ module HybridSubscription
     def surge_value(value)
       s = value.is_a?(Array) ? value.join(',') : value.to_s
       raise Error, 'Surge field contains a line break or NUL' if s.match?(/[\r\n\x00]/)
-      s.match?(/[,;"\\]|\A\s|\s\z/) ? JSON.generate(s) : s
+      s.match?(/[(),;"\\]|\A\s|\s\z/) ? JSON.generate(s) : s
+    end
+
+    def surge_condition(c, r, warnings, label, policy = nil)
+      type, value = r['type'], r['value']
+      if type == 'RULE-SET' && c[:sets][value]['source_type'] == 'inline'
+        conditions = inline_conditions(c, c[:sets][value]).map do |child|
+          # A RULE-SET no-resolve flag applies to IP conditions, not domain leaves.
+          r['no_resolve'] && %w[IP-CIDR IP-CIDR6 GEOIP].include?(child['type']) ? child.merge('no_resolve' => true) : child
+        end
+        expanded = conditions.length == 1 ? conditions.first : { 'type' => 'OR', 'conditions' => conditions }
+        return surge_condition(c, expanded, warnings, label, policy)
+      end
+      if %w[AND OR NOT].include?(type)
+        expression = "#{type},(" + r['conditions'].map { |child| "(#{surge_condition(c, child, warnings, label)})" }.join(',') + ')'
+        return [expression, policy].compact.join(',')
+      end
+      set = nil
+      if type == 'RULE-SET'
+        set = c[:sets][value]
+        value = http_url(set['surge_url'], "Rule set #{set['id']} Surge")
+        type = 'DOMAIN-SET' if set['behavior'] == 'domain'
+      elsif type == 'GEOIP' && value.upcase == 'LAN'
+        type, value = 'RULE-SET', 'LAN'
+        warning(warnings, 'surge', "lan:#{label}", 'Surge built-in LAN and Mihomo GEOIP LAN may cover different reserved ranges')
+      elsif type == 'NETWORK'
+        type, value = 'PROTOCOL', value.upcase
+      elsif type == 'DST-PORT'
+        type = 'DEST-PORT'
+      end
+      parts = [type, surge_value(value), policy].compact
+      parts << 'no-resolve' if r['no_resolve']
+      parts << "update-interval=#{integer(set['interval'], 86_400, 60, 2_592_000, 'Rule set interval')}" if set
+      parts.join(',')
     end
 
     def render_surge(c, warnings, errors)
@@ -617,29 +655,14 @@ module HybridSubscription
           fields << "url=#{surge_value(http_url(g.fetch('url', 'https://www.gstatic.com/generate_204'), 'Group test URL'))}"
           fields << "interval=#{integer(g['interval'], 300, 10, 86_400, 'Group interval')}"
           fields << "tolerance=#{integer(g['tolerance'], 50, 0, 60_000, 'Group tolerance')}" if type == 'url-test'
+          warning(warnings, 'surge', "group-test-url:#{g['id']}", "#{g['name']}: Surge uses native test URL settings and does not preserve this per-group health-check URL") if g.key?('url')
         end
         fields << 'hidden=true' if g['hidden']
         lines << "#{g['name']} = #{fields.join(', ')}"
       end
       lines += ['', '[Rule]']
       c[:rules].each do |r|
-        type, value = r['type'], r['value']
-        if type == 'RULE-SET'
-          set = c[:sets][value]
-          value = http_url(set['surge_url'], "Rule set #{set['id']} Surge")
-          type = 'DOMAIN-SET' if set['behavior'] == 'domain'
-        elsif type == 'GEOIP' && value.upcase == 'LAN'
-          type, value = 'RULE-SET', 'LAN'
-          warning(warnings, 'surge', "lan:#{r['id']}", 'Surge built-in LAN and Mihomo GEOIP LAN may cover different reserved ranges')
-        elsif type == 'NETWORK'
-          type, value = 'PROTOCOL', value.upcase
-        elsif type == 'DST-PORT'
-          type = 'DEST-PORT'
-        end
-        parts = [type, surge_value(value), policy_name(c, r['policy'])]
-        parts << 'no-resolve' if r['no_resolve']
-        parts << "update-interval=#{integer(c[:sets][r['value']]['interval'], 86_400, 60, 2_592_000, 'Rule set interval')}" if r['type'] == 'RULE-SET'
-        lines << parts.join(',')
+        lines << surge_condition(c, r, warnings, r['id'], policy_name(c, r['policy']))
       end
       lines << "FINAL,#{policy_name(c, c[:profile]['final_policy'])}"
       lines.join("\n") + "\n"
@@ -712,7 +735,7 @@ module HybridSubscription
       params['skip-cert-verify'] = n['skip-cert-verify'] if n.key?('skip-cert-verify')
       params['alpn'] = n['alpn'] if n['alpn']
       params['tfo'] = n['tfo'] if n.key?('tfo')
-      if n['udp'] == false && n['type'] != 'ss'
+      if n.fetch('udp', %w[hysteria2 tuic].include?(n['type'])) == false && n['type'] != 'ss'
         warning(warnings, 'surge', "udp:#{Digest::SHA256.hexdigest(n['name'])[0, 12]}", "#{n['name']}: this Surge protocol always supports UDP; source udp=false is not preserved")
       end
       node_warnings(n, supported, 'surge', warnings)
@@ -724,6 +747,37 @@ module HybridSubscription
       raise Error, 'Bandwidth must be Mbps or a number followed by Mbps' unless s.match?(/\A\d+(?:\.\d+)?(?:\s*[Mm][Bb][Pp][Ss])?\z/)
       raise Error, 'Target bandwidth must be a whole number of Mbps' unless s.to_f == s.to_i
       s.to_i
+    end
+
+    def singbox_condition(c, r, warnings, label, headless: false)
+      raise Error, "#{label}: Mihomo no-resolve has no equivalent sing-box rule flag; use a separate compatible rule" if r['no_resolve']
+      type, value = r['type'], r['value']
+      if %w[AND OR NOT].include?(type)
+        result = { 'type' => 'logical', 'mode' => type == 'OR' ? 'or' : 'and',
+                   'rules' => r['conditions'].map { |child| singbox_condition(c, child, warnings, label, headless: headless) } }
+        result['invert'] = true if type == 'NOT'
+        return result
+      end
+      result = case type
+               when 'DOMAIN' then { 'domain' => [value] }
+               when 'DOMAIN-SUFFIX' then { 'domain_suffix' => [value] }
+               when 'DOMAIN-KEYWORD' then { 'domain_keyword' => [value] }
+               when 'IP-CIDR', 'IP-CIDR6' then { 'ip_cidr' => [value] }
+               when 'DST-PORT' then { 'port' => [value.to_i] }
+               when 'NETWORK' then { 'network' => value.downcase }
+               when 'RULE-SET' then { 'rule_set' => [value] }
+               when 'GEOIP'
+                 raise Error, "#{label}: sing-box 1.12 removed GEOIP; select a native sing-box rule set instead" unless value.upcase == 'LAN'
+                 raise Error, "#{label}: sing-box inline rule sets do not support GEOIP LAN; use explicit IP-CIDR ranges" if headless
+                 warning(warnings, 'singbox', "lan:#{label}", 'sing-box ip_is_private and Mihomo GEOIP LAN do not cover exactly the same reserved ranges')
+                 { 'ip_is_private' => true }
+               else
+                 raise Error, "#{label}: #{type} has no supported sing-box rule mapping"
+               end
+      if %w[IP-CIDR IP-CIDR6 GEOIP].include?(type) || (type == 'RULE-SET' && c[:sets][value].fetch('behavior', 'classical') != 'domain' && c[:sets][value]['source_type'] != 'inline')
+        warning(warnings, 'singbox', "dns-match:#{label}", "#{label}: sing-box IP matching does not automatically resolve destination domains; review the native DNS and resolve routing before relying on IP rules")
+      end
+      result
     end
 
     def render_singbox(c, warnings, errors)
@@ -753,21 +807,7 @@ module HybridSubscription
         outbounds << x
       end
       rules = c[:rules].map do |r|
-        x = {}
-        case r['type']
-        when 'DOMAIN' then x['domain'] = [r['value']]
-        when 'DOMAIN-SUFFIX' then x['domain_suffix'] = [r['value']]
-        when 'DOMAIN-KEYWORD' then x['domain_keyword'] = [r['value']]
-        when 'IP-CIDR', 'IP-CIDR6' then x['ip_cidr'] = [r['value']]
-        when 'DST-PORT' then x['port'] = [r['value'].to_i]
-        when 'NETWORK' then x['network'] = r['value'].downcase
-        when 'RULE-SET' then x['rule_set'] = [r['value']]
-        when 'GEOIP'
-          raise Error, "Rule #{r['id']}: sing-box 1.12 removed GEOIP; select a native sing-box rule set instead" unless r['value'].upcase == 'LAN'
-          x['ip_is_private'] = true
-          warning(warnings, 'singbox', "lan:#{r['id']}", 'sing-box ip_is_private and Mihomo GEOIP LAN do not cover exactly the same reserved ranges')
-        end
-        warning(warnings, 'singbox', "resolve:#{r['id']}", "Rule #{r['id']}: Mihomo no-resolve is not an equivalent sing-box rule flag") if r['no_resolve']
+        x = singbox_condition(c, r, warnings, "Rule #{r['id']}")
         if r['policy'] == 'REJECT'
           x['action'] = 'reject'
         else
@@ -776,6 +816,10 @@ module HybridSubscription
         x
       end
       sets = used_sets(c).map do |set|
+        if set['source_type'] == 'inline'
+          next({ 'type' => 'inline', 'tag' => set['id'],
+                 'rules' => inline_conditions(c, set).map { |r| singbox_condition(c, r, warnings, "Rule set #{set['id']}", headless: true) } })
+        end
         format = set.fetch('singbox_format', 'source')
         raise Error, "Rule set #{set['id']}: sing-box format must be source or binary" unless %w[source binary].include?(format)
         { 'type' => 'remote', 'tag' => set['id'], 'format' => format,
@@ -890,7 +934,7 @@ module HybridSubscription
       end
       raise Error, "#{n['name']}: Reality requires enabled TLS" if n['reality-opts'] && !tls_enabled
       %w[shadow-tls-opts restls-opts jls-opts dialer-proxy].each { |k| raise Error, "#{n['name']}: #{k} requires an explicit outbound mapping" if n[k] }
-      x['network'] = 'tcp' if n['udp'] == false
+      x['network'] = 'tcp' if n.fetch('udp', %w[hysteria2 tuic].include?(n['type'])) == false
       x['tcp_fast_open'] = n['tfo'] if n.key?('tfo')
       node_warnings(n, supported, 'singbox', warnings)
       x
@@ -1069,9 +1113,14 @@ module HybridSubscription
           type = fields.shift
           raise Error, 'Surge source contains an unsupported protocol' unless %w[anytls trojan ss vmess hysteria2 tuic tuic-v5].include?(type)
           n = { 'name' => name, 'type' => type == 'tuic-v5' ? 'tuic' : type, 'server' => fields.shift, 'port' => Integer(fields.shift) }
+          n['udp'] = type != 'ss'
+          seen_options = {}
           fields.each do |field|
             key, val = field.split('=', 2).map { |v| v && v.strip }
             raise Error, 'Invalid Surge proxy option' unless val
+            mapped_key = key == 'username' ? 'uuid' : key
+            raise Error, 'Duplicate Surge proxy option' if seen_options[mapped_key]
+            seen_options[mapped_key] = true
             val = JSON.parse(val) if val.start_with?('"')
             case key
             when 'password', 'sni', 'token', 'uuid' then n[key] = val
@@ -1081,15 +1130,22 @@ module HybridSubscription
             when 'vmess-aead' then raise Error, 'Legacy VMess is not supported' unless val == 'true'; n['alterId'] = 0
             when 'alpn' then n['alpn'] = val.split(',')
             when 'download-bandwidth' then n['down'] = val
-            when 'salamander-password' then n['obfs'], n['obfs-password'] = 'salamander', val
+            when 'salamander-password', 'gecko-password'
+              raise Error, 'Conflicting Surge obfuscation options' if n.key?('obfs')
+              n['obfs'], n['obfs-password'] = key.delete_suffix('-password'), val
             when 'ws' then raise Error, 'Invalid Surge ws option' unless %w[true false].include?(val); n['network'] = val == 'true' ? 'ws' : 'tcp'
             when 'ws-path' then (n['ws-opts'] ||= {})['path'] = val
             when 'ws-headers'
               headers = val.split('|').map { |h| h.split(':', 2) }
               raise Error, 'Invalid Surge WebSocket headers' unless headers.all? { |h| h.length == 2 }
+              raise Error, 'Duplicate Surge WebSocket header' unless headers.map { |h| h.first.downcase }.uniq.length == headers.length
               (n['ws-opts'] ||= {})['headers'] = headers.to_h
             else raise Error, "Surge source option #{key} has no verified import mapping"
             end
+          end
+          if type == 'vmess'
+            raise Error, 'Legacy VMess is not supported' unless n['alterId'] == 0
+            n['cipher'] ||= 'aes-128-gcm'
           end
           nodes << n
         end
@@ -1101,9 +1157,10 @@ module HybridSubscription
         raw_type = n['type']
         type = raw_type == 'shadowsocks' ? 'ss' : raw_type
         raise Error, 'Unsupported sing-box source protocol' unless PROTOCOLS.include?(type)
-        supported = %w[type tag server server_port password uuid method security alter_id flow packet_encoding network tcp_fast_open tls transport up_mbps down_mbps obfs congestion_control udp_relay_mode zero_rtt_handshake idle_session_check_interval idle_session_timeout min_idle_session]
+        supported = %w[type tag server server_port password uuid method security alter_id flow packet_encoding network tcp_fast_open tls transport up_mbps down_mbps obfs congestion_control udp_relay_mode zero_rtt_handshake heartbeat idle_session_check_interval idle_session_timeout min_idle_session]
         raise Error, 'sing-box outbound contains options without a lossless import mapping' unless (n.keys - supported).empty?
         x = { 'name' => n['tag'], 'type' => type, 'server' => n['server'], 'port' => n['server_port'] }
+        x['udp'] = true
         { 'password' => 'password', 'uuid' => 'uuid', 'method' => 'cipher', 'security' => 'cipher', 'alter_id' => 'alterId', 'flow' => 'flow', 'packet_encoding' => 'packet-encoding', 'tcp_fast_open' => 'tfo', 'up_mbps' => 'up', 'down_mbps' => 'down', 'congestion_control' => 'congestion-controller', 'udp_relay_mode' => 'udp-relay-mode', 'zero_rtt_handshake' => 'reduce-rtt', 'min_idle_session' => 'min-idle-session' }.each { |a, b| x[b] = n[a] if n.key?(a) }
         if n['network']
           raise Error, 'sing-box node network must be tcp or udp' unless %w[tcp udp].include?(n['network'])
@@ -1114,6 +1171,10 @@ module HybridSubscription
           next unless n[k]
           raise Error, 'AnyTLS duration must be whole seconds' unless n[k].to_s.match?(/\A\d+s\z/)
           x[k.tr('_', '-')] = n[k].to_i
+        end
+        if n.key?('heartbeat')
+          raise Error, 'TUIC heartbeat must be whole milliseconds or seconds' unless type == 'tuic' && n['heartbeat'].is_a?(String) && n['heartbeat'].match?(/\A\d+(?:ms|s)\z/)
+          x['heartbeat-interval'] = n['heartbeat'].to_i * (n['heartbeat'].end_with?('ms') ? 1 : 1000)
         end
         if n['obfs']
           raise Error, 'Unsupported sing-box obfuscation' unless n['obfs'].is_a?(Hash) && (n['obfs'].keys - %w[type password]).empty?
@@ -1140,15 +1201,24 @@ module HybridSubscription
         end
         if n['transport']
           t = n['transport']
-          raise Error, 'Unsupported sing-box transport import' unless t.is_a?(Hash) && %w[ws grpc].include?(t['type'])
+          raise Error, 'Unsupported sing-box transport import' unless t.is_a?(Hash) && %w[ws grpc http].include?(t['type'])
+          raise Error, 'Unsupported sing-box HTTP proxy protocol' if t['type'] == 'http' && !%w[vmess vless].include?(type)
           x['network'] = t['type']
           if t['type'] == 'ws'
             raise Error, 'Unsupported sing-box WebSocket fields' unless (t.keys - %w[type path headers max_early_data early_data_header_name]).empty?
             x['ws-opts'] = {}
             { 'path' => 'path', 'headers' => 'headers', 'max_early_data' => 'max-early-data', 'early_data_header_name' => 'early-data-header-name' }.each { |a, b| x['ws-opts'][b] = t[a] if t.key?(a) }
-          else
+          elsif t['type'] == 'grpc'
             raise Error, 'Unsupported sing-box gRPC fields' unless (t.keys - %w[type service_name]).empty?
             x['grpc-opts'] = { 'grpc-service-name' => t.fetch('service_name', '') }
+          elsif x['tls'] == true || %w[anytls trojan tuic hysteria2].include?(type)
+            raise Error, 'Unsupported sing-box HTTP/2 fields' unless (t.keys - %w[type host path]).empty?
+            x['network'] = 'h2'
+            x['h2-opts'] = t.reject { |key, _| key == 'type' }
+          else
+            raise Error, 'Unsupported sing-box HTTP fields' unless (t.keys - %w[type path headers method]).empty?
+            x['http-opts'] = t.reject { |key, _| key == 'type' }
+            x['http-opts']['path'] = [t['path']] if t.key?('path')
           end
         end
         x

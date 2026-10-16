@@ -20,7 +20,7 @@ This application focuses on configuration compilation and distribution. Runtime 
 
 - **Read/Write Decoupled Subscription Fusion**: Combine multiple subscription sources into independent profiles, filter nodes by source or region regex templates, and serve client downloads directly from published local files—**client downloads never trigger upstream subscription requests**.
 - **Native LuCI Rule Engine & Dependency Graph**: Edit policy groups, ordered routing rules, shared remote/inline rule sets, and Mihomo rematch/sub-rule trees using standard LuCI forms. Inspect group and sub-rule references with an in-browser SVG dependency graph.
-- **Explicit Cross-Client Compatibility**: Retain raw Mihomo node fields in the local cache. When exporting to Surge or sing-box, unsupported protocols block the build and unsupported node/policy fields require explicit confirmation before publication—nothing is silently dropped.
+- **Three-Format Conversion & Compatibility Wizard**: Import node subscriptions from Mihomo, Surge, or sing-box and export supported nodes to any of the three clients. A native LuCI **Compatibility** tab inspects all three targets and helps you spin off client-specific profiles—adapting policy group modes, replacing Mihomo rematch entries, or disabling incompatible rules with explicit confirmation before saving. Unsupported protocols and rule semantics block output, while field differences require confirmation before publication.
 - **Immutable Releases & Instant Rollback**: Validate drafts, preview redacted outputs, build immutable releases, publish, or roll back to any previously published release.
 - **Safe OpenClash Integration**: Import existing OpenClash subscription definitions and local caches in one click. Apply a published Mihomo release to OpenClash manually or automatically, guarded by isolated `clash_meta -t` syntax checks and an automatic rollback watchdog.
 - **Zero-Daemon Lightweight Architecture**: Built with native LuCI JavaScript and on-demand Ruby CGI/RPCD workers—no persistent Node.js, Docker, or web server process required on the router.
@@ -66,7 +66,7 @@ opkg install /tmp/luci-app-hybrid-subscription_*.ipk
 opkg install /tmp/luci-i18n-hybrid-subscription-zh-cn_*.ipk
 ```
 
-**OpenWrt 25.12+ (`apk`):**
+**OpenWrt 25.12+ (`apk`)：**
 
 ```sh
 apk update
@@ -102,10 +102,38 @@ The installer backs up replaced files and never restarts OpenClash or switches i
 1. **Add Sources (`Subscription Sources`)**: Click **Import from OpenClash** to reuse existing subscription definitions and node caches without contacting upstream servers, or add a new source manually. Leave **Update Mode** set to **Manual Only** for rate-limited or time-windowed providers.
 2. **Create a Profile (`Subscription Profiles`)**: Click **Quick Create Profile** to generate a starter profile with a manual selection group for Mihomo, Surge, and sing-box, or build custom policy groups, region filters, and Mihomo rematch/sub-rule chains.
 3. **Configure Rules (`Routing Rules`)**: Add ordered routing rules (`DOMAIN-SUFFIX`, `IP-CIDR`, `RULE-SET`, `GEOIP`, `GEOSITE`, or recursive `AND`/`OR`/`NOT` conditions) and shared remote or inline rule sets.
-4. **Build & Publish (`Overview`)**: Click **Build & Publish** on the profile card. Review any cross-client compatibility warnings, confirm publication, and use **Download / QR Code** to import the subscription into your clients.
-5. **Apply to OpenClash (Optional)**: Open **Release Management** on a published profile to apply the Mihomo output to OpenClash manually, or enable **Auto-Apply to OpenClash on Publish** under **Global Settings**.
+4. **Check Compatibility (`Compatibility`)**: Evaluate your saved profile against Mihomo, Surge, and sing-box using local caches. When a profile uses client-specific routing features, open the **Compatibility Wizard** to create an adapted, standalone draft for that target.
+5. **Build & Publish (`Overview`)**: Click **Build & Publish** on the profile card. Review any cross-client compatibility warnings, confirm publication, and use **Download / QR Code** to import the subscription into your clients.
+6. **Apply to OpenClash (Optional)**: Open **Release Management** on a published profile to apply the Mihomo output to OpenClash manually, or enable **Auto-Apply to OpenClash on Publish** under **Global Settings**.
 
 ## Core Concepts & Details
+
+### Subscription Conversion and Compatibility
+
+Under **Subscription Sources**, choose automatic format detection or specify the source format explicitly, then refresh the cache or import subscription text. The importer extracts **proxy nodes only** (Mihomo `proxies`, Surge `[Proxy]`, or sing-box proxy `outbounds`) and ignores upstream policy groups, routing rules, DNS settings, listeners, and controller credentials; all exported routing structure is compiled from the profiles and rules managed in this application. Unknown Surge or sing-box node parameters without a verified mapping reject the import immediately, whereas raw Mihomo node fields are preserved in the cache and surface explicit compatibility warnings when a target client cannot represent them.
+
+The **Compatibility** tab evaluates all three target clients—including formats not currently enabled on the profile—using saved configuration and local caches without contacting upstream subscriptions. Its wizard uses native LuCI forms and modal dialogs:
+
+1. Select a target client and enter an identifier and name for the new profile.
+2. Choose how each affected policy group selects its outbound: manual selection, latency testing, or priority-based fallback (where supported). For Mihomo rematch entries, either map them to a fixed policy or create a manual/latency-test group from an explicit candidate list.
+3. Decide separately whether to strip sub-rule routing, omit Mihomo DNS/advanced policies, or disable specific rules in the new copy. Adjusting a group's selection mode does not translate unsupported rule predicates or replicate rematch routing logic.
+4. Preview the resulting plan and check each confirmation box. Any remaining blocking errors (such as unsupported proxy protocols or missing target rule-set URLs) must be resolved before the copy can be created.
+5. Create the standalone draft, then build and publish it from **Overview**. The original profile and its enabled export formats remain untouched; if the original profile should serve Mihomo only, update its **Export Formats** under **Subscription Profiles**.
+
+Switching a group to manual selection only changes how that group chooses its immediate outbound—nested candidate groups keep their own modes. Latency testing delegates automatic selection to the target client's health checks, while Surge fallback follows the declared candidate order. None of these adaptations preserves Smart weight history or conditional rematch/sub-rule evaluation. On sing-box, manual selection (`selector`) requires a client UI or Clash API controls, and generated configurations do not enable an external controller listener; without external controls, `selector` defaults to its first candidate. See the [Surge policy group documentation](https://manual.nssurge.com/policy-groups/overview.html) and [sing-box selector documentation](https://sing-box.sagernet.org/configuration/outbound/selector/) for client details.
+
+| Feature | Cross-Client Handling |
+| :--- | :--- |
+| `AND` / `OR` / `NOT` logical rules | Compiled into target-native logical rules when all nested leaf conditions are supported. |
+| Inline `classical` rule sets containing domain/IP conditions | Embedded using target-native conditions or inline rule sets; unsupported entries block export for that target. |
+| Unsupported group automation (`smart`, `load-balance`) | Explicitly switch to manual selection or a supported automatic mode in the copy; candidates and rule conditions are never silently dropped. |
+| Rematch entries & Mihomo sub-rules | Replace each rematch entry with a fixed policy or an explicitly populated manual/latency-test group; removing sub-rules requires separate confirmation. |
+| Native Mihomo DNS policy | Omit in the copy to use the target client's generated system/local DNS defaults, or configure DNS in the client separately. |
+| `GEOSITE` & `REMATCH-NAME` rules | Replace with target-native rules or explicitly disable in the copy. |
+| sing-box non-`LAN` `GEOIP` & `no-resolve` | Replace with a sing-box native `rule_set` or compatible rule. |
+| Unsupported proxy protocols or transport options | Block conversion; the wizard never deletes incompatible nodes automatically. |
+
+Compatibility reflects the mappings verified by this exporter rather than every capability of every client version. Drafts created through the wizard may still report field-level differences that require confirmation at publish time, and the wizard never publishes a release or reloads OpenClash automatically.
 
 ### Quota & Expiration Queries
 
@@ -136,7 +164,7 @@ Under **Global Settings → Region Matching**, built-in templates match flag emo
 sh scripts/test.sh
 ```
 
-`scripts/test.sh` runs all Ruby unit tests (`test_engine.rb`, `test_backend.rb`, `test_openclash.rb`, `test_converter.rb`, `test_quota.rb`, `test_regions.rb`), JavaScript view/workbench tests (`frontend_test.js`, `workbench_test.js`), gettext `.po`/`.pot` format validation, and shell syntax checks. GitHub Actions runs this suite and builds `.ipk` (OpenWrt 24.10) and `.apk` (OpenWrt 25.12) packages on every push, pull request, and `v*` release tag.
+`scripts/test.sh` runs all `tests/test_*.rb` Ruby suites, including the three-by-three subscription conversion matrix and compatibility planning tests, JavaScript view/workbench tests, gettext `.po`/`.pot` format validation, and shell syntax checks. GitHub Actions runs this suite and builds `.ipk` (OpenWrt 24.10) and `.apk` (OpenWrt 25.12) packages on every push, pull request, and `v*` release tag.
 
 ## License
 

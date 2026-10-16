@@ -354,7 +354,7 @@ class EngineTest < Minitest::Test
     @config['rules'][0] = { 'id' => 'inline-logic', 'profile' => 'main', 'type' => 'AND', 'conditions' => [{ 'type' => 'NETWORK', 'value' => 'UDP' }, { 'type' => 'RULE-SET', 'value' => 'domestic' }], 'policy' => 'REJECT' }
     output = YAML.safe_load(assert_ok('mihomo')['content'])
     assert_equal({ 'type' => 'inline', 'behavior' => 'classical', 'payload' => ['DOMAIN-SUFFIX,example.test', 'IP-CIDR,192.0.2.0/24,no-resolve'] }, output['rule-providers']['domestic'])
-    assert_includes engine.render('main', 'surge')['errors'].join, 'inline rule sets'
+    assert_includes assert_ok('surge')['content'], 'AND,((PROTOCOL,UDP),(OR,((DOMAIN-SUFFIX,example.test),(IP-CIDR,192.0.2.0/24,no-resolve)))),REJECT'
     @config['rule_sets'].first['inline_rules'] = 'DOMAIN-SUFFIX,example.test,Proxy'
     assert_includes engine.render('main', 'mihomo')['errors'].join, 'cannot contain policies'
   end

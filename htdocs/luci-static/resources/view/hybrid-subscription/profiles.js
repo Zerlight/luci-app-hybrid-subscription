@@ -36,6 +36,9 @@ return view.extend({
 				]);
 			});
 		});
+		hs.rowAction(s, '_compatibility', _('Save & Check Compatibility'), function(row) {
+			return self.handleSave().then(function() { window.location.href = L.url('admin/services/hybrid-subscription/compatibility') + '?profile=' + encodeURIComponent(row.id); });
+		});
 		hs.modalTabs(s, [{ id: 'general', title: _('General') }, { id: 'clients', title: _('Target Clients'), options: ['mihomo_core', 'surge_version', 'singbox_version'] }, { id: 'advanced', title: _('Advanced Policy'), options: ['mihomo_dns', 'mihomo_policy'] }]);
 
 		s = hs.grid(m, 'groups', _('Policy Groups'));

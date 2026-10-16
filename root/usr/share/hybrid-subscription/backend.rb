@@ -11,6 +11,7 @@ require_relative 'engine'
 require_relative 'openclash'
 require_relative 'quota'
 require_relative 'regions'
+require_relative 'compatibility'
 
 module HybridSubscription
   class Error < StandardError; end unless const_defined?(:Error)
@@ -168,6 +169,35 @@ module HybridSubscription
       Digest::SHA256.hexdigest(JSON.generate([c, cache.transform_values { |x| x['nodes'] }]))
     end
     def engine(c = config, cache = caches(c)); Engine.new(c, cache); end
+    def compatibility(args)
+      locked do
+        current = config
+        profile(current, args['profile'])
+        Compatibility.new(current, caches(current)).report(args['profile']).merge('version'=>version(current))
+      end
+    end
+    def compatibility_plan(args, create: false)
+      locked do
+        current = config
+        profile(current, args['profile'])
+        if create && args['version'] != version(current)
+          raise Error, 'Configuration was modified in another session; please reload before saving'
+        end
+        draft, result = Compatibility.new(current, caches(current)).plan(args)
+        result['version'] = version(current)
+        if create
+          raise Error, 'Compatibility plan changed; preview the plan again before creating the profile' unless args['plan_token'] == result['plan_token']
+          expected = result['changes'].map { |change| change['code'] }.sort
+          accepted = args['accepted_changes']
+          raise Error, 'Please confirm every compatibility change before creating the profile' unless accepted.is_a?(Array) && accepted.all? { |code| code.is_a?(String) } && accepted.sort == expected
+          raise Error, 'Resolve all compatibility errors before creating the profile' unless result['ready']
+          atomic(path('config.json'), draft)
+          result['version'] = version(draft)
+          result['created'] = true
+        end
+        result
+      end
+    end
     def quota(headers); Quota.parse(headers); end
     def same_url?(left, right)
       return false if left.to_s.empty? || right.to_s.empty?
@@ -585,6 +615,9 @@ module HybridSubscription
       when 'import_openclash'; import_openclash
       when 'validate'; engine.validate(args['profile'])
       when 'preview'; engine.render(args['profile'],args['format'],redact:true)
+      when 'compatibility'; compatibility(args)
+      when 'compatibility_plan'; compatibility_plan(args)
+      when 'compatibility_create'; compatibility_plan(args, create:true)
       when 'build'; profile(config,args['profile']); {'job'=>enqueue('build',args['profile'])}
       when 'publish'; publish(args)
       when 'rollback'; publish(args,rollback:true)

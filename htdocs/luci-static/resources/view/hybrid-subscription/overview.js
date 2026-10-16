@@ -88,7 +88,7 @@ return view.extend({
 				return E('div', { 'class': 'cbi-section' }, [
 					E('h4', {}, p.name || p.id),
 					E('p', {}, current.published_release ? _('Published · ') + (current.formats || []).join(' / ') + ' · ' + hs.time(current.generated_at) : _('Draft · Unpublished')),
-					E('p', {}, [link('profiles', _('Edit Profile'), p.id), ' ', hs.button(_('Build & Publish'), function() {
+					E('p', {}, [link('profiles', _('Edit Profile'), p.id), ' ', link('compatibility', _('Compatibility'), p.id), ' ', hs.button(_('Build & Publish'), function() {
 						return hs.runJob('build', { profile: p.id }, _('Validate and Build Release')).then(function(job) {
 							const result = job.result || {};
 							if (!result.release) throw new Error(_('No release ID was returned. Please check the job status.'));

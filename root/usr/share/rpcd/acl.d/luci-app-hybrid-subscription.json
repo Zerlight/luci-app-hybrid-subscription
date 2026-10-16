@@ -10,6 +10,8 @@
           "download_info",
           "validate",
           "preview",
+          "compatibility",
+          "compatibility_plan",
           "region_defaults",
           "preview_regions"
         ]
@@ -19,6 +21,7 @@
       "ubus": {
         "luci.hybrid_subscription": [
           "save_config",
+          "compatibility_create",
           "refresh",
           "refresh_quota",
           "import_source",

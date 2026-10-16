@@ -43,6 +43,14 @@
       "path": "hybrid-subscription/rules"
     }
   },
+  "admin/services/hybrid-subscription/compatibility": {
+    "title": "Compatibility",
+    "order": 45,
+    "action": {
+      "type": "view",
+      "path": "hybrid-subscription/compatibility"
+    }
+  },
   "admin/services/hybrid-subscription/settings": {
     "title": "Global Settings",
     "order": 50,

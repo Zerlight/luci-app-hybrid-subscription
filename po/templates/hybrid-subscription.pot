@@ -2058,3 +2058,359 @@ msgstr ""
 #: root/usr/share/hybrid-subscription/
 msgid "OpenClash did not load the published policy."
 msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/compatibility.js
+msgid "Compatibility"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/compatibility.js
+msgid "Save & Check Compatibility"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/compatibility.js
+msgid "Create a subscription profile before checking compatibility."
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/compatibility.js
+msgid "Checks all three clients using the saved draft and local node caches. Import Mihomo, Surge, or sing-box subscriptions under Subscription Sources, then choose output formats in Subscription Profiles."
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/compatibility.js
+msgid "Check Compatibility"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/compatibility.js
+msgid "Target Client"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/compatibility.js
+msgid "Blocked"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/compatibility.js
+msgid "Review Differences"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/compatibility.js
+msgid "Compatible"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/compatibility.js
+msgid "Compatibility Wizard"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/compatibility.js
+msgid "Compatibility describes this exporter and its selected target versions. Unsupported policies block output; differences still require confirmation when publishing."
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/compatibility.js
+msgid "Affected Item"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/compatibility.js
+msgid "Suggested Action"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/compatibility.js
+msgid "No additional compatibility issues."
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/compatibility.js
+msgid "Independent Profile"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/compatibility.js
+msgid "Routing Decisions"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/compatibility.js
+msgid "Client Settings"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/compatibility.js
+msgid "Replacement for %s"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/compatibility.js
+msgid "Choose a fixed policy to replace this rematch entry. This changes routing behavior."
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/compatibility.js
+msgid "Keep unresolved"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/compatibility.js
+msgid "Remove sub-rule routing in the copy"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/compatibility.js
+msgid "Removes the named sub-rules and their scoped rules. Review every removal in the next step."
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/compatibility.js
+msgid "Omit Mihomo DNS policy in the copy"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/compatibility.js
+msgid "The target will use its own DNS behavior. This can change resolution and routing."
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/compatibility.js
+msgid "Omit Mihomo advanced policy in the copy"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/compatibility.js
+msgid "Disable selected rules in the copy"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/compatibility.js
+msgid "Only select rules whose removal you accept. Traffic will continue to later rules or the fallback policy."
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/compatibility.js
+msgid "Incompatible"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/compatibility.js
+msgid "Creates an independent draft from the saved profile. Select changes explicitly, then review their effects before saving."
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/compatibility.js
+msgid "Preview Changes"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/compatibility.js
+msgid "Review Compatibility Changes"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/compatibility.js
+msgid "The independent draft passes export validation. Confirm each change to create it."
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/compatibility.js
+msgid "Unresolved issues still block this target. Go back to adjust decisions or edit the original draft."
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/compatibility.js
+msgid "Creation saves a draft only. Build and publish it from Overview after reviewing the resulting profile."
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/compatibility.js
+msgid "Back"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/compatibility.js
+msgid "Create Independent Draft"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/compatibility.js
+msgid "Confirm every proposed change before creating the independent draft."
+msgstr ""
+
+#: htdocs/luci-static/resources/hybrid-subscription.js
+msgid "Only proxy nodes are imported. Routing rules, policy groups, and DNS settings in the file are not imported; manage these in Subscription Profiles and Routing Rules."
+msgstr ""
+
+#: htdocs/luci-static/resources/hybrid-subscription.js
+msgid "Rematch routing needs an explicit replacement policy"
+msgstr ""
+
+#: htdocs/luci-static/resources/hybrid-subscription.js
+msgid "Mihomo sub-rules require explicit removal or a manual native replacement"
+msgstr ""
+
+#: htdocs/luci-static/resources/hybrid-subscription.js
+msgid "Native Mihomo DNS policy cannot be preserved; explicitly choose the target client DNS defaults"
+msgstr ""
+
+#: htdocs/luci-static/resources/hybrid-subscription.js
+msgid "Native Mihomo runtime and geodata settings are omitted by this target"
+msgstr ""
+
+#: htdocs/luci-static/resources/hybrid-subscription.js
+msgid "sing-box requires a native rule set instead of GEOIP"
+msgstr ""
+
+#: htdocs/luci-static/resources/hybrid-subscription.js
+msgid "sing-box cannot preserve no-resolve semantics"
+msgstr ""
+
+#: htdocs/luci-static/resources/hybrid-subscription.js
+msgid "Compatibility resolutions must be an object"
+msgstr ""
+
+#: htdocs/luci-static/resources/hybrid-subscription.js
+msgid "Choose an existing group, DIRECT or REJECT for every rematch replacement"
+msgstr ""
+
+#: htdocs/luci-static/resources/hybrid-subscription.js
+msgid "Choose existing enabled rules to disable"
+msgstr ""
+
+#: htdocs/luci-static/resources/hybrid-subscription.js
+msgid "Mihomo copies preserve native policies; compatibility removals are only for other targets"
+msgstr ""
+
+#: htdocs/luci-static/resources/hybrid-subscription.js
+msgid "Invalid compatibility resolutions JSON"
+msgstr ""
+
+#: htdocs/luci-static/resources/hybrid-subscription.js
+msgid "An independent profile requires a new unused identifier"
+msgstr ""
+
+#: htdocs/luci-static/resources/hybrid-subscription.js
+msgid "Profile name must contain 1–256 characters without control characters"
+msgstr ""
+
+#: htdocs/luci-static/resources/hybrid-subscription.js
+msgid "Generated compatibility identifier already exists; choose another profile identifier"
+msgstr ""
+
+#: htdocs/luci-static/resources/hybrid-subscription.js
+msgid "Generated rule set identifier already exists; choose another profile identifier"
+msgstr ""
+
+#: htdocs/luci-static/resources/hybrid-subscription.js
+msgid "Omit all native Mihomo DNS policy; the target client will use its generated system/local DNS defaults"
+msgstr ""
+
+#: htdocs/luci-static/resources/hybrid-subscription.js
+msgid "Omit native Mihomo runtime and geodata policy from the new profile"
+msgstr ""
+
+#: htdocs/luci-static/resources/hybrid-subscription.js
+msgid "Compatibility plan changed; preview the plan again before creating the profile"
+msgstr ""
+
+#: htdocs/luci-static/resources/hybrid-subscription.js
+msgid "Please confirm every compatibility change before creating the profile"
+msgstr ""
+
+#: htdocs/luci-static/resources/hybrid-subscription.js
+msgid "Resolve all compatibility errors before creating the profile"
+msgstr ""
+
+#: htdocs/luci-static/resources/hybrid-subscription.js
+msgid "Duplicate Surge proxy option"
+msgstr ""
+
+#: htdocs/luci-static/resources/hybrid-subscription.js
+msgid "Conflicting Surge obfuscation options"
+msgstr ""
+
+#: htdocs/luci-static/resources/hybrid-subscription.js
+msgid "TUIC heartbeat must be whole milliseconds or seconds"
+msgstr ""
+
+#: htdocs/luci-static/resources/hybrid-subscription.js
+msgid "sing-box inline rule sets require explicit IP-CIDR ranges instead of GEOIP LAN"
+msgstr ""
+
+#: htdocs/luci-static/resources/hybrid-subscription.js
+msgid "Condition nesting exceeds 8 levels"
+msgstr ""
+
+#: htdocs/luci-static/resources/hybrid-subscription.js
+msgid "Duplicate Surge WebSocket header"
+msgstr ""
+
+#: htdocs/luci-static/resources/hybrid-subscription.js
+msgid "Unsupported sing-box HTTP proxy protocol"
+msgstr ""
+
+#: htdocs/luci-static/resources/hybrid-subscription.js
+msgid "Unsupported sing-box HTTP/2 fields"
+msgstr ""
+
+#: htdocs/luci-static/resources/hybrid-subscription.js
+msgid "Unsupported sing-box HTTP fields"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/compatibility.js
+msgid "Automation Level"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/compatibility.js
+msgid "Changing a parent group does not change automation inside its candidate groups. Adjust those groups separately under Automation Level."
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/compatibility.js
+msgid "Automation for %s"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/compatibility.js
+msgid "Mihomo: %s; target: %s. Manual selection stops automatic switching; URL Test selects by latency; Fallback selects by availability and order. Rule conditions stay unchanged."
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/compatibility.js
+msgid "Keep current target behavior"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/compatibility.js
+msgid "Choose an existing policy or create a manual or latency-based selection group. Replacing rematch stops conditional re-evaluation."
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/compatibility.js
+msgid "Create a manual selection group"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/compatibility.js
+msgid "Create a latency-test group"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/compatibility.js
+msgid "Candidates for %s"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/compatibility.js
+msgid "Manual selection in sing-box requires a client with selector controls or a configured Clash API. Without those controls, the generated default uses the first candidate."
+msgstr ""
+
+#: htdocs/luci-static/resources/hybrid-subscription.js
+msgid "List candidate policies in order; the first is the initial default in manual mode. The former sub-rule conditions will no longer select between them."
+msgstr ""
+
+#: htdocs/luci-static/resources/hybrid-subscription.js
+msgid "Choose an existing rematch for every replacement"
+msgstr ""
+
+#: htdocs/luci-static/resources/hybrid-subscription.js
+msgid "A rematch alternative requires manual or url-test mode and explicit unique candidate policies"
+msgstr ""
+
+#: htdocs/luci-static/resources/hybrid-subscription.js
+msgid "Choose an existing group and a supported alternative mode for this target"
+msgstr ""
+
+#: htdocs/luci-static/resources/hybrid-subscription.js
+msgid "manual selection does not automatically switch candidates or preserve Smart behavior"
+msgstr ""
+
+#: htdocs/luci-static/resources/hybrid-subscription.js
+msgid "latency testing selects by measured delay"
+msgstr ""
+
+#: htdocs/luci-static/resources/hybrid-subscription.js
+msgid "it does not preserve Smart or regional matching behavior"
+msgstr ""
+
+#: htdocs/luci-static/resources/hybrid-subscription.js
+msgid "fallback selects the first available candidate in order"
+msgstr ""
+
+#: htdocs/luci-static/resources/hybrid-subscription.js
+msgid "it does not preserve Smart behavior"
+msgstr ""
+
+#: htdocs/luci-static/resources/hybrid-subscription.js
+msgid "sing-box manual selection requires client selection controls or its API"
+msgstr ""
+
+#: htdocs/luci-static/resources/hybrid-subscription.js
+msgid "otherwise the first candidate is used"
+msgstr ""
+
+#: htdocs/luci-static/resources/hybrid-subscription.js
+msgid "regional re-evaluation is no longer performed in the new profile"
+msgstr ""

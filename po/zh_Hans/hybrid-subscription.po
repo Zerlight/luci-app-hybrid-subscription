@@ -2062,3 +2062,359 @@ msgstr "OpenClash 订阅源地址已发生变更，请重新导入后再启用�
 #: root/usr/share/hybrid-subscription/
 msgid "OpenClash did not load the published policy."
 msgstr "OpenClash 未能成功加载已发布的策略配置。"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/compatibility.js
+msgid "Compatibility"
+msgstr "兼容性"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/compatibility.js
+msgid "Save & Check Compatibility"
+msgstr "保存并检查兼容性"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/compatibility.js
+msgid "Create a subscription profile before checking compatibility."
+msgstr "请先创建订阅配置，再检查兼容性。"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/compatibility.js
+msgid "Checks all three clients using the saved draft and local node caches. Import Mihomo, Surge, or sing-box subscriptions under Subscription Sources, then choose output formats in Subscription Profiles."
+msgstr "基于已保存的配置草稿与本地节点缓存，检查 Mihomo、Surge、sing-box 三端导出兼容性。可在“订阅源”中导入三端节点订阅，并在“订阅配置”中指定目标导出格式。"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/compatibility.js
+msgid "Check Compatibility"
+msgstr "检查兼容性"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/compatibility.js
+msgid "Target Client"
+msgstr "目标客户端"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/compatibility.js
+msgid "Blocked"
+msgstr "存在阻塞项"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/compatibility.js
+msgid "Review Differences"
+msgstr "需确认差异"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/compatibility.js
+msgid "Compatible"
+msgstr "兼容"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/compatibility.js
+msgid "Compatibility Wizard"
+msgstr "兼容性向导"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/compatibility.js
+msgid "Compatibility describes this exporter and its selected target versions. Unsupported policies block output; differences still require confirmation when publishing."
+msgstr "检查结果以本工具当前的转换规则及所选客户端版本为准。不支持的协议或分流语义会直接拦截导出；非阻断性的行为差异仍需在发布前勾选确认。"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/compatibility.js
+msgid "Affected Item"
+msgstr "受影响项目"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/compatibility.js
+msgid "Suggested Action"
+msgstr "建议处理方式"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/compatibility.js
+msgid "No additional compatibility issues."
+msgstr "无其他兼容性问题。"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/compatibility.js
+msgid "Independent Profile"
+msgstr "独立配置"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/compatibility.js
+msgid "Routing Decisions"
+msgstr "分流处理"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/compatibility.js
+msgid "Client Settings"
+msgstr "客户端设置"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/compatibility.js
+msgid "Replacement for %s"
+msgstr "%s 的替代策略"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/compatibility.js
+msgid "Choose a fixed policy to replace this rematch entry. This changes routing behavior."
+msgstr "使用固定出口策略替代该重匹配入口（将改变原有二次分流行为）。"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/compatibility.js
+msgid "Keep unresolved"
+msgstr "保留，暂不处理"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/compatibility.js
+msgid "Remove sub-rule routing in the copy"
+msgstr "在副本中移除子规则分流"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/compatibility.js
+msgid "Removes the named sub-rules and their scoped rules. Review every removal in the next step."
+msgstr "在副本中移除全部命名子规则及其下属分流规则，下一步将逐项列出供你核对确认。"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/compatibility.js
+msgid "Omit Mihomo DNS policy in the copy"
+msgstr "在副本中移除 Mihomo DNS 策略"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/compatibility.js
+msgid "The target will use its own DNS behavior. This can change resolution and routing."
+msgstr "目标客户端将改用自身的默认 DNS 设置，可能会影响域名解析与分流结果。"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/compatibility.js
+msgid "Omit Mihomo advanced policy in the copy"
+msgstr "在副本中移除 Mihomo 高级策略"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/compatibility.js
+msgid "Disable selected rules in the copy"
+msgstr "在副本中停用所选规则"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/compatibility.js
+msgid "Only select rules whose removal you accept. Traffic will continue to later rules or the fallback policy."
+msgstr "仅勾选确认停用的分流规则；停用后，原命中流量将顺延匹配后续规则或走默认兜底策略。"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/compatibility.js
+msgid "Incompatible"
+msgstr "不兼容"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/compatibility.js
+msgid "Creates an independent draft from the saved profile. Select changes explicitly, then review their effects before saving."
+msgstr "基于当前已保存的配置派生一套独立的客户端草稿。请按需选择兼容调整项，并在下一步核对变更明细后保存。"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/compatibility.js
+msgid "Preview Changes"
+msgstr "预览变更"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/compatibility.js
+msgid "Review Compatibility Changes"
+msgstr "确认兼容性变更"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/compatibility.js
+msgid "The independent draft passes export validation. Confirm each change to create it."
+msgstr "新配置草稿已通过导出校验，请逐项勾选确认以下变更后完成创建。"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/compatibility.js
+msgid "Unresolved issues still block this target. Go back to adjust decisions or edit the original draft."
+msgstr "仍存在未解决的兼容错误，无法生成该客户端配置。请返回调整向导选项，或先修改原配置草稿。"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/compatibility.js
+msgid "Creation saves a draft only. Build and publish it from Overview after reviewing the resulting profile."
+msgstr "此操作仅创建并保存配置草稿；核对无误后，请前往“状态概览”页面执行构建与发布。"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/compatibility.js
+msgid "Back"
+msgstr "返回"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/compatibility.js
+msgid "Create Independent Draft"
+msgstr "创建独立草稿"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/compatibility.js
+msgid "Confirm every proposed change before creating the independent draft."
+msgstr "请逐项确认所有变更，再创建独立草稿。"
+
+#: htdocs/luci-static/resources/hybrid-subscription.js
+msgid "Only proxy nodes are imported. Routing rules, policy groups, and DNS settings in the file are not imported; manage these in Subscription Profiles and Routing Rules."
+msgstr "仅提取并导入代理节点；原文件中的策略组、分流规则及 DNS 设置不会导入，请在“订阅配置”与“分流规则”中统一配置。"
+
+#: htdocs/luci-static/resources/hybrid-subscription.js
+msgid "Rematch routing needs an explicit replacement policy"
+msgstr "重匹配分流需要明确选择替代策略"
+
+#: htdocs/luci-static/resources/hybrid-subscription.js
+msgid "Mihomo sub-rules require explicit removal or a manual native replacement"
+msgstr "目标客户端不支持 Mihomo 子规则，请确认移除子规则或改用目标端原生规则"
+
+#: htdocs/luci-static/resources/hybrid-subscription.js
+msgid "Native Mihomo DNS policy cannot be preserved; explicitly choose the target client DNS defaults"
+msgstr "目标客户端无法沿用 Mihomo 专属 DNS 策略，请确认改用目标端默认 DNS"
+
+#: htdocs/luci-static/resources/hybrid-subscription.js
+msgid "Native Mihomo runtime and geodata settings are omitted by this target"
+msgstr "目标客户端不支持 Mihomo 专属运行参数与地理数据库设置，导出时将自动忽略"
+
+#: htdocs/luci-static/resources/hybrid-subscription.js
+msgid "sing-box requires a native rule set instead of GEOIP"
+msgstr "sing-box 需要使用原生规则集替代 GEOIP"
+
+#: htdocs/luci-static/resources/hybrid-subscription.js
+msgid "sing-box cannot preserve no-resolve semantics"
+msgstr "sing-box 不支持规则级的 no-resolve（跳过域名解析）标记"
+
+#: htdocs/luci-static/resources/hybrid-subscription.js
+msgid "Compatibility resolutions must be an object"
+msgstr "兼容性处理方案必须是合法的对象"
+
+#: htdocs/luci-static/resources/hybrid-subscription.js
+msgid "Choose an existing group, DIRECT or REJECT for every rematch replacement"
+msgstr "重匹配替代策略必须选择当前配置已有的策略组、DIRECT 或 REJECT"
+
+#: htdocs/luci-static/resources/hybrid-subscription.js
+msgid "Choose existing enabled rules to disable"
+msgstr "只能选择当前配置已启用的规则进行停用"
+
+#: htdocs/luci-static/resources/hybrid-subscription.js
+msgid "Mihomo copies preserve native policies; compatibility removals are only for other targets"
+msgstr "Mihomo 副本将保留原生策略；兼容性移除选项仅用于其他客户端"
+
+#: htdocs/luci-static/resources/hybrid-subscription.js
+msgid "Invalid compatibility resolutions JSON"
+msgstr "兼容性处理方案 JSON 格式无效"
+
+#: htdocs/luci-static/resources/hybrid-subscription.js
+msgid "An independent profile requires a new unused identifier"
+msgstr "独立配置必须使用尚未占用的新标识符"
+
+#: htdocs/luci-static/resources/hybrid-subscription.js
+msgid "Profile name must contain 1–256 characters without control characters"
+msgstr "配置名称须为 1–256 个字符，且不含控制字符"
+
+#: htdocs/luci-static/resources/hybrid-subscription.js
+msgid "Generated compatibility identifier already exists; choose another profile identifier"
+msgstr "自动生成的派生条目标识符与现有配置冲突，请更换新配置的标识符"
+
+#: htdocs/luci-static/resources/hybrid-subscription.js
+msgid "Generated rule set identifier already exists; choose another profile identifier"
+msgstr "生成的规则集标识符已存在，请更换新配置的标识符"
+
+#: htdocs/luci-static/resources/hybrid-subscription.js
+msgid "Omit all native Mihomo DNS policy; the target client will use its generated system/local DNS defaults"
+msgstr "移除 Mihomo 专属 DNS 策略，改用目标客户端默认的系统或本地 DNS 设置"
+
+#: htdocs/luci-static/resources/hybrid-subscription.js
+msgid "Omit native Mihomo runtime and geodata policy from the new profile"
+msgstr "从新配置中移除 Mihomo 专属运行参数与地理数据库设置"
+
+#: htdocs/luci-static/resources/hybrid-subscription.js
+msgid "Compatibility plan changed; preview the plan again before creating the profile"
+msgstr "兼容性方案或节点缓存已变化，请重新预览再创建配置"
+
+#: htdocs/luci-static/resources/hybrid-subscription.js
+msgid "Please confirm every compatibility change before creating the profile"
+msgstr "请逐项确认全部兼容性变更，再创建配置"
+
+#: htdocs/luci-static/resources/hybrid-subscription.js
+msgid "Resolve all compatibility errors before creating the profile"
+msgstr "请先解决所有兼容性错误，再创建配置"
+
+#: htdocs/luci-static/resources/hybrid-subscription.js
+msgid "Duplicate Surge proxy option"
+msgstr "Surge 节点包含重复选项"
+
+#: htdocs/luci-static/resources/hybrid-subscription.js
+msgid "Conflicting Surge obfuscation options"
+msgstr "Surge 节点的混淆选项冲突"
+
+#: htdocs/luci-static/resources/hybrid-subscription.js
+msgid "TUIC heartbeat must be whole milliseconds or seconds"
+msgstr "TUIC 心跳间隔必须为整数毫秒或秒"
+
+#: htdocs/luci-static/resources/hybrid-subscription.js
+msgid "sing-box inline rule sets require explicit IP-CIDR ranges instead of GEOIP LAN"
+msgstr "sing-box 内联规则集需要明确的 IP-CIDR 网段，不能使用 GEOIP LAN"
+
+#: htdocs/luci-static/resources/hybrid-subscription.js
+msgid "Condition nesting exceeds 8 levels"
+msgstr "逻辑条件嵌套超过 8 层上限"
+
+#: htdocs/luci-static/resources/hybrid-subscription.js
+msgid "Duplicate Surge WebSocket header"
+msgstr "Surge 节点包含重复的 WebSocket 请求头"
+
+#: htdocs/luci-static/resources/hybrid-subscription.js
+msgid "Unsupported sing-box HTTP proxy protocol"
+msgstr "当前代理协议不支持导入 sing-box HTTP 传输层配置"
+
+#: htdocs/luci-static/resources/hybrid-subscription.js
+msgid "Unsupported sing-box HTTP/2 fields"
+msgstr "sing-box HTTP/2 传输配置包含不支持导入的字段"
+
+#: htdocs/luci-static/resources/hybrid-subscription.js
+msgid "Unsupported sing-box HTTP fields"
+msgstr "sing-box HTTP 传输配置包含不支持导入的字段"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/compatibility.js
+msgid "Automation Level"
+msgstr "策略组切换方式"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/compatibility.js
+msgid "Changing a parent group does not change automation inside its candidate groups. Adjust those groups separately under Automation Level."
+msgstr "修改上层策略组不会改变其下属候选子组的切换方式；如需调整，请在“策略组切换方式”中单独设置。"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/compatibility.js
+msgid "Automation for %s"
+msgstr "%s 的切换方式"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/compatibility.js
+msgid "Mihomo: %s; target: %s. Manual selection stops automatic switching; URL Test selects by latency; Fallback selects by availability and order. Rule conditions stay unchanged."
+msgstr "Mihomo 当前模式：%s；目标端模式：%s。手动选择需人工切换节点；延迟测速按最低延迟自动优选；故障转移按列表顺序选择首个可用策略。分流规则的匹配条件保持不变。"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/compatibility.js
+msgid "Keep current target behavior"
+msgstr "保持目标客户端当前模式"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/compatibility.js
+msgid "Choose an existing policy or create a manual or latency-based selection group. Replacing rematch stops conditional re-evaluation."
+msgstr "可改用已有策略，或新建手动选择组、延迟测速组。替换后将不再按原重匹配条件执行二次分流。"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/compatibility.js
+msgid "Create a manual selection group"
+msgstr "创建手动选择组"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/compatibility.js
+msgid "Create a latency-test group"
+msgstr "创建延迟测速选择组"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/compatibility.js
+msgid "Candidates for %s"
+msgstr "%s 的候选策略"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/compatibility.js
+msgid "Manual selection in sing-box requires a client with selector controls or a configured Clash API. Without those controls, the generated default uses the first candidate."
+msgstr "sing-box 的手动选择（selector）需配合客户端切换界面或 Clash API 使用；若无切换入口，将默认固定使用第一个候选策略。"
+
+#: htdocs/luci-static/resources/hybrid-subscription.js
+msgid "List candidate policies in order; the first is the initial default in manual mode. The former sub-rule conditions will no longer select between them."
+msgstr "按顺序列出候选策略，手动模式下默认选中第一项；原有的子规则条件将不再参与出口选择。"
+
+#: htdocs/luci-static/resources/hybrid-subscription.js
+msgid "Choose an existing rematch for every replacement"
+msgstr "请选择当前配置已有的重匹配项进行替换"
+
+#: htdocs/luci-static/resources/hybrid-subscription.js
+msgid "A rematch alternative requires manual or url-test mode and explicit unique candidate policies"
+msgstr "重匹配替代方案须选择手动或延迟测速模式，并明确提供不重复的候选策略"
+
+#: htdocs/luci-static/resources/hybrid-subscription.js
+msgid "Choose an existing group and a supported alternative mode for this target"
+msgstr "请选择当前配置已有的策略组，以及目标客户端支持的替代模式"
+
+#: htdocs/luci-static/resources/hybrid-subscription.js
+msgid "manual selection does not automatically switch candidates or preserve Smart behavior"
+msgstr "手动选择不再自动切换候选策略，也不保留 Smart 智能选择行为"
+
+#: htdocs/luci-static/resources/hybrid-subscription.js
+msgid "latency testing selects by measured delay"
+msgstr "延迟测速按测得的延迟选择候选策略"
+
+#: htdocs/luci-static/resources/hybrid-subscription.js
+msgid "it does not preserve Smart or regional matching behavior"
+msgstr "不保留 Smart 智能选择或地区匹配行为"
+
+#: htdocs/luci-static/resources/hybrid-subscription.js
+msgid "fallback selects the first available candidate in order"
+msgstr "故障切换按列表顺序选择第一个可用候选策略"
+
+#: htdocs/luci-static/resources/hybrid-subscription.js
+msgid "it does not preserve Smart behavior"
+msgstr "不保留 Smart 智能选择行为"
+
+#: htdocs/luci-static/resources/hybrid-subscription.js
+msgid "sing-box manual selection requires client selection controls or its API"
+msgstr "sing-box 手动选择需要客户端提供切换界面或 API"
+
+#: htdocs/luci-static/resources/hybrid-subscription.js
+msgid "otherwise the first candidate is used"
+msgstr "否则将使用第一个候选策略"
+
+#: htdocs/luci-static/resources/hybrid-subscription.js
+msgid "regional re-evaluation is no longer performed in the new profile"
+msgstr "新配置将不再执行原有的地区二次匹配"

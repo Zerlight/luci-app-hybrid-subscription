@@ -6,6 +6,9 @@ METHODS = {
  'refresh'=>{'source'=>''}, 'refresh_quota'=>{'source'=>''}, 'compare_converter'=>{'source'=>''}, 'import_source'=>{'source'=>'','content'=>''},
  'region_defaults'=>{}, 'preview_regions'=>{'config'=>'','sources'=>[]},
  'import_openclash'=>{}, 'validate'=>{'profile'=>''}, 'preview'=>{'profile'=>'','format'=>''},
+ 'compatibility'=>{'profile'=>''},
+ 'compatibility_plan'=>{'profile'=>'','format'=>'','id'=>'','name'=>'','resolutions'=>''},
+ 'compatibility_create'=>{'profile'=>'','format'=>'','id'=>'','name'=>'','resolutions'=>'','version'=>'','plan_token'=>'','accepted_changes'=>[]},
  'build'=>{'profile'=>''}, 'publish'=>{'release'=>'','accepted_warnings'=>[]},
  'rollback'=>{'release'=>''}, 'download_info'=>{'profile'=>''},
  'rotate_token'=>{'profile'=>''}, 'unpublish'=>{'profile'=>''}, 'apply_openclash'=>{'profile'=>''}, 'job_status'=>{'job'=>''}
