@@ -41,10 +41,11 @@ return view.extend({
 		hs.choices(hs.value(s, form.ListValue, 'mihomo_format', _('Mihomo Format'), null, 'text'), ['text', 'yaml', 'mrs']).depends('source_type', 'remote');
 		o = hs.references(hs.value(s, form.ListValue, 'mihomo_proxy', _('Mihomo Download Detour Policy'), _('Leave empty to use the client default outbound for fetching rule sets.'), ''), this.config, ['groups', 'rematches'], ['DIRECT', 'REJECT']); o.rmempty = false; o.depends('source_type', 'remote');
 		o = hs.value(s, form.Value, 'surge_url', _('Surge URL'), _('URL of a Surge-compatible RULE-SET file.'), ''); o.rmempty = false; o.depends('source_type', 'remote');
+		o = hs.value(s, form.Value, 'shadowrocket_url', _('Shadowrocket URL (Classical YAML)'), _('URL of a Clash classical YAML rule set with a payload list. Configure this separately; Surge text lists cannot be used here.'), ''); o.rmempty = false; o.depends('source_type', 'remote');
 		o = hs.value(s, form.Value, 'singbox_url', _('sing-box URL'), null, ''); o.rmempty = false; o.depends('source_type', 'remote');
 		hs.choices(hs.value(s, form.ListValue, 'singbox_format', _('sing-box Format'), null, 'source'), [['source', 'JSON source'], ['binary', 'SRS binary']]).depends('source_type', 'remote');
 		o = hs.value(s, form.Value, 'interval', _('Update Interval (seconds)'), null, 86400); o.datatype = 'range(300,31536000)'; o.rmempty = false;
-		hs.modalTabs(s, [{ id: 'general', title: _('General') }, { id: 'content', title: _('Content & URLs'), options: ['inline_rules', 'mihomo_url', 'mihomo_format', 'surge_url', 'singbox_url', 'singbox_format'] }, { id: 'advanced', title: _('Update Options'), options: ['mihomo_proxy', 'interval'] }]);
+		hs.modalTabs(s, [{ id: 'general', title: _('General') }, { id: 'content', title: _('Content & URLs'), options: ['inline_rules', 'mihomo_url', 'mihomo_format', 'surge_url', 'shadowrocket_url', 'singbox_url', 'singbox_format'] }, { id: 'advanced', title: _('Update Options'), options: ['mihomo_proxy', 'interval'] }]);
 		hs.sectionTabs(m, [{ id: 'rules', title: _('Routing Rules'), sections: ['rules'] }, { id: 'rule_sets', title: _('Rule Sets'), sections: ['rule_sets'] }], query.get('tab'), function() {
 			const profiles = { '__all': _('All Profiles') }, scopes = { '': _('Main Rules'), '__all': _('All Main & Sub-Rules') };
 			(self.config.profiles || []).forEach(function(row) { profiles[row.id] = row.name || row.id; });

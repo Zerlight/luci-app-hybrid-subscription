@@ -7,11 +7,11 @@
 
 [English](README.md) | [简体中文](README.zh-CN.md)
 
-A native OpenWrt LuCI application for **multi-source subscription aggregation** and **visual routing rule orchestration**. It caches upstream proxy subscriptions locally, compiles policy groups and routing rules, and publishes versioned configurations for **Mihomo (Clash Meta)**, **Surge**, and **sing-box**.
+A native OpenWrt LuCI application for **multi-source subscription aggregation** and **visual routing rule orchestration**. It caches upstream proxy subscriptions locally, compiles policy groups and routing rules, and publishes versioned configurations for **Mihomo (Clash Meta)**, **Surge**, **sing-box**, and **Shadowrocket** (supported Clash YAML subset).
 
 ```text
 Upstream Subscriptions ──► Local Node Cache ──► LuCI Rule & Group Editor ──► Immutable Release ──► Client Pull (QR / URL)
-   (Manual / Scheduled)    (/etc/hybrid-...)    (Mihomo / Surge / sing-box)   (SHA-256 Verified)    └──► OpenClash Apply
+   (Manual / Scheduled)    (/etc/hybrid-...)    (Client-specific formats)    (SHA-256 Verified)    └──► OpenClash Apply
 ```
 
 This application focuses on configuration compilation and distribution. Runtime traffic graphs and live node switching remain with client dashboards.
@@ -20,7 +20,7 @@ This application focuses on configuration compilation and distribution. Runtime 
 
 - **Read/Write Decoupled Subscription Fusion**: Combine multiple subscription sources into independent profiles, filter nodes by source or region regex templates, and serve client downloads directly from published local files—**client downloads never trigger upstream subscription requests**.
 - **Native LuCI Rule Engine & Dependency Graph**: Edit policy groups, ordered routing rules, shared remote/inline rule sets, and Mihomo rematch/sub-rule trees using standard LuCI forms. Inspect group and sub-rule references with an in-browser SVG dependency graph.
-- **Three-Format Conversion & Compatibility Wizard**: Import node subscriptions from Mihomo, Surge, or sing-box and export supported nodes to any of the three clients. A native LuCI **Compatibility** tab inspects all three targets and helps you spin off client-specific profiles—adapting policy group modes, replacing Mihomo rematch entries, or disabling incompatible rules with explicit confirmation before saving. Unsupported protocols and rule semantics block output, while field differences require confirmation before publication.
+- **Multi-Client Conversion & Compatibility Wizard**: Import node subscriptions from Mihomo, Surge, sing-box, or Shadowrocket and export configurations tailored to each target client. A native LuCI **Compatibility** tab inspects all four targets and helps you spin off client-specific profiles—adapting policy group modes, replacing Mihomo rematch entries, or disabling incompatible rules with explicit confirmation before saving. Unsupported protocols and rule semantics block output, while field differences require confirmation before publication.
 - **Immutable Releases & Instant Rollback**: Validate drafts, preview redacted outputs, build immutable releases, publish, or roll back to any previously published release.
 - **Safe OpenClash Integration**: Import existing OpenClash subscription definitions and local caches in one click. Apply a published Mihomo release to OpenClash manually or automatically, guarded by isolated `clash_meta -t` syntax checks and an automatic rollback watchdog.
 - **Zero-Daemon Lightweight Architecture**: Built with native LuCI JavaScript and on-demand Ruby CGI/RPCD workers—no persistent Node.js, Docker, or web server process required on the router.
@@ -102,7 +102,7 @@ The installer backs up replaced files and never restarts OpenClash or switches i
 1. **Add Sources (`Subscription Sources`)**: Click **Import from OpenClash** to reuse existing subscription definitions and node caches without contacting upstream servers, or add a new source manually. Leave **Update Mode** set to **Manual Only** for rate-limited or time-windowed providers.
 2. **Create a Profile (`Subscription Profiles`)**: Click **Quick Create Profile** to generate a starter profile with a manual selection group for Mihomo, Surge, and sing-box, or build custom policy groups, region filters, and Mihomo rematch/sub-rule chains.
 3. **Configure Rules (`Routing Rules`)**: Add ordered routing rules (`DOMAIN-SUFFIX`, `IP-CIDR`, `RULE-SET`, `GEOIP`, `GEOSITE`, or recursive `AND`/`OR`/`NOT` conditions) and shared remote or inline rule sets.
-4. **Check Compatibility (`Compatibility`)**: Evaluate your saved profile against Mihomo, Surge, and sing-box using local caches. When a profile uses client-specific routing features, open the **Compatibility Wizard** to create an adapted, standalone draft for that target.
+4. **Check Compatibility (`Compatibility`)**: Evaluate your saved profile against Mihomo, Surge, sing-box, and Shadowrocket using local caches. When a profile uses client-specific routing features, open the **Compatibility Wizard** to create an adapted, standalone draft for that target.
 5. **Build & Publish (`Overview`)**: Click **Build & Publish** on the profile card. Review any cross-client compatibility warnings, confirm publication, and use **Download / QR Code** to import the subscription into your clients.
 6. **Apply to OpenClash (Optional)**: Open **Release Management** on a published profile to apply the Mihomo output to OpenClash manually, or enable **Auto-Apply to OpenClash on Publish** under **Global Settings**.
 
@@ -110,9 +110,11 @@ The installer backs up replaced files and never restarts OpenClash or switches i
 
 ### Subscription Conversion and Compatibility
 
-Under **Subscription Sources**, choose automatic format detection or specify the source format explicitly, then refresh the cache or import subscription text. The importer extracts **proxy nodes only** (Mihomo `proxies`, Surge `[Proxy]`, or sing-box proxy `outbounds`) and ignores upstream policy groups, routing rules, DNS settings, listeners, and controller credentials; all exported routing structure is compiled from the profiles and rules managed in this application. Unknown Surge or sing-box node parameters without a verified mapping reject the import immediately, whereas raw Mihomo node fields are preserved in the cache and surface explicit compatibility warnings when a target client cannot represent them.
+Protocol revisions, client release evidence, upstream commit pins, and validation limits are maintained in the [compatibility version baselines](docs/compatibility-versions.md).
 
-The **Compatibility** tab evaluates all three target clients—including formats not currently enabled on the profile—using saved configuration and local caches without contacting upstream subscriptions. It groups related issues for the selected client with expandable affected items and export validation details. Its wizard uses native LuCI forms and modal dialogs:
+Under **Subscription Sources**, choose automatic format detection or specify the source format explicitly, then refresh the cache or import subscription text. The importer extracts **proxy nodes only** (Mihomo `proxies`, Surge/Shadowrocket `[Proxy]`, or sing-box proxy `outbounds`) and ignores upstream policy groups, routing rules, DNS settings, listeners, and controller credentials; all exported routing structure is compiled from the profiles and rules managed in this application. Unknown Surge, Shadowrocket, or sing-box node parameters without a verified mapping reject the import immediately, whereas raw Mihomo node fields are preserved in the cache and surface explicit compatibility warnings when a target client cannot represent them.
+
+The **Compatibility** tab evaluates all four target clients—including formats not currently enabled on the profile—using saved configuration and local caches without contacting upstream subscriptions. It groups related issues for the selected client with expandable affected items and export validation details. Its wizard uses native LuCI forms and modal dialogs:
 
 1. Select a target client and enter an identifier and name for the new profile.
 2. Choose how each affected policy group selects its outbound: manual selection, latency testing, or priority-based fallback (where supported). For Mihomo rematch entries, either map them to a fixed policy or create a manual/latency-test group from an explicit candidate list.
@@ -140,6 +142,18 @@ Compatibility reflects the mappings verified by this exporter rather than every 
 When creating a compatible draft, the wizard records its source profile and conversion choices for future reuse. **Overview** and **Compatibility** flag relevant changes to the source profile's policy groups, routing rules, DNS settings, or referenced dependencies, whereas routine node-cache refreshes, quota updates, and unrelated global settings never trigger a review notice. Opening a review restores all choices that remain valid and highlights any items whose upstream definitions changed.
 
 Confirming an update writes the regenerated configuration back to the existing compatible draft while preserving its name, identifier, and download URL; the live subscription artifact changes only after you build and publish the updated draft. Any manual edits made directly to the compatible draft are surfaced for overwrite confirmation before saving, and if the source profile is deleted, the compatible draft and its published release remain usable as a standalone profile. Profiles created before strategy tracking was introduced do not carry source metadata and must be recreated once through the wizard to enable change tracking.
+
+### Shadowrocket Export
+
+Shadowrocket is an opt-in target (`shadowrocket`) that generates **`shadowrocket.yaml` containing proxy nodes, policy groups, rule providers, and ordered routing rules**. Import the generated file or URL under Shadowrocket's **Config** tab and enable configuration-based routing; importing it as a node-only subscription will not apply routing rules. **Quick Create Profile** continues to enable Mihomo, Surge, and sing-box by default.
+
+Node field conversion follows [Sub-Store's Shadowrocket producer](https://github.com/sub-store-org/Sub-Store/blob/1f0318bc6feb46fbe204836f32ca7acab37ea67e/backend/src/core/proxy-utils/producers/shadowrocket.js) for AnyTLS, Shadowsocks, Trojan, VMess, VLESS, Hysteria2, and TUIC, while policy groups and routing rules are compiled from your saved profile. Unsupported parameter combinations or unresolved node dependencies block export rather than silently dropping nodes, and advanced fields with unverified client behavior are preserved with pre-publish warnings.
+
+Policy groups support manual selection, URL tests, fallback, and load balancing. Routing rules preserve their order, targets, logical conditions, and final policy, with inline rule sets expanded into direct conditions. Each remote rule set's **Shadowrocket URL** must point to an equivalent **Clash classical YAML rule set containing a `payload` list** (emitted as an HTTP `rule-provider` with `behavior: classical`), even if other targets use domain or IP lists; Surge text lists, Mihomo MRS files, and other target URLs are never reused automatically.
+
+Clash YAML support in Shadowrocket does not cover Mihomo-only extensions: `rematch`, sub-rules, `GEOSITE`, `REMATCH-NAME`, and native Mihomo DNS must still be adapted or omitted in a compatible copy, and `smart` groups must switch to a supported mode. Removing native Mihomo DNS falls back to Shadowrocket's default DNS handling, and behavioral differences such as default selections, empty-group fallback, and lazy health checks are flagged for confirmation before publishing. Strategy tracking and source-change reviews work the same way as for other targets. Native `.conf` export has been removed, while basic SS, Trojan, VMess, and VLESS native node lines remain supported on import (requiring explicit `udp=0/1` without unverified quoting or escaping). When importing an unmarked native node list that cannot be distinguished from Surge automatically, select the Shadowrocket format explicitly.
+
+See the [compatibility version baselines](docs/compatibility-versions.md#shadowrocket-release-evidence) for Shadowrocket release notes and pinned [Sub-Store](https://github.com/sub-store-org/Sub-Store/blob/1f0318bc6feb46fbe204836f32ca7acab37ea67e/backend/src/core/proxy-utils/producers/shadowrocket.js) and [clash-skk](https://github.com/Paxxs/clash-skk/blob/cdb419f7d446c55b715261a8f5ff4b80f84fccbd/README.md) references. Automated tests verify field mapping and publication workflows, while on-device import, rule matching, and live connectivity in Shadowrocket have not yet been tested.
 
 ### Quota & Expiration Queries
 
@@ -170,7 +184,7 @@ Under **Global Settings → Region Matching**, built-in templates match flag emo
 sh scripts/test.sh
 ```
 
-`scripts/test.sh` runs all `tests/test_*.rb` Ruby suites, including the three-by-three subscription conversion matrix and compatibility planning tests, JavaScript view/workbench tests, gettext `.po`/`.pot` format validation, and shell syntax checks. GitHub Actions runs this suite and builds `.ipk` (OpenWrt 24.10) and `.apk` (OpenWrt 25.12) packages on every push, pull request, and `v*` release tag.
+`scripts/test.sh` runs all `tests/test_*.rb` Ruby suites, including subscription conversion matrices, Shadowrocket mapping tests, and compatibility planning tests, JavaScript view/workbench tests, gettext `.po`/`.pot` format validation, and shell syntax checks. GitHub Actions runs this suite and builds `.ipk` (OpenWrt 24.10) and `.apk` (OpenWrt 25.12) packages on every push, pull request, and `v*` release tag.
 
 ## License
 

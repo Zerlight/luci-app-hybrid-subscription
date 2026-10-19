@@ -55,7 +55,7 @@ class CompatibilityTest < Minitest::Test
     native_graph
     report = @backend.compatibility('profile'=>'main')
     assert_equal @backend.version, report['version']
-    assert_equal %w[mihomo surge singbox], report['targets'].map { |item| item['format'] }
+    assert_equal %w[mihomo surge singbox shadowrocket], report['targets'].map { |item| item['format'] }
     assert_empty report['targets'][0]['errors']
     assert_equal 1, report['targets'][0]['summary']['nodes']
     report['targets'][1..].each do |item|
@@ -64,7 +64,7 @@ class CompatibilityTest < Minitest::Test
       assert_includes item['issues'].map { |issue| issue['kind'] }, 'dns'
     end
     choices = report['choices']
-    assert_equal %w[surge singbox], choices['rules'].find { |rule| rule['id'] == 'geosite' }['targets']
+    assert_equal %w[surge singbox shadowrocket], choices['rules'].find { |rule| rule['id'] == 'geosite' }['targets']
     assert_equal 1, choices['sub_rules'][0]['rules']
     assert_equal %w[DIRECT REJECT proxy], choices['policies'].map { |policy| policy['id'] }
     %w[private-url-token private-node-password secret-server.invalid private-dns-token].each { |secret| refute_includes JSON.generate(report), secret }
@@ -256,7 +256,7 @@ class CompatibilityTest < Minitest::Test
 
   def test_report_identifies_nested_and_inline_target_blockers
     @config['rule_sets'] = [
-      {'id'=>'remote', 'source_type'=>'remote', 'behavior'=>'classical', 'mihomo_url'=>'https://rules.invalid/source', 'surge_url'=>'https://rules.invalid/surge'},
+      {'id'=>'remote', 'source_type'=>'remote', 'behavior'=>'classical', 'mihomo_url'=>'https://rules.invalid/source', 'surge_url'=>'https://rules.invalid/surge', 'shadowrocket_url'=>'https://rules.invalid/shadowrocket'},
       {'id'=>'local', 'source_type'=>'inline', 'behavior'=>'classical', 'inline_rules'=>'GEOIP,LAN'}
     ]
     @config['rules'] << {'id'=>'logical', 'profile'=>'main', 'type'=>'OR', 'conditions'=>[{'type'=>'IP-CIDR', 'value'=>'192.0.2.0/24', 'no_resolve'=>true}, {'type'=>'RULE-SET', 'value'=>'remote'}], 'policy'=>'DIRECT'}
@@ -288,7 +288,7 @@ class CompatibilityTest < Minitest::Test
     save
     report = @backend.compatibility('profile'=>'main')
     group = report['choices']['groups'][0]
-    assert_equal({'mihomo'=>'smart', 'surge'=>'select', 'singbox'=>'fallback'}, group['modes'])
+    assert_equal({'mihomo'=>'smart', 'surge'=>'select', 'singbox'=>'fallback', 'shadowrocket'=>'select'}, group['modes'])
     assert_equal %w[manual url-test fallback], group['alternatives']['surge']
     assert_equal %w[manual url-test], group['alternatives']['singbox']
     surge = report['targets'].find { |target| target['format'] == 'surge' }['issues'].find { |issue| issue['kind'] == 'group' }
@@ -602,6 +602,71 @@ class CompatibilityTest < Minitest::Test
     assert_equal metadata['resolutions'], report['strategy']['resolutions']
     assert_equal 'compatible', report['derived_profiles'][0]['id']
     %w[private-url-token private-node-password secret-server.invalid].each { |secret| refute_includes JSON.generate(metadata) + JSON.generate(report), secret }
+  end
+
+  def test_shadowrocket_smart_requires_an_explicit_alternative_and_reuses_review_flow
+    @backend.put_source('source', YAML.dump('proxies'=>[@node.merge('type'=>'anytls', 'idle-session-timeout'=>60)]), 'shadowrocket')
+    @config['groups'][0].merge!('mihomo_type'=>'smart', 'shadowrocket_type'=>'smart')
+    save
+    report = @backend.compatibility('profile'=>'main')
+    target = report['targets'].find { |item| item['format'] == 'shadowrocket' }
+    refute target['compatible']
+    assert target['issues'].any? { |item| item['kind'] == 'group' && item['severity'] == 'error' }
+    suggestion = report['choices']['groups'][0]['suggestions']['shadowrocket']
+    assert_equal 'url-test', suggestion['mode']
+    refute preview(args('shadowrocket'))['ready']
+    choices = {'group_modes'=>{'proxy'=>suggestion['mode']}}
+    request = args('shadowrocket', choices)
+    plan = preview(request)
+    assert plan['ready'], plan['errors'].inspect
+    create(request, plan)
+    stored = @backend.config['profiles'].last['compatibility']
+    assert_equal 'shadowrocket', stored['format']
+    assert_equal choices, stored['resolutions']
+    refute strategy['needs_review']
+    target_report = @backend.compatibility('profile'=>'compatible')['targets'].find { |item| item['format'] == 'shadowrocket' }
+    mode_warnings = target_report['warnings'].select { |warning| warning['code'].start_with?('shadowrocket:group:') }
+    assert_equal 1, mode_warnings.length, 'Renderer and compatibility UI must not repeat the same mode warning'
+    built = @backend.build_profile('compatible')
+    @backend.publish({'release'=>built['release'], 'accepted_warnings'=>built['warnings'].map { |item| item['code'] }})
+    token = @backend.download_info('compatible')['token']
+    current = @backend.config
+    current['rules'][0]['value'] = 'changed.example.test'
+    @backend.save_config('config'=>JSON.generate(current), 'version'=>@backend.version)
+    assert strategy['source_changed']
+    review = @backend.compatibility('profile'=>'compatible', 'review'=>true)
+    assert_equal choices, review['strategy']['resolutions']
+    request = reapply(choices, 'compatible', 'main', 'shadowrocket')
+    plan = preview(request)
+    @backend.compatibility_plan(request.merge('version'=>plan['version'], 'plan_token'=>plan['plan_token'], 'accepted_changes'=>plan['changes'].map { |change| change['code'] }), update:true)
+    refute strategy['needs_review']
+    assert_equal token, @backend.download_info('compatible')['token']
+    assert_equal built['release'], @backend.published['compatible']
+    output = @backend.engine.render('compatible', 'shadowrocket')
+    assert_empty output['errors']
+    document = YAML.safe_load(output['content'], permitted_classes: [], permitted_symbols: [], aliases: false)
+    assert_equal 'anytls', document['proxies'][0]['type']
+    assert_equal 60, document['proxies'][0]['idle-session-timeout']
+    assert_equal 'url-test', document['proxy-groups'][0]['type']
+    assert_equal ['Provider | Node'], document['proxy-groups'][0]['proxies']
+    assert_equal ['DOMAIN-SUFFIX,changed.example.test,Proxy', 'MATCH,Proxy'], document['rules']
+  end
+
+  def test_shadowrocket_requires_its_own_rule_set_url_and_explicit_native_removal
+    native_graph
+    @config['rule_sets'] = [{'id'=>'remote', 'behavior'=>'classical', 'surge_url'=>'https://rules.invalid/surge.list'}]
+    @config['rules'] << {'id'=>'remote-rule', 'profile'=>'main', 'type'=>'RULE-SET', 'value'=>'remote', 'policy'=>'proxy'}
+    save
+    report = @backend.compatibility('profile'=>'main')
+    target = report['targets'].find { |item| item['format'] == 'shadowrocket' }
+    assert target['issues'].any? { |item| item['id'] == 'remote-rule' && item['message'].include?('shadowrocket URL') }
+    assert report['choices']['rematches'][0]['suggestions'].key?('shadowrocket')
+    choices = {'rematches'=>{'follow'=>'proxy'}, 'abandon_sub_rules'=>true, 'omit_dns'=>true, 'disable_rules'=>['geosite']}
+    refute preview(args('shadowrocket', choices))['ready']
+    @config['rule_sets'][0]['shadowrocket_url'] = 'https://rules.invalid/shadowrocket-classical.yaml'
+    save
+    assert preview(args('shadowrocket', choices))['ready']
+    refute preview(args('shadowrocket'))['ready']
   end
 
   def test_strategy_fingerprint_ignores_cache_quota_runtime_and_unrelated_configuration

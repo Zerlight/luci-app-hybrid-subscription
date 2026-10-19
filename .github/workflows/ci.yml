@@ -112,4 +112,4 @@ jobs:
         run: |
           gh release create "$RELEASE_TAG" dist/* \
             --verify-tag --title "$RELEASE_TAG" --generate-notes \
-            --notes 'Native LuCI subscription fusion and GUI rule engine for Mihomo, Surge, and sing-box. Install the .ipk packages on OpenWrt 24.10 or the .apk packages on OpenWrt 25.12. The zh-cn package adds Simplified Chinese translations. Verify downloads with SHA256SUMS.'
+            --notes 'Native LuCI subscription fusion and GUI rule engine for Mihomo, Surge, sing-box, and Shadowrocket. Install the .ipk packages on OpenWrt 24.10 or the .apk packages on OpenWrt 25.12. The zh-cn package adds Simplified Chinese translations. Verify downloads with SHA256SUMS.'

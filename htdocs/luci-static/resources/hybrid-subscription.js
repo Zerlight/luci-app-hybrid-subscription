@@ -553,6 +553,46 @@ registerLocale('zh-cn', {
 		'Fallback': '故障转移（Fallback）',
 		'Load Balance': '负载均衡（Load-Balance）',
 		'Surge Group Type': 'Surge 策略组类型',
+		"Exports a Clash YAML profile with nodes, policy groups and routing rules. Import it under Config in Shadowrocket; review unsupported Mihomo features before exporting.": '导出包含节点、策略组和分流规则的 Clash YAML 配置，请在 Shadowrocket 的“配置”中导入。导出前需处理不兼容的 Mihomo 特性。',
+		"Invalid Shadowrocket proxy definition": "Shadowrocket 节点定义格式无效",
+		"Quoted, escaped or commented native Shadowrocket proxy fields have no verified import mapping": "当前转换器尚未提供经核实的 Shadowrocket 引号、转义或注释字段导入映射",
+		"This protocol has no verified native Shadowrocket import mapping yet; use supported URI or YAML nodes": "当前转换器尚未提供经核实的该协议 Shadowrocket 原生导入映射，请使用受支持的节点链接或 YAML 节点",
+		"Invalid Shadowrocket proxy option": "Shadowrocket 节点选项格式无效",
+		"Duplicate Shadowrocket proxy option": "Shadowrocket 节点包含重复选项",
+		"Shadowrocket method is supported only for SS and VMess": "当前转换器仅支持为 SS 和 VMess 导入 Shadowrocket method 选项",
+		"Shadowrocket alterId is supported only for VMess": "Shadowrocket alterId 选项仅适用于 VMess",
+		"Legacy VMess has no verified Shadowrocket import mapping": "当前转换器尚未提供经核实的旧版 VMess Shadowrocket 导入映射",
+		"Invalid Shadowrocket boolean": "Shadowrocket 布尔值格式无效",
+		"Shadowrocket TLS options require enabled TLS": "Shadowrocket TLS 选项需要先启用 TLS",
+		"Trojan requires TLS": "Trojan 需要启用 TLS",
+		"TLS-wrapped Shadowsocks has no verified import mapping": "当前转换器尚未提供经核实的 TLS 封装 Shadowsocks 导入映射",
+		"conflicting TLS server names": "TLS 服务器名称设置冲突",
+		"TLS options require enabled TLS": "TLS 选项需要先启用 TLS",
+		"Native Shadowrocket import requires an explicit udp=0 or udp=1; the client default has no verified mapping": "导入 Shadowrocket 原生节点需要明确设置 udp=0 或 udp=1；当前转换器尚未验证客户端默认行为的映射",
+		"Native Shadowrocket VMess import currently supports only method=auto": "当前转换器导入 Shadowrocket 原生 VMess 节点时仅支持 method=auto",
+		"Shadowrocket policy names must be unique ignoring case, including DIRECT and REJECT": "Shadowrocket 策略名称不得重复（不区分大小写），也不得与 DIRECT 或 REJECT 重名",
+		"Shadowrocket LAN rules use explicit private, loopback and link-local ranges; Mihomo GEOIP LAN may include additional reserved ranges": "Shadowrocket LAN 规则使用明确的私有、回环和链路本地网段；Mihomo GEOIP LAN 可能还包含其他保留网段",
+		"Reality requires VLESS or VMess": "Reality 需要使用 VLESS 或 VMess 协议",
+		"Reality requires enabled TLS": "Reality 需要启用 TLS",
+		"this protocol requires TLS": "该协议需要启用 TLS",
+		"conflicting VMess AEAD settings": "VMess AEAD 设置冲突",
+		"unsupported VMess cipher": "不支持的 VMess 加密方式",
+		"conflicting fast-open settings": "TCP Fast Open 设置冲突",
+		"conflicting AnyTLS reuse settings": "AnyTLS 连接复用设置冲突",
+		"conflicting certificate fingerprints": "证书指纹设置冲突",
+		"unsupported v2ray-plugin mode": "不支持的 v2ray-plugin 模式",
+		"conflicting plugin certificate verification settings": "插件证书验证设置冲突",
+		"transport options must be an object": "传输选项必须为对象",
+		"HTTP headers must be an object": "HTTP 请求头必须为对象",
+		"multiple HTTP/2 paths cannot be represented": "无法转换多个 HTTP/2 路径，请明确使用一个路径",
+		"HTTP/2 headers must be an object": "HTTP/2 请求头必须为对象",
+		"conflicting HTTP/2 hosts": "HTTP/2 主机名设置冲突",
+		"WebSocket path must be text": "WebSocket 路径必须为文本",
+		"HTTP Upgrade early data requires an explicit transport mapping": "HTTP Upgrade 提前数据需要明确的传输方式映射",
+		"conflicting WebSocket early data limits": "WebSocket 提前数据大小限制冲突",
+		"invalid transport URL encoding": "传输地址的 URL 编码无效",
+		'Shadowrocket (Clash YAML)': 'Shadowrocket（Clash YAML）',
+		'Shadowrocket Group Type': 'Shadowrocket 策略组类型',
 		'sing-box Group Type': 'sing-box 策略组类型',
 		'Health Check URL': '连通性测试地址',
 		'Test Interval (seconds)': '测速间隔（秒）',
@@ -618,6 +658,8 @@ registerLocale('zh-cn', {
 		'Mihomo Download Detour Policy': 'Mihomo 规则集下载策略',
 		'Leave empty to use the client default outbound for fetching rule sets.': '指定拉取该远程规则集时使用的代理策略；留空则使用客户端默认下载策略。',
 		'Surge URL': 'Surge 规则集地址',
+		'Shadowrocket URL (Classical YAML)': 'Shadowrocket 规则集地址（Classical YAML）',
+		'URL of a Clash classical YAML rule set with a payload list. Configure this separately; Surge text lists cannot be used here.': '填写包含 payload 列表的 Clash classical YAML 规则集地址，需单独配置，不能使用 Surge 文本规则列表。',
 		'URL of a Surge-compatible RULE-SET file.': '填写兼容 Surge RULE-SET / DOMAIN-SET 格式的远程规则地址。',
 		'sing-box URL': 'sing-box 规则集地址',
 		'sing-box Format': 'sing-box 规则集格式',
@@ -753,7 +795,7 @@ registerLocale('zh-cn', {
 		'Source is empty': '订阅源内容为空',
 		'Unknown source format': '未知的订阅源格式',
 		'Encoded source does not contain supported node links': 'Base64 解码后的内容未包含受支持的节点链接',
-		'Expected a Mihomo proxy list, Surge [Proxy], sing-box outbounds, or supported node links': '订阅格式无法识别：须为 Mihomo proxies 列表、Surge [Proxy] 段落、sing-box outbounds 或受支持的节点分享链接',
+		'Expected a Mihomo proxy list, Surge/Shadowrocket [Proxy], sing-box outbounds, or supported node links': '订阅格式无法识别：须为 Mihomo proxies 列表、Surge / Shadowrocket [Proxy] 段落、sing-box outbounds 或受支持的节点分享链接',
 		'Source has no proxy nodes': '订阅源中未包含任何代理节点',
 		'Source has too many nodes (maximum 4096)': '订阅源节点数量超出上限（最多 4096 个）',
 		'Invalid or unsafe YAML source (aliases and object tags are disabled)': 'YAML 格式无效或包含受限语法（已禁用别名引用与自定义对象标签）',
@@ -821,11 +863,21 @@ registerLocale('zh-cn', {
 		'OpenClash did not load the published policy.': 'OpenClash 未能成功加载已发布的策略配置。'
 	},
 	patterns: [
+		[/^shadowrocket: (.+)$/, function(_, detail) { return 'Shadowrocket：' + translateMessage(detail); }],
+		[/^Group (.+): this exporter has no verified Shadowrocket mapping for mode (.+); explicitly choose a manual or simpler automatic alternative$/, '策略组 $1：当前转换器尚未验证 Shadowrocket 的 $2 模式映射，请改为手动选择或受支持的基础自动模式'],
+		[/^Group (.+): unsupported Shadowrocket type; choose select, url-test, fallback or load-balance$/, '策略组 $1：当前转换器支持的 Shadowrocket 模式为手动选择、延迟测速、故障转移和负载均衡'],
+		[/^(.+): (Trojan requires TLS|conflicting TLS server names|TLS options require enabled TLS)$/, function(_, name, detail) { return '节点 ' + name + '：' + translateSingle(detail); }],
+		[/^(.+): this exporter has no verified Shadowrocket mapping for the hidden group flag; it will be omitted$/, '策略组 $1：当前转换器尚未验证 Shadowrocket 隐藏策略组标记的映射，导出时将被忽略'],
+		[/^(\d+) nodes contain advanced fields whose Shadowrocket behavior needs review: (.+)\. These fields are retained\.$/, '$1 个节点的高级字段需确认 Shadowrocket 支持情况：$2。字段已保留。'],
+		[/^(.+): (Reality requires VLESS or VMess|Reality requires enabled TLS|this protocol requires TLS|conflicting VMess AEAD settings|unsupported VMess cipher|conflicting fast\-open settings|conflicting AnyTLS reuse settings|conflicting certificate fingerprints|unsupported v2ray\-plugin mode|conflicting plugin certificate verification settings|transport options must be an object|HTTP headers must be an object|multiple HTTP\/2 paths cannot be represented|HTTP\/2 headers must be an object|conflicting HTTP\/2 hosts|WebSocket path must be text|HTTP Upgrade early data requires an explicit transport mapping|conflicting WebSocket early data limits|invalid transport URL encoding)$/, function(_, name, detail) { return '节点 ' + name + '：' + translateSingle(detail); }],
+		[/^(.+): (dialer-proxy|underlying-proxy) requires an explicit policy reference mapping$/, '节点 $1：$2 需要明确的策略引用映射'],
+		[/^(.+): (reuse|disable-reuse|fast-open|aead) must be boolean$/, '节点 $1：$2 必须为布尔值'],
+		[/^Shadowrocket source option (.+) has no verified import mapping$/, '当前转换器尚未提供经核实的 Shadowrocket 源选项 $1 导入映射'],
 		[/^Update compatible draft (.+) \((.+)\) from its saved source; preserve published releases and download links$/, '根据来源配置更新兼容草稿“$1”（$2）；保留已发布版本和订阅链接'],
 		[/^(Add|Remove|Replace) target (profile|groups|rematches|sub_rules|rules|rule_sets) (.+) \((.+)\)(?:; changed fields: (.+))?$/, function(_, action, kind, name, id, fields) {
 			const actions = { Add: '添加', Remove: '移除', Replace: '更新' };
 			const kinds = { profile: '配置', groups: '策略组', rematches: '重匹配项', sub_rules: '子规则', rules: '分流规则', rule_sets: '规则集' };
-			const labels = { name: '名称', sources: '订阅源', formats: '导出格式', final_policy: '兜底策略', mihomo_core: 'Mihomo 内核', mihomo_dns: 'DNS 策略', mihomo_policy: '高级策略', members: '候选策略', default_member: '默认策略', empty_fallback: '空组回退策略', region: '地区', filter: '筛选条件', exclude_filter: '排除条件', mihomo_type: 'Mihomo 模式', surge_type: 'Surge 模式', singbox_type: 'sing-box 模式', url: '测速地址', interval: '间隔', tolerance: '容差', type: '规则类型', value: '匹配内容', policy: '出口策略', conditions: '匹配条件', sub_rule: '所属子规则', enabled: '启用状态', no_resolve: '跳过解析', target_sub_rule: '目标子规则', rematch_name: '重匹配名称', mihomo_proxy: '下载策略', inline_rules: '内联规则', source_type: '来源类型', behavior: '规则集类型' };
+			const labels = { name: '名称', sources: '订阅源', formats: '导出格式', final_policy: '兜底策略', mihomo_core: 'Mihomo 内核', mihomo_dns: 'DNS 策略', mihomo_policy: '高级策略', members: '候选策略', default_member: '默认策略', empty_fallback: '空组回退策略', region: '地区', filter: '筛选条件', exclude_filter: '排除条件', mihomo_type: 'Mihomo 模式', surge_type: 'Surge 模式', singbox_type: 'sing-box 模式', shadowrocket_type: 'Shadowrocket 模式', shadowrocket_url: 'Shadowrocket 规则集地址', url: '测速地址', interval: '间隔', tolerance: '容差', type: '规则类型', value: '匹配内容', policy: '出口策略', conditions: '匹配条件', sub_rule: '所属子规则', enabled: '启用状态', no_resolve: '跳过解析', target_sub_rule: '目标子规则', rematch_name: '重匹配名称', mihomo_proxy: '下载策略', inline_rules: '内联规则', source_type: '来源类型', behavior: '规则集类型' };
 			return actions[action] + '兼容草稿中的' + kinds[kind] + '“' + name + '”（' + id + '）' + (fields ? '；变更字段：' + fields.split(', ').map(function(field) { return labels[field] || field; }).join('、') : '');
 		}],
 		[/^Update the order of target (groups|rematches|sub_rules|rules|rule_sets)$/, function(_, kind) {
@@ -1385,7 +1437,7 @@ function download(profile) {
 		const items = [E('p', {}, session ? _('Download access is restricted to authenticated LuCI sessions. Third-party clients cannot pull via URL or QR code; please download the file and import it manually.') : _('Anyone with the download link can access the node credentials in this subscription. Share only with your own trusted devices.'))];
 		formats.forEach(function(format) {
 			const url = base + '/cgi-bin/hybrid-subscription?profile=' + encodeURIComponent(profile) + '&format=' + encodeURIComponent(format) + (session ? '' : '&token=' + encodeURIComponent(info.token));
-			items.push(E('h4', {}, format), E('p', {}, E('a', { href: url, target: '_blank', rel: 'noopener noreferrer', download: '' }, _('Download File'))));
+			items.push(E('h4', {}, ({ mihomo: 'Mihomo', surge: 'Surge', singbox: 'sing-box', shadowrocket: _('Shadowrocket (Clash YAML)') })[format] || format), E('p', {}, E('a', { href: url, target: '_blank', rel: 'noopener noreferrer', download: '' }, _('Download File'))));
 			if (!session) {
 				items.push(E('input', { 'class': 'cbi-input-text', 'readonly': true, 'value': url, 'click': function(e) { e.target.select(); } }));
 				items.push(E('p', {}, E(uqr.renderSVG(url, { pixelSize: 4, border: 4, ecc: 'M', whiteColor: 'white', blackColor: 'black' }))));

@@ -66,6 +66,17 @@ hs.setLocale('zh_Hans');
 assert.equal(hs.getLocale(), 'zh-cn');
 assert.equal(hs.t('Subscription Profiles'), '订阅配置');
 assert.equal(hs.t('Overview'), '状态概览');
+assert.equal(hs.t('Shadowrocket Group Type'), 'Shadowrocket 策略组类型');
+assert.equal(hs.t('Shadowrocket URL (Classical YAML)'), 'Shadowrocket 规则集地址（Classical YAML）');
+assert.equal(hs.t('Mihomo Default Selection'), 'Mihomo 默认选中项');
+assert.equal(hs.t('Shadowrocket (Clash YAML)'), 'Shadowrocket（Clash YAML）');
+assert.equal(hs.translateMessage('Group proxy: this exporter has no verified Shadowrocket mapping for mode smart; explicitly choose a manual or simpler automatic alternative'), '策略组 proxy：当前转换器尚未验证 Shadowrocket 的 smart 模式映射，请改为手动选择或受支持的基础自动模式');
+assert.equal(hs.translateMessage('32 nodes contain advanced fields whose Shadowrocket behavior needs review: client-fingerprint, idle-session-timeout. These fields are retained.'), '32 个节点的高级字段需确认 Shadowrocket 支持情况：client-fingerprint, idle-session-timeout。字段已保留。');
+assert.equal(hs.translateMessage('Group proxy: unsupported Shadowrocket type; choose select, url-test, fallback or load-balance'), '策略组 proxy：当前转换器支持的 Shadowrocket 模式为手动选择、延迟测速、故障转移和负载均衡');
+assert.equal(hs.translateMessage('shadowrocket: Example: conflicting AnyTLS reuse settings'), 'Shadowrocket：节点 Example：AnyTLS 连接复用设置冲突');
+assert.equal(hs.translateMessage('shadowrocket: Example: unsupported VMess cipher'), 'Shadowrocket：节点 Example：不支持的 VMess 加密方式');
+assert.equal(hs.translateMessage('shadowrocket: Example: reuse must be boolean'), 'Shadowrocket：节点 Example：reuse 必须为布尔值');
+assert.equal(hs.translateMessage('shadowrocket: Example: Reality requires enabled TLS'), 'Shadowrocket：节点 Example：Reality 需要启用 TLS');
 assert.equal(hs.translateMessage('Invalid identifier'), '标识符格式无效');
 assert.equal(hs.translateMessage('Group proxy has no members after filtering; Rule r1: invalid IP prefix'), '策略组 proxy 在筛选后无可用节点或成员；分流规则 r1：IP 网段（CIDR）格式无效');
 assert.equal(hs.translateMessage('Source alpha, node 2: missing password'), '订阅源 alpha 第 2 个节点：缺少必填字段 password');
@@ -159,6 +170,22 @@ assert.equal(japanNode.focused, true);
 assert.equal(japanNode.scrolled, true);
 
 async function editorChecks() {
+	let downloadModal;
+	const downloads = new Function('baseclass', 'form', 'rpc', 'ui', 'poll', 'uqr', 'L', 'E', '_', 'document', 'window',
+		fs.readFileSync(path.join(root, 'htdocs/luci-static/resources/hybrid-subscription.js'), 'utf8'))(
+		{ extend: value => value }, {}, { declare: spec => (...args) => {
+			assert.equal(spec.method, 'download_info'); assert.deepEqual(args, ['rocket']);
+			return Promise.resolve({ ok: true, formats: ['shadowrocket'], access_mode: 'lan_token', token: 'local-test-token', base_url: 'http://router.test' });
+		} }, { showModal: (title, children) => { downloadModal = node('modal', { title }, children); } }, {}, { renderSVG: url => url },
+		{ env: { lang: 'en' } }, node, value => value, {}, { location: { origin: 'http://router.test' } }
+	);
+	await downloads.download('rocket');
+	const downloadNodes = descendants(downloadModal);
+	assert.equal(downloadNodes.find(item => item.tag === 'h4').children[0], 'Shadowrocket (Clash YAML)');
+	const downloadLink = downloadNodes.find(item => item.tag === 'a');
+	assert.equal(downloadLink.attrs.href, 'http://router.test/cgi-bin/hybrid-subscription?profile=rocket&format=shadowrocket&token=local-test-token');
+	assert.equal(downloadLink.attrs.download, '', 'use the native download link and server-provided filename');
+	assert.equal(downloadNodes.filter(item => item.tag === 'a').length, 1, 'do not invent an unverified import URL scheme');
 	const publishNotice = 'Draft saved. Build and publish from the Overview page to update downloads or OpenClash.';
 	const settingsNotice = 'Global settings saved.';
 	function assertNotice(expected, reason) {

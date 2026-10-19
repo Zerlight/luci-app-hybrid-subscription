@@ -1801,8 +1801,8 @@ msgid "Encoded source does not contain supported node links"
 msgstr "Base64 解码后的内容未包含受支持的节点链接"
 
 #: root/usr/share/hybrid-subscription/
-msgid "Expected a Mihomo proxy list, Surge [Proxy], sing-box outbounds, or supported node links"
-msgstr "订阅格式无法识别：须为 Mihomo proxies 列表、Surge [Proxy] 段落、sing-box outbounds 或受支持的节点分享链接"
+msgid "Expected a Mihomo proxy list, Surge/Shadowrocket [Proxy], sing-box outbounds, or supported node links"
+msgstr "订阅格式无法识别：须为 Mihomo proxies 列表、Surge / Shadowrocket [Proxy] 段落、sing-box outbounds 或受支持的节点分享链接"
 
 #: root/usr/share/hybrid-subscription/
 msgid "Source has no proxy nodes"
@@ -2866,3 +2866,171 @@ msgstr "兼容草稿将不再执行原有的地区二次匹配"
 #: htdocs/luci-static/resources/hybrid-subscription.js
 msgid "Omit native Mihomo runtime and geodata policy from the compatible draft"
 msgstr "从兼容草稿中移除 Mihomo 专属运行参数与地理数据库设置"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/profiles.js
+msgid "Shadowrocket Group Type"
+msgstr "Shadowrocket 策略组类型"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/rules.js
+msgid "Shadowrocket URL (Classical YAML)"
+msgstr "Shadowrocket 规则集地址（Classical YAML）"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/rules.js
+msgid "URL of a Clash classical YAML rule set with a payload list. Configure this separately; Surge text lists cannot be used here."
+msgstr "填写包含 payload 列表的 Clash classical YAML 规则集地址，需单独配置，不能使用 Surge 文本规则列表。"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/compatibility.js
+msgid "Exports a Clash YAML profile with nodes, policy groups and routing rules. Import it under Config in Shadowrocket; review unsupported Mihomo features before exporting."
+msgstr "导出包含节点、策略组和分流规则的 Clash YAML 配置，请在 Shadowrocket 的“配置”中导入。导出前需处理不兼容的 Mihomo 特性。"
+
+#: root/usr/share/hybrid-subscription/engine.rb
+msgid "Invalid Shadowrocket proxy definition"
+msgstr "Shadowrocket 节点定义格式无效"
+
+#: root/usr/share/hybrid-subscription/engine.rb
+msgid "Quoted, escaped or commented native Shadowrocket proxy fields have no verified import mapping"
+msgstr "当前转换器尚未提供经核实的 Shadowrocket 引号、转义或注释字段导入映射"
+
+#: root/usr/share/hybrid-subscription/engine.rb
+msgid "This protocol has no verified native Shadowrocket import mapping yet; use supported URI or YAML nodes"
+msgstr "当前转换器尚未提供经核实的该协议 Shadowrocket 原生导入映射，请使用受支持的节点链接或 YAML 节点"
+
+#: root/usr/share/hybrid-subscription/engine.rb
+msgid "Invalid Shadowrocket proxy option"
+msgstr "Shadowrocket 节点选项格式无效"
+
+#: root/usr/share/hybrid-subscription/engine.rb
+msgid "Duplicate Shadowrocket proxy option"
+msgstr "Shadowrocket 节点包含重复选项"
+
+#: root/usr/share/hybrid-subscription/engine.rb
+msgid "Shadowrocket method is supported only for SS and VMess"
+msgstr "当前转换器仅支持为 SS 和 VMess 导入 Shadowrocket method 选项"
+
+#: root/usr/share/hybrid-subscription/engine.rb
+msgid "Shadowrocket alterId is supported only for VMess"
+msgstr "Shadowrocket alterId 选项仅适用于 VMess"
+
+#: root/usr/share/hybrid-subscription/engine.rb
+msgid "Legacy VMess has no verified Shadowrocket import mapping"
+msgstr "当前转换器尚未提供经核实的旧版 VMess Shadowrocket 导入映射"
+
+#: root/usr/share/hybrid-subscription/engine.rb
+msgid "Invalid Shadowrocket boolean"
+msgstr "Shadowrocket 布尔值格式无效"
+
+#: root/usr/share/hybrid-subscription/engine.rb
+msgid "Shadowrocket TLS options require enabled TLS"
+msgstr "Shadowrocket TLS 选项需要先启用 TLS"
+
+#: root/usr/share/hybrid-subscription/engine.rb
+msgid "Trojan requires TLS"
+msgstr "Trojan 需要启用 TLS"
+
+#: root/usr/share/hybrid-subscription/engine.rb
+msgid "TLS-wrapped Shadowsocks has no verified import mapping"
+msgstr "当前转换器尚未提供经核实的 TLS 封装 Shadowsocks 导入映射"
+
+#: root/usr/share/hybrid-subscription/engine.rb
+msgid "conflicting TLS server names"
+msgstr "TLS 服务器名称设置冲突"
+
+#: root/usr/share/hybrid-subscription/engine.rb
+msgid "TLS options require enabled TLS"
+msgstr "TLS 选项需要先启用 TLS"
+
+#: root/usr/share/hybrid-subscription/engine.rb
+msgid "Native Shadowrocket import requires an explicit udp=0 or udp=1; the client default has no verified mapping"
+msgstr "导入 Shadowrocket 原生节点需要明确设置 udp=0 或 udp=1；当前转换器尚未验证客户端默认行为的映射"
+
+#: root/usr/share/hybrid-subscription/engine.rb
+msgid "Native Shadowrocket VMess import currently supports only method=auto"
+msgstr "当前转换器导入 Shadowrocket 原生 VMess 节点时仅支持 method=auto"
+
+#: htdocs/luci-static/resources/hybrid-subscription.js
+msgid "Shadowrocket (Clash YAML)"
+msgstr "Shadowrocket（Clash YAML）"
+
+#: root/usr/share/hybrid-subscription/engine.rb
+msgid "Shadowrocket policy names must be unique ignoring case, including DIRECT and REJECT"
+msgstr "Shadowrocket 策略名称不得重复（不区分大小写），也不得与 DIRECT 或 REJECT 重名"
+
+#: root/usr/share/hybrid-subscription/engine.rb
+msgid "Shadowrocket LAN rules use explicit private, loopback and link-local ranges; Mihomo GEOIP LAN may include additional reserved ranges"
+msgstr "Shadowrocket LAN 规则使用明确的私有、回环和链路本地网段；Mihomo GEOIP LAN 可能还包含其他保留网段"
+
+#: root/usr/share/hybrid-subscription/engine.rb
+msgid "this protocol requires TLS"
+msgstr "该协议需要启用 TLS"
+
+#: root/usr/share/hybrid-subscription/engine.rb
+msgid "conflicting VMess AEAD settings"
+msgstr "VMess AEAD 设置冲突"
+
+#: root/usr/share/hybrid-subscription/engine.rb
+msgid "unsupported VMess cipher"
+msgstr "不支持的 VMess 加密方式"
+
+#: root/usr/share/hybrid-subscription/engine.rb
+msgid "conflicting fast-open settings"
+msgstr "TCP Fast Open 设置冲突"
+
+#: root/usr/share/hybrid-subscription/engine.rb
+msgid "conflicting AnyTLS reuse settings"
+msgstr "AnyTLS 连接复用设置冲突"
+
+#: root/usr/share/hybrid-subscription/engine.rb
+msgid "conflicting certificate fingerprints"
+msgstr "证书指纹设置冲突"
+
+#: root/usr/share/hybrid-subscription/engine.rb
+msgid "unsupported v2ray-plugin mode"
+msgstr "不支持的 v2ray-plugin 模式"
+
+#: root/usr/share/hybrid-subscription/engine.rb
+msgid "conflicting plugin certificate verification settings"
+msgstr "插件证书验证设置冲突"
+
+#: root/usr/share/hybrid-subscription/engine.rb
+msgid "transport options must be an object"
+msgstr "传输选项必须为对象"
+
+#: root/usr/share/hybrid-subscription/engine.rb
+msgid "HTTP headers must be an object"
+msgstr "HTTP 请求头必须为对象"
+
+#: root/usr/share/hybrid-subscription/engine.rb
+msgid "multiple HTTP/2 paths cannot be represented"
+msgstr "无法转换多个 HTTP/2 路径，请明确使用一个路径"
+
+#: root/usr/share/hybrid-subscription/engine.rb
+msgid "HTTP/2 headers must be an object"
+msgstr "HTTP/2 请求头必须为对象"
+
+#: root/usr/share/hybrid-subscription/engine.rb
+msgid "conflicting HTTP/2 hosts"
+msgstr "HTTP/2 主机名设置冲突"
+
+#: root/usr/share/hybrid-subscription/engine.rb
+msgid "WebSocket path must be text"
+msgstr "WebSocket 路径必须为文本"
+
+#: root/usr/share/hybrid-subscription/engine.rb
+msgid "HTTP Upgrade early data requires an explicit transport mapping"
+msgstr "HTTP Upgrade 提前数据需要明确的传输方式映射"
+
+#: root/usr/share/hybrid-subscription/engine.rb
+msgid "conflicting WebSocket early data limits"
+msgstr "WebSocket 提前数据大小限制冲突"
+
+#: root/usr/share/hybrid-subscription/engine.rb
+msgid "invalid transport URL encoding"
+msgstr "传输地址的 URL 编码无效"
+
+#: root/usr/share/hybrid-subscription/engine.rb
+msgid "Reality requires VLESS or VMess"
+msgstr "Reality 需要使用 VLESS 或 VMess 协议"
+
+#: root/usr/share/hybrid-subscription/engine.rb
+msgid "Reality requires enabled TLS"
+msgstr "Reality 需要启用 TLS"

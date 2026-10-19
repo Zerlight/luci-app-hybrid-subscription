@@ -7,11 +7,11 @@
 
 [English](README.md) | [简体中文](README.zh-CN.md)
 
-一款面向 OpenWrt LuCI 的原生**多订阅源聚合**与**可视化分流规则编排**工具。支持将多个订阅源缓存至路由器本地，编排策略组与分流规则，并为 **Mihomo (Clash Meta)**、**Surge** 与 **sing-box** 生成带版本管理与一键回滚能力的配置文件。
+一款面向 OpenWrt LuCI 的原生**多订阅源聚合**与**可视化分流规则编排**工具。支持将多个订阅源缓存至路由器本地，编排策略组与分流规则，并为 **Mihomo (Clash Meta)**、**Surge**、**sing-box** 与 **Shadowrocket**（Clash YAML 格式）生成带版本管理与一键回滚能力的配置文件。
 
 ```text
 上游订阅源 ──► 本地节点缓存 ──► LuCI 策略组与规则编排 ──► 不可变发布版本 ──► 客户端拉取 (二维码 / URL)
-(手动/定时)    (/etc/hybrid-...)   (Mihomo / Surge / sing-box)  (SHA-256 校验)    └──► 同步应用至 OpenClash
+(手动/定时)    (/etc/hybrid-...)   (各客户端独立格式)          (SHA-256 校验)    └──► 同步应用至 OpenClash
 ```
 
 本工具专注于订阅聚合、规则编译与版本分发；实时连接监控与运行期节点切换仍由各客户端面板负责。
@@ -20,7 +20,7 @@
 
 - **拉取与分发解耦（保护限时/限次订阅）**：支持将任意数量的订阅源组合为多套独立配置（Profile），按来源或地区正则模板筛选节点。客户端扫码或更新订阅时仅读取本地已发布的静态文件，**绝不触发上游订阅拉取**。
 - **原生 LuCI 规则引擎与依赖图**：基于 LuCI 原生组件编辑策略组、有序分流规则、共享远程/内联规则集，支持 Mihomo 重匹配入口（`rematch`）、命名子规则（`sub-rules`）与递归逻辑条件（`AND` / `OR` / `NOT`），并提供浏览器端原生 SVG 策略依赖关系图。
-- **三端订阅互转与兼容性向导**：支持导入 Mihomo、Surge 或 sing-box 节点订阅并互转导出。内置原生 LuCI **兼容性**检查页与向导，可逐端排查兼容问题，按需将策略组调整为手动选择或受支持的基础自动模式，经预览确认后生成独立的客户端配置。不支持的协议与规则语义将直接报错拦截，字段差异仍需在发布前显式确认。
+- **多客户端订阅互转与兼容性向导**：支持导入 Mihomo、Surge、sing-box 或 Shadowrocket 节点订阅，并按目标客户端导出对应配置。内置原生 LuCI **兼容性**检查页与向导，可逐端排查兼容问题，按需将策略组调整为手动选择或受支持的自动模式，预览确认后生成独立的客户端配置。遇到不支持的协议或规则会直接报错拦截，存在字段差异时则需在发布前手动确认。
 - **不可变版本与历史回滚**：遵循“保存草稿 → 校验与脱敏预览 → 构建版本 → 确认兼容性差异 → 发布 / 历史回滚”流程，改坏草稿不会影响正在使用的订阅链接。
 - **OpenClash 安全协同**：支持一键导入现有 OpenClash 订阅源与本地节点缓存；将已发布版本应用至 OpenClash 前会自动执行 `clash_meta -t` 隔离语法校验并启动超时回滚守卫，防止坏配置导致断网。
 - **无常驻 Web 进程的轻量设计**：完全复用路由器现有的 `uhttpd` 与 `rpcd`，无需额外部署 Node.js、Docker 或独立 Web 后端。
@@ -103,7 +103,7 @@ make package/luci-app-hybrid-subscription/compile V=s
 1. **添加订阅源（订阅源）**：点击**从 OpenClash 导入**可直接复用本机已有的订阅定义与节点缓存（不会请求上游服务器），也可手动新建订阅源。对于限制拉取次数或仅限时开放的订阅源，请将更新方式保持为**仅手动**。
 2. **创建订阅配置（订阅配置）**：点击**快速创建订阅配置**生成包含默认节点选择组的基础配置（同时支持 Mihomo、Surge 与 sing-box），或按需添加地区策略组与 Mihomo 重匹配/子规则。
 3. **编排规则（分流规则）**：按需添加有序分流规则（支持 `DOMAIN-SUFFIX`、`IP-CIDR`、`RULE-SET`、`GEOIP`、`GEOSITE` 及递归 `AND`/`OR`/`NOT` 逻辑组合）与共享规则集。
-4. **检查兼容性（兼容性）**：基于已保存配置与本地节点缓存，逐一检查 Mihomo、Surge、sing-box 三端兼容性。若使用了目标端不支持的专属分流特性，可通过**兼容性向导**拆分为独立的客户端配置。
+4. **检查兼容性（兼容性）**：基于已保存配置与本地节点缓存，逐一检查 Mihomo、Surge、sing-box、Shadowrocket 四端兼容性。若使用了目标端不支持的专属分流特性，可通过**兼容性向导**拆分为独立的客户端配置。
 5. **构建与发布（状态概览）**：在配置卡片上点击**构建并发布**，核对跨客户端兼容性提示后确认发布，即可点击**下载 / 二维码**在各端导入订阅。
 6. **同步至 OpenClash（可选）**：在已发布配置的**版本管理**中可手动将 Mihomo 配置应用至 OpenClash，也可在**全局设置**中开启**发布后自动应用至 OpenClash**。
 
@@ -111,9 +111,11 @@ make package/luci-app-hybrid-subscription/compile V=s
 
 ### 订阅互转与兼容性向导
 
-在**订阅源**中可选择自动识别或手动指定订阅格式，随后刷新缓存或导入订阅文本。导入过程仅提取**代理节点**（Mihomo 的 `proxies`、Surge 的 `[Proxy]`、sing-box 的代理 `outbounds`），忽略上游配置自带的策略组、分流规则、DNS、监听端口与控制器密钥；最终导出的分流结构完全由本工具中的“订阅配置”与“分流规则”决定。若 Surge 或 sing-box 节点包含无法准确映射的未知参数，导入会直接报错拒绝；Mihomo 节点的原始字段则完整保存在缓存中，导出至其他客户端时若有字段无法等价转换，会在发布前给出明确的差异提示。
+各协议版本、客户端更新记录、上游参考提交与验证范围见[兼容性版本基线](docs/compatibility-versions.md)。
 
-**兼容性**页面会同时检查三种目标客户端（包括当前未勾选导出的格式），且仅读取已保存的配置与本地节点缓存，不会请求上游订阅。页面按当前选中的目标客户端归类汇总兼容性问题，支持展开查看具体受影响条目及导出校验详情。内置向导采用 LuCI 原生表单与对话框，处理流程如下：
+在**订阅源**中可选择自动识别或手动指定订阅格式，随后刷新缓存或导入订阅文本。导入过程仅提取**代理节点**（Mihomo 的 `proxies`、Surge / Shadowrocket 的 `[Proxy]`、sing-box 的代理 `outbounds`），忽略上游配置自带的策略组、分流规则、DNS、监听端口与控制器密钥；最终导出的分流结构完全由本工具中的“订阅配置”与“分流规则”决定。若 Surge、Shadowrocket 或 sing-box 节点包含无法准确映射的未知参数，导入会直接报错拒绝；Mihomo 节点的原始字段则完整保存在缓存中，导出至其他客户端时若有字段无法等价转换，会在发布前给出明确的差异提示。
+
+**兼容性**页面会同时检查四种目标客户端（包括当前未勾选导出的格式），且仅读取已保存的配置与本地节点缓存，不会请求上游订阅。页面按当前选中的目标客户端归类汇总兼容性问题，支持展开查看具体受影响条目及导出校验详情。内置向导采用 LuCI 原生表单与对话框，处理流程如下：
 
 1. 选择目标客户端，并填写新配置的标识符与名称。
 2. 为需要调整的策略组选择手动选择、延迟测速，或目标端支持的故障转移模式；对于重匹配入口（`rematch`），可替换为固定出口策略，也可指定候选策略列表来新建手动选择组或延迟测速组。
@@ -142,6 +144,18 @@ make package/luci-app-hybrid-subscription/compile V=s
 
 确认更新后，新生成的配置会直接写回原兼容草稿，完整保留其配置名称、标识符与订阅下载链接（线上已发布的下载内容仍需再次构建并发布后才会生效）。若该兼容草稿曾被手动修改，更新前会列出将被覆盖的差异项供你确认；若来源配置已被删除，现有兼容草稿及已发布订阅仍可正常使用，但无法再从来源配置同步更新。旧版向导生成的配置不含来源追踪记录，需通过新版向导重新创建一次后方可启用方案记忆与变更追踪。
 
+### Shadowrocket 导出
+
+Shadowrocket 作为独立的导出目标（`shadowrocket`）按需启用，生成的 **`shadowrocket.yaml` 包含节点、策略组、规则集与有序分流规则**。使用时请在 Shadowrocket 的**配置**页面通过链接或文件导入，选中后开启按配置分流；仅作为普通节点订阅导入不会启用分流规则。快速创建配置默认仍勾选 Mihomo、Surge 与 sing-box。
+
+节点字段转换参考了 [Sub-Store 的 Shadowrocket 转换实现](https://github.com/sub-store-org/Sub-Store/blob/1f0318bc6feb46fbe204836f32ca7acab37ea67e/backend/src/core/proxy-utils/producers/shadowrocket.js)，覆盖 AnyTLS、Shadowsocks、Trojan、VMess、VLESS、Hysteria2 与 TUIC，策略组与分流规则则由本工具根据配置一并编译生成。若存在不支持的参数组合或无法解析的节点依赖，导出会直接报错中止，不会静默剔除节点；对于客户端实际表现尚待确认的高级字段，导出时会予以保留并在发布前提示确认。
+
+策略组支持手动选择、延迟测速、故障转移和负载均衡；分流规则保留原有顺序、策略目标、逻辑条件与兜底策略，内联规则集会直接展开为普通规则条件。远程规则集需单独填写 **Shadowrocket 地址**，且必须指向规则内容等价、包含 `payload` 列表的 **Clash classical YAML 规则集**（导出为 `behavior: classical` 的 HTTP `rule-provider`），即使其他客户端使用的是域名或 IP 列表，也不会自动混用 Surge 规则文本、Mihomo MRS 或其他格式的规则地址。
+
+支持导入 Clash YAML 并不代表完整兼容 Mihomo 专有特性：`rematch`、子规则、`GEOSITE`、`REMATCH-NAME` 及 Mihomo 原生 DNS 仍需在兼容副本中调整或移除，`smart` 策略组需改为受支持的替代模式，移除原生 DNS 后将使用客户端默认 DNS 设置。默认节点选择、空组回退、惰性测速（`lazy`）等行为差异也会在发布前提示确认，转换方案保存、来源变更提醒与复核更新流程与其他客户端一致。目前原生 `.conf` 导出已移除，仅保留基础 SS、Trojan、VMess、VLESS 的原生节点导入（需显式指定 `udp=0/1`，不支持未验证的引号或转义写法）；若导入的原生节点文本缺少格式标记、无法与 Surge 自动区分，请手动选择 Shadowrocket 格式。
+
+相关客户端版本记录、Sub-Store 转换实现及 clash-skk 规则集参考提交详见[兼容性版本基线](docs/compatibility-versions.md#shadowrocket-release-evidence)。目前自动化测试已覆盖字段映射与发布流程，尚未在 Shadowrocket 真机上完成导入、规则命中与连通性实测。
+
 ### 流量与到期查询
 
 额度解析兼容 [OpenClash](https://github.com/vernesong/OpenClash/blob/master/luci-app-openclash/luasrc/controller/openclash.lua) 使用的 `Subscription-Userinfo` 响应头格式（`upload; download; total; expire`）：
@@ -169,7 +183,7 @@ make package/luci-app-hybrid-subscription/compile V=s
 sh scripts/test.sh
 ```
 
-`scripts/test.sh` 会依次执行全部 `tests/test_*.rb` Ruby 单元测试（包括三种源格式到三种目标格式的转换矩阵与兼容性方案测试）、JavaScript 前端与工作台测试、`msgfmt` 翻译格式检查及 Shell 脚本语法校验。GitHub Actions 在每次推送、Pull Request 及推送 `v*` 版本标签时均会自动执行测试并构建 OpenWrt 24.10 (`.ipk`) 与 25.12 (`.apk`) 安装包。
+`scripts/test.sh` 会依次执行全部 `tests/test_*.rb` Ruby 单元测试（包括格式转换矩阵、Shadowrocket 映射与兼容性方案测试）、JavaScript 前端与工作台测试、`msgfmt` 翻译格式检查及 Shell 脚本语法校验。GitHub Actions 在每次推送、Pull Request 及推送 `v*` 版本标签时均会自动执行测试并构建 OpenWrt 24.10 (`.ipk`) 与 25.12 (`.apk`) 安装包。
 
 ## 许可证
 

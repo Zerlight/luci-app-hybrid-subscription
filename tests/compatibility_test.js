@@ -70,9 +70,9 @@ const native = new Function('baseclass', 'form', 'rpc', 'ui', 'poll', 'uqr', 'L'
 	{ env: { lang: 'en' } }, E, x => x, {}
 );
 const proposed = { available: true, mode: 'url-test', reason: 'Use latency testing; Smart decisions are not preserved.' };
-const group = (id, modes = ['smart', 'smart', 'selector']) => ({ id, name: id, modes: { mihomo: modes[0], surge: modes[1], singbox: modes[2] },
-	alternatives: { mihomo: ['manual', 'url-test', 'fallback'], surge: ['manual', 'url-test', 'fallback'], singbox: ['manual', 'url-test'] },
-	suggestions: id === 'stable' ? {} : { surge: proposed, singbox: proposed } });
+const group = (id, modes = ['smart', 'smart', 'selector', 'select']) => ({ id, name: id, modes: { mihomo: modes[0], surge: modes[1], singbox: modes[2], shadowrocket: modes[3] || 'select' },
+	alternatives: { mihomo: ['manual', 'url-test', 'fallback'], surge: ['manual', 'url-test', 'fallback'], singbox: ['manual', 'url-test'], shadowrocket: ['manual', 'url-test', 'fallback'] },
+	suggestions: id === 'stable' ? {} : { surge: proposed, singbox: proposed, shadowrocket: proposed } });
 const issues = ['proxy', 'backup'].map(id => ({ id, code: 'group:' + id, kind: 'group', severity: 'warning', message: 'Repeated warning for ' + id }));
 issues.push({ id: 'entry', code: 'rematch:entry', kind: 'rematch', severity: 'error', message: 'Choose a replacement' });
 const report = {
@@ -80,13 +80,15 @@ const report = {
 	targets: [
 		{ format: 'mihomo', errors: [], warnings: [], issues: [] },
 		{ format: 'surge', errors: ['Unsupported node transport'], warnings: issues.slice(0, 2).map(issue => ({ code: 'surge:' + issue.code, message: issue.message })), issues },
-		{ format: 'singbox', errors: [], warnings: [{ message: 'Review DNS behavior' }], issues: issues.slice(0, 2) }
+		{ format: 'singbox', errors: [], warnings: [{ message: 'Review DNS behavior' }], issues: issues.slice(0, 2) },
+		{ format: 'shadowrocket', errors: [], warnings: [], issues }
 	],
 	choices: { policies: [{ id: 'DIRECT', name: 'DIRECT' }, { id: 'REJECT', name: 'REJECT' }, { id: 'proxy', name: 'Proxy' }, { id: 'backup', name: 'Backup' }],
 		rematches: [{ id: 'entry', name: 'Entry', suggestions: { surge: { available: true, mode: 'manual', members: ['proxy', 'backup'], reason: 'Review the candidate order.' },
-			singbox: { available: false, reason: 'Choose candidates manually.' } } }],
+			singbox: { available: false, reason: 'Choose candidates manually.' },
+			shadowrocket: { available: true, mode: 'manual', members: ['backup', 'proxy'], reason: 'Review the candidate order.' } } }],
 		groups: [group('proxy'), group('backup'), group('stable', ['select', 'select', 'selector'])],
-		rules: [{ id: 'geo', name: 'Geo rule', type: 'GEOSITE', targets: ['surge', 'singbox'] }, { id: 'domain', name: 'Domain', type: 'DOMAIN', targets: [] }],
+		rules: [{ id: 'geo', name: 'Geo rule', type: 'GEOSITE', targets: ['surge', 'singbox', 'shadowrocket'] }, { id: 'domain', name: 'Domain', type: 'DOMAIN', targets: [] }],
 		sub_rules: [{ id: 'branch' }], has_dns: true, has_mihomo_policy: true }
 };
 const plan = { version: 'version-1', plan_token: 'cache-bound-token', ready: true, changes: [
@@ -291,6 +293,36 @@ const option = (map, key) => map.options.find(o => o.key === key);
 	assert.match(notifications.at(-1), /source profile is missing/); assert.equal(modal, undefined);
 	page.confirmPlan({ ...currentPlan, ready: false, errors: ['Still blocked'] }, updatePreview.args, () => {});
 	assert.equal(button('Update Compatible Draft'), undefined, 'unresolved update blockers cannot replace a saved copy');
+	const rocketTarget = report.targets.find(target => target.format === 'shadowrocket');
+	const rocketContent = JSON.stringify(page.targetContent(report, rocketTarget));
+	assert.match(rocketContent, /Clash YAML profile with nodes, policy groups and routing rules/);
+	assert.doesNotMatch(rocketContent, /\.conf|nodes only/i, 'the compatibility page describes the full YAML profile, not the abandoned native export or a node-only feed');
+	const advancedWarning = { code: 'shadowrocket:advanced-fields', message: '32 nodes contain advanced fields whose Shadowrocket behavior needs review: client-fingerprint, idle-session-timeout. These fields are retained.' };
+	const aggregateContent = JSON.stringify(page.targetContent(report, { ...rocketTarget, warnings: [advancedWarning] }));
+	assert.equal((aggregateContent.match(/32 nodes contain advanced fields/g) || []).length, 1, 'advanced node options appear as one compact review notice');
+	assert.match(aggregateContent, /client-fingerprint, idle-session-timeout/, 'aggregate review retains the affected field names');
+	await page.wizard(report, 'shadowrocket', true);
+	const rocket = maps.at(-1);
+	assert.equal(modal.attrs.title, 'Compatibility Wizard · Shadowrocket');
+	assert.equal(rocket.rows.copy.id, 'main_shadowrocket');
+	assert.equal(rocket.rows.copy.name, 'Main · Shadowrocket');
+	assert.equal(rocket.rows.group_0.mode, 'url-test');
+	assert.deepEqual(rocket.rows.rematch_0.members, ['backup', 'proxy'], 'Shadowrocket uses its own routing suggestions');
+	assert.deepEqual(option(rocket, 'mode').choices.map(choice => choice[0]), ['', 'keep', 'manual', 'url-test', 'fallback'], 'wizard only offers supported compatibility alternatives');
+	assert.equal(rocket.rows.copy.omit_dns, undefined, 'Shadowrocket does not silently discard DNS');
+	await button('Preview Changes').attrs.action();
+	assert.equal(requests.at(-1).args.format, 'shadowrocket');
+	await button('Cancel').attrs.action();
+	const rocketStrategy = { ...strategy, id: 'saved_shadowrocket', name: 'Saved Shadowrocket', format: 'shadowrocket' };
+	reviewReport = { ...report, strategy: rocketStrategy };
+	await page.review(rocketStrategy.id);
+	assert.equal(modal.attrs.title, 'Compatibility Wizard · Shadowrocket', 'saved review resolves its target dynamically');
+	assert.equal(maps.at(-1).rows.copy.id, 'saved_shadowrocket');
+	assert.equal(maps.at(-1).rows.group_0.mode, 'keep', 'saved explicit choices survive Shadowrocket review');
+	await button('Preview Changes').attrs.action();
+	assert.equal(requests.at(-1).args.format, 'shadowrocket');
+	assert.equal(requests.at(-1).args.operation, 'reapply');
+	assert.equal(requests.at(-1).args.id, 'saved_shadowrocket', 'review preserves subscription identity');
 	await native.api('compatibility_create', { profile: 'main', format: 'surge', id: 'copy', name: 'Copy', resolutions: '{}', version: 'v', plan_token: 't', accepted_changes: ['c'] });
 	assert.deepEqual(calls.at(-1), { method: 'compatibility_create', args: ['main', 'surge', 'copy', 'Copy', '{}', 'v', 't', ['c']] });
 	await native.api('compatibility_update', { profile: 'main', format: 'surge', id: 'copy', name: 'Copy', resolutions: '{}', operation: 'reapply', version: 'v', plan_token: 't', accepted_changes: ['c'] });

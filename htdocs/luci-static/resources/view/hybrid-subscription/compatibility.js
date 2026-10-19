@@ -5,7 +5,7 @@
 'require dom';
 'require hybrid-subscription as hs';
 
-const clients = { mihomo: 'Mihomo', surge: 'Surge', singbox: 'sing-box' };
+const clients = { mihomo: 'Mihomo', surge: 'Surge', singbox: 'sing-box', shadowrocket: 'Shadowrocket' };
 function modeLabel(mode) {
 	const labels = { manual: _('Manual Select'), select: _('Manual Select'), selector: _('Manual Select'),
 		'url-test': _('URL Test (Auto)'), urltest: _('URL Test (Auto)'), fallback: _('Fallback'), 'load-balance': _('Load Balance'), smart: 'Smart' };
@@ -134,6 +134,7 @@ return view.extend({
 		});
 		const available = (report.choices.groups || []).concat(report.choices.rematches || []).filter(function(row) { return (suggestion(row, target.format) || {}).available; }).length;
 		return E('div', { 'class': 'cbi-section' }, [E('h3', {}, clients[target.format]),
+			target.format === 'shadowrocket' ? E('p', { 'class': 'cbi-section-descr' }, _("Exports a Clash YAML profile with nodes, policy groups and routing rules. Import it under Config in Shadowrocket; review unsupported Mihomo features before exporting.")) : '',
 			E('p', {}, buckets.length ? _('%s issue types. Expand a row to see the affected items.').format(buckets.length) : _('No additional compatibility issues.')),
 			buckets.length ? hs.table([_('Issue'), _('Details and suggestions')], buckets.map(function(bucket) {
 				return [E('details', {}, [E('summary', {}, _('%s · %s items').format(bucket.title, bucket.items.length)),

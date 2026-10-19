@@ -12,7 +12,7 @@ module HybridSubscription
   # Canonical caches contain Mihomo node hashes, never whole router configurations.
   # Rendering is pure: a download cannot refresh a source or change the router.
   class Engine
-    FORMATS = %w[mihomo surge singbox].freeze
+    FORMATS = %w[mihomo surge singbox shadowrocket].freeze
     PROTOCOLS = %w[anytls trojan ss vmess vless hysteria2 tuic].freeze
     RULE_TYPES = %w[DOMAIN DOMAIN-SUFFIX DOMAIN-KEYWORD IP-CIDR IP-CIDR6 GEOIP GEOSITE RULE-SET DST-PORT NETWORK REMATCH-NAME AND OR NOT].freeze
     BUILTINS = %w[DIRECT REJECT].freeze
@@ -37,11 +37,12 @@ module HybridSubscription
       raise Error, 'Source is not valid UTF-8' unless content.dup.force_encoding(Encoding::UTF_8).valid_encoding?
       text = content.dup.force_encoding(Encoding::UTF_8).sub(/\A\uFEFF/, '').strip
       raise Error, 'Source is empty' if text.empty?
-      raise Error, 'Unknown source format' unless %w[auto mihomo clash surge singbox uri].include?(format)
+      raise Error, 'Unknown source format' unless %w[auto mihomo clash surge singbox shadowrocket uri].include?(format)
       if format == 'uri' || text.match?(/\A(?:ss|trojan|anytls|vmess|vless|hysteria2|hy2|tuic):\/\//)
         nodes = text.lines.reject { |line| line.strip.empty? || line.lstrip.start_with?('#') }.map { |line| import_uri(line.strip) }
       elsif format == 'surge' || text.match?(/^\[Proxy\]\s*$/i)
-        nodes = import_surge(text)
+        shadowrocket = format == 'shadowrocket' || (format == 'auto' && shadowrocket_source?(text))
+        nodes = shadowrocket ? import_shadowrocket(text) : import_surge(text)
       elsif text.match?(/\A[A-Za-z0-9+\/_=\-\s]+\z/) && !text.include?(':')
         decoded = decode64(text.gsub(/\s/, ''))
         raise Error, 'Encoded source does not contain supported node links' unless decoded.match?(/\A(?:ss|trojan|anytls|vmess|vless|hysteria2|hy2|tuic):\/\//)
@@ -56,7 +57,7 @@ module HybridSubscription
         elsif value.is_a?(Array)
           nodes = value
         else
-          raise Error, 'Expected a Mihomo proxy list, Surge [Proxy], sing-box outbounds, or supported node links'
+          raise Error, 'Expected a Mihomo proxy list, Surge/Shadowrocket [Proxy], sing-box outbounds, or supported node links'
         end
       end
       raise Error, 'Source has no proxy nodes' if nodes.empty?
@@ -135,10 +136,11 @@ module HybridSubscription
         content = case format
                   when 'mihomo' then render_mihomo(c, warnings, errors)
                   when 'surge' then render_surge(c, warnings, errors)
+                  when 'shadowrocket' then render_shadowrocket(c, warnings, errors)
                   when 'singbox' then render_singbox(c, warnings, errors)
                   end
       end
-      content = redact_content(content, c) if redact && content && errors.empty?
+      content = redact_content(content, c, format) if redact && content && errors.empty?
       { 'content' => errors.empty? ? content : '', 'warnings' => warnings.uniq, 'errors' => errors.uniq }
     rescue Error => e
       { 'content' => '', 'warnings' => [], 'errors' => [e.message] }
@@ -631,6 +633,205 @@ module HybridSubscription
       parts.join(',')
     end
 
+    def render_shadowrocket(c, warnings, errors)
+      require_portable_policy!(c, 'shadowrocket')
+      portable_policy_warnings(c, 'shadowrocket', warnings)
+      names = BUILTINS.map(&:downcase)
+      (c[:nodes].map { |n| n[:raw]['name'] } + c[:groups].map { |g| g['name'] }).each do |name|
+        raise Error, 'Shadowrocket policy names must be unique ignoring case, including DIRECT and REJECT' if names.include?(name.downcase)
+        names << name.downcase
+      end
+      advanced_nodes = []
+      nodes = c[:nodes].map do |n|
+        begin
+          shadowrocket_node(n[:raw], warnings, advanced_nodes)
+        rescue Error => e
+          errors << "shadowrocket: #{e.message}"
+          nil
+        end
+      end
+      unless advanced_nodes.empty?
+        fields = advanced_nodes.flatten.uniq.sort.join(', ')
+        warning(warnings, 'shadowrocket', 'advanced-fields', "#{advanced_nodes.length} nodes contain advanced fields whose Shadowrocket behavior needs review: #{fields}. These fields are retained.")
+      end
+      groups = c[:groups].map do |g|
+        type = g.fetch('shadowrocket_type', 'select')
+        raise Error, "Group #{g['id']}: unsupported Shadowrocket type; choose select, url-test, fallback or load-balance" unless %w[select url-test fallback load-balance].include?(type)
+        baseline = g.fetch('mihomo_type', 'select')
+        if baseline != type
+          warning(warnings, 'shadowrocket', "group:#{g['id']}", "Group #{g['name']}: shadowrocket mode #{type} differs from or cannot guarantee Mihomo #{baseline} behavior; review a manual or simpler automatic alternative")
+        end
+        group = { 'name' => g['name'], 'type' => type, 'proxies' => group_members(c, g) }
+        if type != 'select'
+          group['url'] = http_url(g.fetch('url', 'https://www.gstatic.com/generate_204'), 'Group test URL')
+          group['interval'] = integer(g['interval'], 300, 10, 86_400, 'Group interval')
+          group['tolerance'] = integer(g['tolerance'], 50, 0, 60_000, 'Group tolerance') if type == 'url-test'
+        end
+        warning(warnings, 'shadowrocket', "hidden:#{g['id']}", "#{g['name']}: this exporter has no verified Shadowrocket mapping for the hidden group flag; it will be omitted") if g['hidden']
+        group
+      end
+      providers = used_sets(c).each_with_object({}) do |set, h|
+        next if set['source_type'] == 'inline'
+        url = http_url(set['shadowrocket_url'], "Rule set #{set['id']} Shadowrocket")
+        cache_key = Digest::SHA256.hexdigest(url)[0, 12]
+        h[set['id']] = { 'type' => 'http', 'behavior' => 'classical', 'url' => url,
+                         'path' => "./rule_provider/hybrid-#{set['id']}-#{cache_key}.yaml",
+                         'interval' => integer(set['interval'], 86_400, 60, 2_592_000, 'Rule set interval') }
+      end
+      rules = c[:rules].map { |r| shadowrocket_rule(c, r, warnings) }
+      rules << "MATCH,#{policy_name(c, c[:profile]['final_policy'])}"
+      YAML.dump('mode' => 'rule', 'proxies' => nodes, 'proxy-groups' => groups, 'rule-providers' => providers, 'rules' => rules)
+    end
+
+    def shadowrocket_rule(c, rule, warnings)
+      expand = lambda do |condition|
+        r = self.class.copy(condition)
+        if r['type'] == 'RULE-SET' && c[:sets][r['value']]['source_type'] == 'inline'
+          children = inline_conditions(c, c[:sets][r['value']]).map do |child|
+            r['no_resolve'] && %w[IP-CIDR IP-CIDR6 GEOIP].include?(child['type']) ? child.merge('no_resolve' => true) : child
+          end
+          r = children.length == 1 ? children.first : { 'type' => 'OR', 'conditions' => children }
+        end
+        if r['type'] == 'GEOIP' && r['value'].upcase == 'LAN'
+          warning(warnings, 'shadowrocket', "lan:#{rule['id']}", 'Shadowrocket LAN rules use explicit private, loopback and link-local ranges; Mihomo GEOIP LAN may include additional reserved ranges')
+          ranges = %w[10.0.0.0/8 127.0.0.0/8 169.254.0.0/16 172.16.0.0/12 192.168.0.0/16 ::1/128 fc00::/7 fe80::/10]
+          r = { 'type' => 'OR', 'conditions' => ranges.map { |cidr| { 'type' => cidr.include?(':') ? 'IP-CIDR6' : 'IP-CIDR', 'value' => cidr, 'no_resolve' => r['no_resolve'] } } }
+        end
+        r['conditions'] = r['conditions'].map { |child| expand.call(child) } if r['conditions']
+        r
+      end
+      converted = expand.call(rule)
+      converted['policy'] = rule['policy']
+      mihomo_rule(c, converted)
+    end
+
+    def shadowrocket_node(raw, warnings, advanced_nodes)
+      n = self.class.copy(raw)
+      type = n['type']
+      # Follow Sub-Store's Shadowrocket YAML producer, preserving fields instead of filtering nodes.
+      raise Error, "#{n['name']}: conflicting TLS server names" if n['sni'] && n['servername'] && n['sni'] != n['servername']
+      %w[dialer-proxy underlying-proxy].each do |key|
+        raise Error, "#{n['name']}: #{key} requires an explicit policy reference mapping" unless n[key].nil? || n[key] == ''
+      end
+      %w[reuse disable-reuse fast-open aead].each do |key|
+        raise Error, "#{n['name']}: #{key} must be boolean" if n.key?(key) && ![true, false].include?(n[key])
+      end
+      if %w[trojan anytls hysteria2 tuic].include?(type)
+        raise Error, "#{n['name']}: this protocol requires TLS" if n['tls'] == false
+        n.delete('tls')
+      end
+      if %w[vmess vless].include?(type) && n.key?('sni')
+        n['servername'] = n.delete('sni')
+      end
+      n['servername'] = n['sni'] if type == 'ss' && n['tls'] == true && !n['plugin'] && [nil, '', 'tcp'].include?(n['network']) && n.key?('sni')
+      if type == 'vmess'
+        if n.key?('aead')
+          raise Error, "#{n['name']}: conflicting VMess AEAD settings" if n['aead'] && n.fetch('alterId', 0) != 0
+          n['alterId'] = 0 if n.delete('aead')
+        end
+        cipher = n.fetch('cipher', 'auto').strip.downcase
+        cipher = 'auto' if cipher.empty?
+        cipher = 'chacha20-poly1305' if cipher == 'chacha20-ietf-poly1305'
+        raise Error, "#{n['name']}: unsupported VMess cipher" unless %w[auto none zero aes-128-gcm chacha20-poly1305].include?(cipher)
+        n['cipher'] = cipher
+      end
+      if %w[hysteria2 tuic].include?(type) && n.key?('tfo')
+        raise Error, "#{n['name']}: conflicting fast-open settings" if n.key?('fast-open') && n['tfo'] != n['fast-open']
+        n['fast-open'] = n['tfo'] unless n.key?('fast-open')
+      end
+      n['version'] = 5 if type == 'tuic' && !n.key?('token') && !n.key?('version')
+      if type == 'anytls' && n.key?('reuse')
+        raise Error, "#{n['name']}: conflicting AnyTLS reuse settings" if n.key?('disable-reuse') && n['disable-reuse'] == n['reuse']
+        if n['reuse'] == false
+          n['disable-reuse'] = true
+          n.delete('reuse')
+        end
+      end
+      if n.key?('tls-fingerprint')
+        raise Error, "#{n['name']}: conflicting certificate fingerprints" if n.key?('fingerprint') && n['fingerprint'] != n['tls-fingerprint']
+        n['fingerprint'] = n.delete('tls-fingerprint')
+      end
+      if type == 'ss' && n['plugin'] == 'v2ray-plugin'
+        opts = n['plugin-opts']
+        mode = opts.is_a?(Hash) && opts['mode'].is_a?(String) ? opts['mode'].strip.downcase : nil
+        raise Error, "#{n['name']}: unsupported v2ray-plugin mode" unless %w[websocket quic http2 mkcp grpc].include?(mode)
+        opts['mode'] = mode
+      end
+      %w[ws-opts grpc-opts h2-opts http-opts plugin-opts reality-opts].each do |key|
+        raise Error, "#{n['name']}: transport options must be an object" if n.key?(key) && !n[key].is_a?(Hash)
+      end
+      if n.key?('reality-opts')
+        raise Error, "#{n['name']}: Reality requires VLESS or VMess" unless %w[vless vmess].include?(type)
+        raise Error, "#{n['name']}: Reality requires enabled TLS" unless n['tls'] == true
+      end
+      shadowrocket_transport!(n)
+      if n['plugin-opts'].is_a?(Hash) && n['plugin-opts']['tls'] && n.key?('skip-cert-verify')
+        if n['plugin-opts'].key?('skip-cert-verify') && n['plugin-opts']['skip-cert-verify'] != n['skip-cert-verify']
+          raise Error, "#{n['name']}: conflicting plugin certificate verification settings"
+        end
+        n['plugin-opts']['skip-cert-verify'] = n['skip-cert-verify']
+      end
+      known = %w[name type server port password uuid token cipher alterId tls sni servername skip-cert-verify alpn udp tfo fast-open version network ws-opts grpc-opts h2-opts http-opts reality-opts flow packet-encoding down up obfs obfs-password congestion-controller udp-relay-mode heartbeat-interval disable-sni reduce-rtt fingerprint reuse disable-reuse]
+      advanced = n.keys - known
+      { 'ws-opts' => %w[path headers max-early-data early-data-header-name],
+        'grpc-opts' => %w[grpc-service-name], 'h2-opts' => %w[path host headers],
+        'http-opts' => %w[path headers method], 'reality-opts' => %w[public-key short-id] }.each do |key, fields|
+        next unless n[key].is_a?(Hash)
+        advanced.concat((n[key].keys - fields).map { |field| "#{key}.#{field}" })
+      end
+      advanced << 'network' if n['network'] && !%w[tcp ws http h2 grpc].include?(n['network'])
+      advanced_nodes << advanced unless advanced.empty?
+      n
+    end
+
+    def shadowrocket_transport!(n)
+      network = n['network']
+      key = "#{network}-opts"
+      opts = n[key]
+      raise Error, "#{n['name']}: transport options must be an object" if n.key?(key) && !opts.is_a?(Hash)
+      return unless %w[ws http h2].include?(network)
+      opts ||= n[key] = {}
+      if network == 'http' && %w[vmess vless].include?(n['type'])
+        opts['path'] = [opts['path']] if opts.key?('path') && !opts['path'].is_a?(Array)
+        if opts.key?('headers')
+          raise Error, "#{n['name']}: HTTP headers must be an object" unless opts['headers'].is_a?(Hash)
+          opts['headers']['Host'] = [opts['headers']['Host']] if opts['headers'].key?('Host') && !opts['headers']['Host'].is_a?(Array)
+        end
+      elsif network == 'h2' && %w[vmess vless].include?(n['type'])
+        if opts['path'].is_a?(Array)
+          raise Error, "#{n['name']}: multiple HTTP/2 paths cannot be represented" if opts['path'].length != 1
+          opts['path'] = opts['path'].first
+        end
+        headers = opts.fetch('headers', {})
+        raise Error, "#{n['name']}: HTTP/2 headers must be an object" unless headers.is_a?(Hash)
+        hosts = [opts['host'], headers['host'], headers['Host']].compact.map { |host| Array(host) }
+        raise Error, "#{n['name']}: conflicting HTTP/2 hosts" if hosts.uniq.length > 1
+        opts['host'] = hosts.first unless hosts.empty?
+        headers.delete('host')
+        headers.delete('Host')
+        opts.delete('headers') if headers.empty?
+      elsif network == 'ws'
+        raise Error, "#{n['name']}: WebSocket path must be text" if opts.key?('path') && !opts['path'].is_a?(String)
+        opts['path'] = '/' if !opts.key?('path') || opts['path'] == ''
+        path, query = opts['path'].split('?', 2)
+        if query
+          parts = query.split('&').reject(&:empty?)
+          values = parts.map { |part| URI.decode_www_form(part).first }.compact
+          ed = values.find { |field, value| field == 'ed' && !value.empty? }
+          if ed && ed[1].match?(/\A[0-9]+\z/) && ed[1].to_i <= 9_007_199_254_740_991
+            raise Error, "#{n['name']}: HTTP Upgrade early data requires an explicit transport mapping" if opts['v2ray-http-upgrade']
+            raise Error, "#{n['name']}: conflicting WebSocket early data limits" if opts.key?('max-early-data') && opts['max-early-data'] != ed[1].to_i
+            parts.reject! { |part| URI.decode_www_form(part).first.to_a.first == 'ed' }
+            opts['path'] = parts.empty? ? path : "#{path}?#{parts.join('&')}"
+            opts['early-data-header-name'] ||= 'Sec-WebSocket-Protocol'
+            opts['max-early-data'] ||= ed[1].to_i
+          end
+        end
+      end
+    rescue ArgumentError
+      raise Error, "#{n['name']}: invalid transport URL encoding"
+    end
+
     def render_surge(c, warnings, errors)
       require_portable_policy!(c, 'surge')
       portable_policy_warnings(c, 'surge', warnings)
@@ -940,7 +1141,7 @@ module HybridSubscription
       x
     end
 
-    def redact_content(content, c)
+    def redact_content(content, c, format = nil)
       secrets = []
       gather = lambda do |value|
         case value
@@ -951,7 +1152,7 @@ module HybridSubscription
       end
       c[:nodes].each { |n| n[:raw].each { |key, value| gather.call(value) unless SAFE_PREVIEW_KEYS.include?(key) } }
       used_sets(c).each do |set|
-        %w[mihomo_url surge_url singbox_url].each do |key|
+        %w[mihomo_url surge_url singbox_url shadowrocket_url].each do |key|
           next unless set[key].is_a?(String)
           uri = URI.parse(set[key]) rescue nil
           secrets << set[key] if uri && (uri.query || uri.userinfo)
@@ -968,8 +1169,21 @@ module HybridSubscription
         parsed = URI.parse(url) rescue nil
         secrets << url if parsed && parsed.query
       end
+      secrets = secrets.uniq.sort_by { |secret| -secret.length }
+      if format == 'shadowrocket'
+        # Redact before YAML serialization so multiline and escaped scalars cannot expose secrets.
+        redact_value = lambda do |value|
+          case value
+          when Hash then value.each_with_object({}) { |(key, child), out| out[key] = redact_value.call(child) }
+          when Array then value.map { |child| redact_value.call(child) }
+          when String then secrets.reduce(value) { |text, secret| text.gsub(secret, '[REDACTED]') }
+          else value
+          end
+        end
+        return YAML.dump(redact_value.call(YAML.safe_load(content, permitted_classes: [], permitted_symbols: [], aliases: false)))
+      end
       # Replace encoded forms as well; preview is deliberately not an importable config.
-      secrets.uniq.sort_by { |s| -s.length }.each do |secret|
+      secrets.each do |secret|
         encoded = JSON.generate(secret)[1...-1]
         content = content.gsub(encoded, '[REDACTED]') unless encoded.empty?
         content = content.gsub(secret, '[REDACTED]')
@@ -1094,6 +1308,79 @@ module HybridSubscription
         raise Error, 'Unterminated quoted Surge field' if quoted || escaped
         fields << current.strip
         fields
+      end
+
+      def shadowrocket_source?(text)
+        return true if text.lines.first.to_s.strip == '# Hybrid Subscription: Shadowrocket'
+        section = ''
+        text.lines.any? do |line|
+          line = line.strip
+          next false if line.empty? || line.start_with?('#', ';', '//')
+          if line.match?(/\A\[[^\]]+\]\z/)
+            section = line.downcase
+            next false
+          end
+          next false unless section == '[proxy]'
+          fields = split_surge_fields(line.split('=', 2)[1].to_s)
+          keys = fields.drop(3).map { |field| field.split('=', 2).first.strip }
+          (keys & %w[method peer allowInsecure udp alterId]).any? || fields.first == 'vless' || (fields.first == 'vmess' && keys.include?('password'))
+        end
+      end
+
+      def import_shadowrocket(text)
+        section, nodes = '', []
+        text.lines.each do |line|
+          line = line.strip
+          next if line.empty? || line.start_with?('#', ';', '//')
+          if line.match?(/\A\[[^\]]+\]\z/)
+            section = line.downcase
+            next
+          end
+          next unless section == '[proxy]'
+          name, value = line.split('=', 2).map { |v| v && v.strip }
+          raise Error, 'Invalid Shadowrocket proxy definition' unless value
+          raise Error, 'Quoted, escaped or commented native Shadowrocket proxy fields have no verified import mapping' if value.match?(/[;"\\]/)
+          fields = value.split(',').map(&:strip)
+          type = fields.shift
+          next if %w[direct reject reject-drop].include?(type)
+          raise Error, 'This protocol has no verified native Shadowrocket import mapping yet; use supported URI or YAML nodes' unless %w[ss trojan vmess vless].include?(type)
+          n = { 'name' => name, 'type' => type, 'server' => fields.shift, 'port' => Integer(fields.shift) }
+          seen = {}
+          fields.each do |field|
+            key, val = field.split('=', 2).map { |v| v && v.strip }
+            raise Error, 'Invalid Shadowrocket proxy option' unless val && !val.empty?
+            raise Error, 'Duplicate Shadowrocket proxy option' if seen[key]
+            seen[key] = true
+            case key
+            when 'password' then n[%w[vmess vless].include?(type) ? 'uuid' : 'password'] = val
+            when 'method'
+              raise Error, 'Shadowrocket method is supported only for SS and VMess' unless %w[ss vmess].include?(type)
+              n['cipher'] = val
+            when 'alterId'
+              raise Error, 'Shadowrocket alterId is supported only for VMess' unless type == 'vmess'
+              n['alterId'] = Integer(val)
+              raise Error, 'Legacy VMess has no verified Shadowrocket import mapping' unless n['alterId'].zero?
+            when 'peer' then n['sni'] = val
+            when 'tls', 'udp', 'tfo', 'allowInsecure'
+              raise Error, 'Invalid Shadowrocket boolean' unless %w[true false 1 0].include?(val)
+              n[key == 'allowInsecure' ? 'skip-cert-verify' : key] = %w[true 1].include?(val)
+            else raise Error, "Shadowrocket source option #{key} has no verified import mapping"
+            end
+          end
+          raise Error, 'Native Shadowrocket import requires an explicit udp=0 or udp=1; the client default has no verified mapping' unless n.key?('udp')
+          if type == 'vmess'
+            n['alterId'] ||= 0
+            n['cipher'] ||= 'auto'
+            raise Error, 'Native Shadowrocket VMess import currently supports only method=auto' unless n['cipher'] == 'auto'
+          end
+          raise Error, 'Trojan requires TLS' if type == 'trojan' && n['tls'] == false
+          if type != 'trojan' && n['tls'] != true && %w[sni skip-cert-verify].any? { |key| n.key?(key) }
+            raise Error, 'Shadowrocket TLS options require enabled TLS'
+          end
+          raise Error, 'TLS-wrapped Shadowsocks has no verified import mapping' if type == 'ss' && n.key?('tls')
+          nodes << n
+        end
+        nodes
       end
 
       def import_surge(text)

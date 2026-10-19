@@ -18,7 +18,7 @@ return view.extend({
 		hs.filterSection(s, function(row) { return selected.profile === '__all' || row.id === selected.profile; });
 		let o = hs.references(hs.value(s, form.MultiValue, 'sources', _('Included Sources'), null, [], false), this.config, 'sources');
 		o.rmempty = false;
-		o = hs.choices(hs.value(s, form.MultiValue, 'formats', _('Export Formats'), null, ['mihomo', 'surge', 'singbox'], false), [['mihomo', 'Mihomo'], ['surge', 'Surge'], ['singbox', 'sing-box']]);
+		o = hs.choices(hs.value(s, form.MultiValue, 'formats', _('Export Formats'), null, ['mihomo', 'surge', 'singbox'], false), [['mihomo', 'Mihomo'], ['surge', 'Surge'], ['singbox', 'sing-box'], ['shadowrocket', _('Shadowrocket (Clash YAML)')]]);
 		o.rmempty = false;
 		o = hs.references(hs.value(s, form.ListValue, 'final_policy', _('Default Fallback Policy'), _('Select a policy group or rematch entry belonging to this profile, or DIRECT / REJECT.'), 'DIRECT'), this.config, ['groups', 'rematches'], ['DIRECT', 'REJECT']);
 		o.rmempty = false;
@@ -52,6 +52,7 @@ return view.extend({
 		o = hs.references(hs.value(s, form.DynamicList, 'members', _('Group Members / Built-in Policies'), _('Select policy groups or rematch entries within the same profile, or DIRECT / REJECT. Surge Smart groups accept nodes only.'), []), this.config, ['groups', 'rematches'], ['DIRECT', 'REJECT']); o.rmempty = false;
 		hs.choices(hs.value(s, form.ListValue, 'mihomo_type', _('Mihomo Group Type'), null, 'select', false), [['select', _('Manual Select')], ['url-test', _('URL Test (Auto)')], ['fallback', _('Fallback')], ['load-balance', _('Load Balance')], ['smart', 'Smart']]);
 		hs.choices(hs.value(s, form.ListValue, 'surge_type', _('Surge Group Type'), null, 'select'), [['select', _('Manual Select')], ['url-test', _('URL Test (Auto)')], ['fallback', _('Fallback')], ['smart', 'Smart']]);
+		hs.choices(hs.value(s, form.ListValue, 'shadowrocket_type', _('Shadowrocket Group Type'), null, 'select'), [['select', _('Manual Select')], ['url-test', _('URL Test (Auto)')], ['fallback', _('Fallback')], ['load-balance', _('Load Balance')]]);
 		hs.choices(hs.value(s, form.ListValue, 'singbox_type', _('sing-box Group Type'), null, 'selector'), [['selector', _('Manual Select')], ['urltest', _('URL Test (Auto)')]]);
 		o = hs.value(s, form.Value, 'url', _('Health Check URL'), null, 'https://www.gstatic.com/generate_204'); o.rmempty = false;
 		o = hs.value(s, form.Value, 'interval', _('Test Interval (seconds)'), null, 300); o.datatype = 'range(30,86400)'; o.rmempty = false;
@@ -60,7 +61,7 @@ return view.extend({
 		o = hs.references(hs.value(s, form.ListValue, 'default_member', _('Mihomo Default Selection'), _('Must be a member of this group. Leave empty to use the client default.'), ''), this.config, ['groups', 'rematches'], ['DIRECT', 'REJECT']); o.rmempty = false;
 		o = hs.references(hs.value(s, form.ListValue, 'empty_fallback', _('Mihomo Empty Group Fallback'), _('Fallback policy when no nodes match the filter. Leave empty to report an empty group during validation.'), ''), this.config, ['groups', 'rematches'], ['DIRECT', 'REJECT']); o.rmempty = false;
 		o = hs.value(s, form.Flag, 'lazy', _('Lazy Health Check'), _('Mihomo tests node latency only when this policy group is actively used.'), '1'); o.rmempty = false;
-		hs.modalTabs(s, [{ id: 'general', title: _('Nodes & Members') }, { id: 'clients', title: _('Client Behavior'), options: ['mihomo_type', 'surge_type', 'singbox_type', 'hidden', 'default_member', 'empty_fallback'] }, { id: 'checks', title: _('Health Check'), options: ['url', 'interval', 'tolerance', 'lazy'] }]);
+		hs.modalTabs(s, [{ id: 'general', title: _('Nodes & Members') }, { id: 'clients', title: _('Client Behavior'), options: ['mihomo_type', 'surge_type', 'singbox_type', 'shadowrocket_type', 'hidden', 'default_member', 'empty_fallback'] }, { id: 'checks', title: _('Health Check'), options: ['url', 'interval', 'tolerance', 'lazy'] }]);
 
 		s = hs.grid(m, 'rematches', _('Mihomo Rematch Entries'), _('Forwards traffic into a designated sub-rule for secondary matching.'));
 		hs.filterSection(s, inProfile, defaults);
@@ -107,7 +108,7 @@ return view.extend({
 						if (m.data.sections('json', 'profiles').some(function(row) { return row.id === p.id; })) throw new Error(_('Profile identifier already exists.'));
 						return m.parse().then(function() {
 							const profile = Object.assign(p, { formats: ['mihomo', 'surge', 'singbox'], final_policy: p.id + '_proxy', mihomo_core: 'standard', surge_version: 'modern', singbox_version: '1.12' });
-							const group = { id: p.id + '_proxy', profile: p.id, name: _('Proxy'), sources: p.sources, members: [], region: '', filter: '', exclude_filter: '', mihomo_type: 'select', surge_type: 'select', singbox_type: 'selector', url: 'https://www.gstatic.com/generate_204', interval: 300, tolerance: 50, hidden: false };
+							const group = { id: p.id + '_proxy', profile: p.id, name: _('Proxy'), sources: p.sources, members: [], region: '', filter: '', exclude_filter: '', mihomo_type: 'select', surge_type: 'select', singbox_type: 'selector', shadowrocket_type: 'select', url: 'https://www.gstatic.com/generate_204', interval: 300, tolerance: 50, hidden: false };
 							[['profiles', profile], ['groups', group]].forEach(function(entry) {
 								const sid = m.data.add('json', entry[0]);
 								Object.keys(entry[1]).forEach(function(key) { m.data.set('json', sid, key, entry[1][key]); });

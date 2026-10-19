@@ -16,7 +16,7 @@ require_relative 'compatibility'
 module HybridSubscription
   class Error < StandardError; end unless const_defined?(:Error)
   class Backend
-    FORMATS = %w[mihomo surge singbox].freeze
+    FORMATS = Engine::FORMATS
     COLLECTIONS = %w[sources profiles groups rule_sets rules rematches sub_rules regions].freeze
     ID = /\A[a-z][a-z0-9_-]{0,47}\z/
     MAX_BYTES = 2 * 1024 * 1024
@@ -146,7 +146,7 @@ module HybridSubscription
           p.delete('compatibility')
           p['compatibility'] = previous['compatibility'] if previous && previous.key?('compatibility')
         end
-        c['rule_sets'].each { |r| %w[mihomo_url surge_url singbox_url].each { |k| url!(r[k]) unless r.fetch(k, '').empty? } }
+        c['rule_sets'].each { |r| FORMATS.each { |format| k = format + '_url'; url!(r[k]) unless r.fetch(k, '').empty? } }
         removed = published.keys - c['profiles'].map { |p| p['id'] }
         raise Error, 'Unpublish the profile before deleting it' unless removed.empty?
         c = c.select { |k,_| (COLLECTIONS + %w[schema settings]).include?(k) }
@@ -383,7 +383,7 @@ module HybridSubscription
       raise
     end
     def filename(fmt)
-      {'mihomo'=>'mihomo.yaml', 'surge'=>'surge.conf', 'singbox'=>'singbox.json'}.fetch(fmt) { raise Error, 'Unsupported export format' }
+      {'mihomo'=>'mihomo.yaml', 'surge'=>'surge.conf', 'singbox'=>'singbox.json', 'shadowrocket'=>'shadowrocket.yaml'}.fetch(fmt) { raise Error, 'Unsupported export format' }
     end
     def publish(args, rollback: false)
       manifest = release_meta(args['release'])

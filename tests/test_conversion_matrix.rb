@@ -33,12 +33,13 @@ class ConversionMatrixTest < Minitest::Test
       copy = Engine.copy(node)
       copy['name'] = copy['name'].sub(/\A(?:Imported \| )+/, '')
       copy['down'] = copy['down'].to_i if copy.key?('down')
+      copy['sni'] = copy.delete('servername') if copy.key?('servername')
       copy
     end
   end
 
   def test_every_source_format_converts_to_every_target_with_common_node_fields_preserved
-    Engine::FORMATS.each do |source|
+    %w[mihomo surge singbox].each do |source|
       source_result = render(nodes, source)
       assert_empty source_result['errors'], source
       assert_empty source_result['warnings'], source
@@ -46,7 +47,7 @@ class ConversionMatrixTest < Minitest::Test
       assert_equal explicit, Engine.import_nodes(source_result['content']), "#{source} auto detection"
       assert_equal nodes, comparable(explicit), "#{source} import"
 
-      Engine::FORMATS.each do |target|
+      %w[mihomo surge singbox].each do |target|
         result = render(explicit, target)
         assert_empty result['errors'], "#{source} -> #{target}: #{result['errors'].join('; ')}"
         assert_empty result['warnings'], "#{source} -> #{target}"
@@ -63,6 +64,55 @@ class ConversionMatrixTest < Minitest::Test
     rejected = render([original], 'singbox')
     refute_empty rejected['errors']
     assert_empty rejected['content']
+  end
+
+  def test_four_client_matrix_preserves_common_tcp_nodes
+    base = {'server'=>'proxy.example.test', 'port'=>443, 'udp'=>true, 'tfo'=>true}
+    tls = {'sni'=>'tls.example.test', 'skip-cert-verify'=>false}
+    originals = [
+      base.merge('name'=>'SS', 'type'=>'ss', 'cipher'=>'aes-128-gcm', 'password'=>'synthetic'),
+      base.merge(tls).merge('name'=>'Trojan', 'type'=>'trojan', 'password'=>'synthetic')
+    ]
+    Engine::FORMATS.each do |source|
+      source_result = render(originals, source)
+      assert_empty source_result['errors'], source
+      assert_empty source_result['warnings'], source
+      imported = Engine.import_nodes(source_result['content'], source)
+      assert_equal imported, Engine.import_nodes(source_result['content']), "#{source} auto detection"
+      assert_equal originals, comparable(imported), "#{source} import"
+      Engine::FORMATS.each do |target|
+        result = render(imported, target)
+        assert_empty result['errors'], "#{source} -> #{target}"
+        assert_empty result['warnings'], "#{source} -> #{target}"
+        assert_equal originals, comparable(Engine.import_nodes(result['content'], target)), "#{source} -> #{target} import"
+      end
+    end
+  end
+
+  def test_shadowrocket_vless_preserves_tcp_tls_across_supported_formats
+    original = {'name'=>'VLESS', 'type'=>'vless', 'server'=>'proxy.example.test', 'port'=>443, 'uuid'=>UUID, 'udp'=>true, 'tls'=>true, 'sni'=>'tls.example.test', 'skip-cert-verify'=>false}
+    %w[mihomo singbox shadowrocket].each do |source|
+      imported = Engine.import_nodes(render([original], source)['content'], source)
+      %w[mihomo singbox shadowrocket].each do |target|
+        result = render(imported, target)
+        assert_empty result['errors']
+        assert_empty result['warnings']
+        assert_equal [original], comparable(Engine.import_nodes(result['content'], target))
+      end
+    end
+  end
+
+  def test_shadowrocket_vmess_auto_preserves_cipher_without_rewriting
+    original = {'name'=>'VMess', 'type'=>'vmess', 'server'=>'proxy.example.test', 'port'=>443, 'uuid'=>UUID, 'udp'=>true, 'tls'=>true, 'cipher'=>'auto', 'alterId'=>0}
+    %w[mihomo singbox shadowrocket].each do |source|
+      imported = Engine.import_nodes(render([original], source)['content'], source)
+      %w[mihomo singbox shadowrocket].each do |target|
+        result = render(imported, target)
+        assert_empty result['errors']
+        assert_empty result['warnings']
+        assert_equal [original], comparable(Engine.import_nodes(result['content'], target))
+      end
+    end
   end
 
   def test_surge_duplicate_options_are_rejected_instead_of_overwritten

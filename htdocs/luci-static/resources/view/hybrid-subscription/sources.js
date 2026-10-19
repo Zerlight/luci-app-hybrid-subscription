@@ -41,7 +41,7 @@ return view.extend({
 			}
 			return self.handleSave().then(function() { return hs.runJob('refresh_quota', { source: row.id }, _('Refresh Quota Status')); }).then(function() { window.location.reload(); });
 		});
-		hs.choices(hs.value(s, form.ListValue, 'format', _('Input Format'), null, 'auto'), [['auto', _('Auto Detect')], ['mihomo', 'Mihomo / Clash YAML'], ['surge', 'Surge'], ['singbox', 'sing-box']]);
+		hs.choices(hs.value(s, form.ListValue, 'format', _('Input Format'), null, 'auto'), [['auto', _('Auto Detect')], ['mihomo', 'Mihomo / Clash YAML'], ['surge', 'Surge'], ['singbox', 'sing-box'], ['shadowrocket', 'Shadowrocket']]);
 		hs.choices(hs.value(s, form.ListValue, 'update_mode', _('Update Mode'), null, 'manual', false), [['manual', _('Manual Only')], ['scheduled', _('Scheduled')]]);
 		o = hs.value(s, form.Value, 'interval', _('Update Interval (seconds)'), _('Applies only to scheduled sources. Do not enable scheduled updates for time-windowed subscriptions.'), 86400);
 		o.datatype = 'range(300,31536000)'; o.depends('update_mode', 'scheduled'); o.rmempty = false;

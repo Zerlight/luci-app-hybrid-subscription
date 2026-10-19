@@ -11,6 +11,7 @@ module HybridSubscription
     GROUP_MODES = {
       'mihomo'=>{'manual'=>'select', 'url-test'=>'url-test', 'fallback'=>'fallback'},
       'surge'=>{'manual'=>'select', 'url-test'=>'url-test', 'fallback'=>'fallback'},
+      'shadowrocket'=>{'manual'=>'select', 'url-test'=>'url-test', 'fallback'=>'fallback'},
       'singbox'=>{'manual'=>'selector', 'url-test'=>'urltest'}
     }.freeze
     GROUP_EXPLANATIONS = {
@@ -179,9 +180,14 @@ module HybridSubscription
       issues = []
       rows('groups', id).each do |group|
         current, baseline = group_type(group, format), group_type(group, 'mihomo')
-        supported = format == 'singbox' ? %w[selector urltest] : %w[select url-test fallback load-balance smart]
+        supported = case format
+                    when 'singbox' then %w[selector urltest]
+                    when 'shadowrocket' then %w[select url-test fallback load-balance]
+                    else %w[select url-test fallback load-balance smart]
+                    end
         if !supported.include?(current)
-          issues << issue('group', group, "Group #{group['name']}: #{format} does not support #{current}; explicitly choose a manual or simpler automatic alternative", 'group_modes')
+          message = format == 'shadowrocket' ? "Group #{group['name']}: this exporter has no verified Shadowrocket mapping for mode #{current}; explicitly choose a manual or simpler automatic alternative" : "Group #{group['name']}: #{format} does not support #{current}; explicitly choose a manual or simpler automatic alternative"
+          issues << issue('group', group, message, 'group_modes')
         elsif format == 'mihomo' && current == 'smart' && p['mihomo_core'] != 'smart'
           issues << issue('group', group, "Group #{group['name']}: Smart requires the Mihomo Smart core; a manual or simpler automatic mode is an alternative, not equivalent behavior", 'group_modes')
         elsif format != 'mihomo' && (group_behavior(current) != group_behavior(baseline) || baseline == 'smart')
@@ -203,6 +209,7 @@ module HybridSubscription
         end
       end
       issues.select { |item| item['kind'] == 'group' && item['severity'] == 'warning' }.each do |item|
+        next if validation['warnings'].any? { |warning| warning['code'] == "#{format}:#{item['code']}" }
         validation['warnings'] << {'code'=>"#{format}:#{item['code']}", 'message'=>item['message'], 'target'=>format}
       end
       validation.merge('format'=>format, 'issues'=>issues, 'compatible'=>validation['errors'].empty?)
@@ -232,12 +239,12 @@ module HybridSubscription
          end,
          'rematches'=>rows('rematches', id).map do |rematch|
            suggestion = rematch_suggestion(id, rematch)
-           rematch.slice('id', 'name').merge('suggestions'=>%w[surge singbox].to_h { |format| [format, Engine.copy(suggestion)] })
+           rematch.slice('id', 'name').merge('suggestions'=>(Engine::FORMATS - ['mihomo']).to_h { |format| [format, Engine.copy(suggestion)] })
          end,
          'sub_rules'=>rows('sub_rules', id).map { |r| r.slice('id', 'name').merge('rules'=>rows('rules', id).count { |rule| rule['sub_rule'] == r['id'] && rule['enabled'] != false }) },
          'has_dns'=>p['mihomo_dns'].is_a?(Hash) && !p['mihomo_dns'].empty?,
          'has_mihomo_policy'=>p['mihomo_policy'].is_a?(Hash) && !p['mihomo_policy'].empty?,
-         'rules'=>rows('rules', id).reject { |r| r['enabled'] == false }.map { |r| {'id'=>r['id'], 'name'=>r['name'] || r['id'], 'type'=>r['type'], 'sub_rule'=>r['sub_rule'].to_s, 'targets'=>%w[surge singbox].select { |format| !rule_issues(r, format).empty? }} }
+         'rules'=>rows('rules', id).reject { |r| r['enabled'] == false }.map { |r| {'id'=>r['id'], 'name'=>r['name'] || r['id'], 'type'=>r['type'], 'sub_rule'=>r['sub_rule'].to_s, 'targets'=>(Engine::FORMATS - ['mihomo']).select { |format| !rule_issues(r, format).empty? }} }
        }}
     end
 

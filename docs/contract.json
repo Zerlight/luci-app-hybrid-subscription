@@ -35,7 +35,8 @@
       "formats": [
         "mihomo",
         "surge",
-        "singbox"
+        "singbox",
+        "shadowrocket"
       ],
       "final_policy": "proxy",
       "mihomo_core": "standard",
@@ -59,6 +60,7 @@
       "mihomo_type": "select",
       "surge_type": "select",
       "singbox_type": "selector",
+      "shadowrocket_type": "select",
       "url": "https://www.gstatic.com/generate_204",
       "interval": 300,
       "tolerance": 50,
@@ -74,6 +76,7 @@
       "mihomo_url": "https://example.com/domains.txt",
       "mihomo_format": "text",
       "surge_url": "https://example.com/domains.conf",
+      "shadowrocket_url": "https://example.com/shadowrocket-classical.yaml",
       "singbox_url": "https://example.com/domains.json",
       "singbox_format": "source",
       "interval": 86400

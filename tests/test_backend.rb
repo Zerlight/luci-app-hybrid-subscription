@@ -468,6 +468,43 @@ class BackendTest < Minitest::Test
     env={'REMOTE_ADDR'=>'127.0.0.1','QUERY_STRING'=>'profile=main&format=mihomo&token='+@b.download_info('main')['token']}
     assert_equal 503,HybridSubscription::Download.new(@b).response(env)[0]
   end
+  def test_shadowrocket_build_publish_and_authenticated_download
+    @b.put_source('test', YAML.dump('proxies'=>[@node.merge('type'=>'anytls', 'alpn'=>['h2'], 'idle-session-timeout'=>60)]), 'mihomo')
+    @c['profiles'][0]['formats'] = ['shadowrocket']
+    @b.save_config('config'=>JSON.generate(@c), 'version'=>@b.version)
+    build = @b.build_profile('main')
+    assert_equal ['shadowrocket'], build['formats']
+    assert_raises(HybridSubscription::Error) { @b.publish({'release'=>build['release'], 'accepted_warnings'=>[]}) }
+    @b.publish({'release'=>build['release'], 'accepted_warnings'=>build['warnings'].map { |warning| warning['code'] }})
+    endpoint = HybridSubscription::Download.new(@b)
+    info = @b.download_info('main')
+    env = {'REMOTE_ADDR'=>'127.0.0.1', 'QUERY_STRING'=>'profile=main&format=shadowrocket&token='+info['token']}
+    status, headers, body = endpoint.response(env)
+    assert_equal 200, status
+    assert_equal 'application/yaml; charset=utf-8', headers['Content-Type']
+    assert_includes headers['Content-Disposition'], 'main-shadowrocket.yaml'
+    document = YAML.safe_load(body, permitted_classes: [], permitted_symbols: [], aliases: false)
+    assert_equal 'anytls', document['proxies'][0]['type']
+    assert_equal 60, document['proxies'][0]['idle-session-timeout']
+    assert_equal ['h2'], document['proxies'][0]['alpn']
+    refute_empty document['proxy-groups']
+    refute_empty document['rules']
+    assert_includes body, 'private-password'
+    assert_equal @b.release_meta(build['release'])['sha256']['shadowrocket'], Digest::SHA256.hexdigest(body)
+    assert_equal 403, endpoint.response(env.merge('QUERY_STRING'=>'profile=main&format=shadowrocket&token=wrong'))[0]
+    assert_equal 200, endpoint.response(env.merge('REQUEST_METHOD'=>'HEAD'))[0]
+    assert_empty endpoint.response(env.merge('REQUEST_METHOD'=>'HEAD'))[2]
+    File.write(File.join(@b.release_path(build['release']), 'shadowrocket.yaml'), 'tampered')
+    assert_equal 503, endpoint.response(env)[0]
+    assert_nil @b.enqueued
+  end
+
+  def test_shadowrocket_rule_set_url_is_validated_on_save
+    @c['rule_sets'] = [{'id'=>'remote', 'shadowrocket_url'=>'file:///etc/passwd'}]
+    before = @b.version
+    assert_raises(HybridSubscription::Error) { @b.save_config('config'=>JSON.generate(@c), 'version'=>before) }
+    assert_equal before, @b.version
+  end
   def test_manual_update_never_scheduled
     @b.tick;assert_nil @b.enqueued
     c=@b.config;c['sources'][0]['update_mode']='scheduled';c['sources'][0]['interval']=300
