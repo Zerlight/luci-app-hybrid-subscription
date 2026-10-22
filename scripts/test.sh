@@ -6,6 +6,7 @@ for suite in tests/test_*.rb; do
  ruby "$suite"
 done
 node tests/frontend_test.js
+node tests/source_urls_test.js
 node tests/workbench_test.js
 node tests/compatibility_test.js
 for catalog in po/*/*.po po/templates/*.pot; do

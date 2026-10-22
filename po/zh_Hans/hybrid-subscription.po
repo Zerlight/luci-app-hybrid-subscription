@@ -1269,8 +1269,8 @@ msgid "Subscription URL"
 msgstr "订阅地址"
 
 #: htdocs/luci-static/resources/view/hybrid-subscription/sources.js:21
-msgid "Leave blank to keep the saved URL. For a new source, you may save an empty URL first and import a local file later. Saved URLs are never sent back to the browser."
-msgstr "留空则保留原地址；新建订阅源可先留空保存，再手动导入本地文件。已保存的地址不会回传至浏览器。"
+msgid "Saved URLs are loaded when you edit this source. Use the visibility button to view the address. Leave blank to keep the saved URL; new sources may use a local file instead."
+msgstr "打开编辑时会自动载入已保存的地址，可点击显示按钮查看明文。留空则保留原地址；若仅通过本地文件导入节点，可留空保存。"
 
 #: htdocs/luci-static/resources/view/hybrid-subscription/sources.js:23
 msgid "URL Saved"
@@ -3034,3 +3034,68 @@ msgstr "Reality 需要使用 VLESS 或 VMess 协议"
 #: root/usr/share/hybrid-subscription/engine.rb
 msgid "Reality requires enabled TLS"
 msgstr "Reality 需要启用 TLS"
+
+#: root/usr/share/hybrid-subscription/backend.rb
+#, c-format
+msgid "Subscription request failed (HTTP %s); cached nodes were kept"
+msgstr "订阅请求失败（HTTP %s），已保留节点缓存"
+
+#: htdocs/luci-static/resources/hybrid-subscription.js
+msgid "Initial cache"
+msgstr "首次缓存"
+
+#: htdocs/luci-static/resources/hybrid-subscription.js
+msgid "Nodes unchanged"
+msgstr "节点无变化"
+
+#: htdocs/luci-static/resources/hybrid-subscription.js
+msgid "Added %s · removed %s · modified %s"
+msgstr "新增 %s · 移除 %s · 修改 %s"
+
+#: htdocs/luci-static/resources/hybrid-subscription.js
+msgid "Node order changed"
+msgstr "节点顺序变化"
+
+#: htdocs/luci-static/resources/hybrid-subscription.js
+msgid "Node Update Result: "
+msgstr "节点更新结果："
+
+#: htdocs/luci-static/resources/hybrid-subscription.js
+msgid "Nodes: %s → %s."
+msgstr "节点数：%s → %s。"
+
+#: htdocs/luci-static/resources/hybrid-subscription.js
+msgid "Node refresh updates only the cache. Published downloads and OpenClash are unchanged."
+msgstr "本次操作仅更新本地节点缓存，已发布的订阅内容与 OpenClash 配置保持不变。"
+
+#: htdocs/luci-static/resources/hybrid-subscription.js
+msgid "Profiles using this source:"
+msgstr "使用此订阅源的配置："
+
+#: htdocs/luci-static/resources/hybrid-subscription.js
+msgid "Open Overview to build and publish the profiles you want to update."
+msgstr "请前往“状态概览”页面，重新构建并发布需要同步更新的配置。"
+
+#: htdocs/luci-static/resources/hybrid-subscription.js
+msgid "No node changes were found; this refresh does not require rebuilding."
+msgstr "节点内容未发生变化，本次刷新无需重新构建发布。"
+
+#: htdocs/luci-static/resources/hybrid-subscription.js
+msgid "This source is not referenced by any profile yet."
+msgstr "当前尚无订阅配置使用此订阅源。"
+
+#: htdocs/luci-static/resources/hybrid-subscription.js
+msgid "Go to Overview"
+msgstr "前往状态概览"
+
+#: htdocs/luci-static/resources/hybrid-subscription.js
+msgid "Done"
+msgstr "完成"
+
+#: htdocs/luci-static/resources/hybrid-subscription.js
+msgid "The draft has unpublished changes. Build and publish to update downloads and OpenClash."
+msgstr "当前配置或节点有未发布的改动，请重新构建并发布以更新订阅文件与 OpenClash。"
+
+#: htdocs/luci-static/resources/hybrid-subscription.js
+msgid "The current draft cannot generate all selected formats. Check the configuration and compatibility before publishing."
+msgstr "当前草稿无法导出全部所选格式，请先检查配置项与兼容性后再构建发布。"

@@ -11,7 +11,8 @@ const realHs = new Function('baseclass', 'form', 'rpc', 'ui', 'poll', 'uqr', 'L'
 const hs = {
  table: (headers, rows) => ({ headers, rows }), button: label => ({ button: label }),
  time: value => value == null ? realHs.t('Unknown') : String(value),
- translateMessage: realHs.translateMessage
+	translateMessage: realHs.translateMessage,
+	sourceUpdateSummary: changes => realHs.sourceUpdateSummary(changes)
 };
 const page = new Function('view','dom','poll','ui','hs','E','_','L',
  fs.readFileSync(path.join(__dirname,'../htdocs/luci-static/resources/view/hybrid-subscription/overview.js'),'utf8'))(
@@ -32,6 +33,31 @@ assert.match(renderQuota({upload:0,download:0}), /Not provided by upstream/);
 assert.match(renderQuota(null), /No quota data/);
 let workbench = JSON.stringify(page.statusContent.call({config:{profiles:[{id:'p',name:'Profile',formats:['mihomo']}]}},{profiles:[{id:'p',published_release:'r1',formats:['mihomo']}]}));
 for (const action of ['Edit Profile','Build & Publish','Download / QR Code','Release Management']) assert.ok(workbench.includes(action));
+
+// Pending changes remain visible after refresh/reload without hiding the published download.
+for (const [draft_status, message] of [
+ ['changed', 'The draft has unpublished changes. Build and publish to update downloads and OpenClash.'],
+ ['invalid', 'The current draft cannot generate all selected formats. Check the configuration and compatibility before publishing.']
+]) {
+ const content = JSON.stringify(page.statusContent.call({config:{profiles:[{id:'p',name:'Profile'}]}}, {
+  profiles:[{id:'p',published_release:'r1',formats:['mihomo'],draft_status}]
+ }));
+ assert.ok(content.includes(message));
+ assert.match(content, /Download \/ QR Code/);
+ assert.match(content, /Build & Publish/);
+}
+for (const draft_status of ['current', 'unpublished', undefined]) {
+ const content = JSON.stringify(page.statusContent.call({config:{profiles:[{id:'p',name:'Profile'}]}}, {
+  profiles:[{id:'p',draft_status}]
+ }));
+ assert.doesNotMatch(content, /alert-message warning/);
+}
+const last_refresh = {changed:false,initial:false,added:0,removed:0,updated:0,order_changed:false};
+const refreshHistory = JSON.stringify(page.statusContent.call(owner, {
+ sources:[{id:'source',nodes:2,last_refresh}],
+ jobs:[{kind:'refresh',state:'completed',result:{changes:last_refresh}}]
+}));
+assert.equal(refreshHistory.split('Nodes unchanged').length - 1, 2, 'the saved cache summary and completed job both show the outcome');
 
 // Saved conversion drift is advisory and opens review for the existing target.
 function renderCompatibility(state) {

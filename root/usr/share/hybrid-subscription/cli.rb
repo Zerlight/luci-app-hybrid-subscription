@@ -2,7 +2,7 @@
 # frozen_string_literal: true
 require_relative 'backend'
 METHODS = {
- 'status'=>{}, 'get_config'=>{}, 'save_config'=>{'config'=>'','version'=>''},
+ 'status'=>{}, 'get_config'=>{}, 'source_urls'=>{'source'=>''}, 'save_config'=>{'config'=>'','version'=>'','collections'=>[]},
  'refresh'=>{'source'=>''}, 'refresh_quota'=>{'source'=>''}, 'compare_converter'=>{'source'=>''}, 'import_source'=>{'source'=>'','content'=>''},
  'region_defaults'=>{}, 'preview_regions'=>{'config'=>'','sources'=>[]},
  'import_openclash'=>{}, 'validate'=>{'profile'=>''}, 'preview'=>{'profile'=>'','format'=>''},

@@ -1265,7 +1265,7 @@ msgid "Subscription URL"
 msgstr ""
 
 #: htdocs/luci-static/resources/view/hybrid-subscription/sources.js:21
-msgid "Leave blank to keep the saved URL. For a new source, you may save an empty URL first and import a local file later. Saved URLs are never sent back to the browser."
+msgid "Saved URLs are loaded when you edit this source. Use the visibility button to view the address. Leave blank to keep the saved URL; new sources may use a local file instead."
 msgstr ""
 
 #: htdocs/luci-static/resources/view/hybrid-subscription/sources.js:23
@@ -3029,4 +3029,69 @@ msgstr ""
 
 #: root/usr/share/hybrid-subscription/engine.rb
 msgid "Reality requires enabled TLS"
+msgstr ""
+
+#: root/usr/share/hybrid-subscription/backend.rb
+#, c-format
+msgid "Subscription request failed (HTTP %s); cached nodes were kept"
+msgstr ""
+
+#: htdocs/luci-static/resources/hybrid-subscription.js
+msgid "Initial cache"
+msgstr ""
+
+#: htdocs/luci-static/resources/hybrid-subscription.js
+msgid "Nodes unchanged"
+msgstr ""
+
+#: htdocs/luci-static/resources/hybrid-subscription.js
+msgid "Added %s · removed %s · modified %s"
+msgstr ""
+
+#: htdocs/luci-static/resources/hybrid-subscription.js
+msgid "Node order changed"
+msgstr ""
+
+#: htdocs/luci-static/resources/hybrid-subscription.js
+msgid "Node Update Result: "
+msgstr ""
+
+#: htdocs/luci-static/resources/hybrid-subscription.js
+msgid "Nodes: %s → %s."
+msgstr ""
+
+#: htdocs/luci-static/resources/hybrid-subscription.js
+msgid "Node refresh updates only the cache. Published downloads and OpenClash are unchanged."
+msgstr ""
+
+#: htdocs/luci-static/resources/hybrid-subscription.js
+msgid "Profiles using this source:"
+msgstr ""
+
+#: htdocs/luci-static/resources/hybrid-subscription.js
+msgid "Open Overview to build and publish the profiles you want to update."
+msgstr ""
+
+#: htdocs/luci-static/resources/hybrid-subscription.js
+msgid "No node changes were found; this refresh does not require rebuilding."
+msgstr ""
+
+#: htdocs/luci-static/resources/hybrid-subscription.js
+msgid "This source is not referenced by any profile yet."
+msgstr ""
+
+#: htdocs/luci-static/resources/hybrid-subscription.js
+msgid "Go to Overview"
+msgstr ""
+
+#: htdocs/luci-static/resources/hybrid-subscription.js
+msgid "Done"
+msgstr ""
+
+#: htdocs/luci-static/resources/hybrid-subscription.js
+msgid "The draft has unpublished changes. Build and publish to update downloads and OpenClash."
+msgstr ""
+
+#: htdocs/luci-static/resources/hybrid-subscription.js
+msgid "The current draft cannot generate all selected formats. Check the configuration and compatibility before publishing."
 msgstr ""

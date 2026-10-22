@@ -440,6 +440,8 @@ registerLocale('zh-cn', {
 		'Refresh Quota Status': '刷新流量额度',
 		'Manage Sources': '管理订阅源',
 		'Components & Recent Jobs': '组件状态与近期任务',
+		'The draft has unpublished changes. Build and publish to update downloads and OpenClash.': '当前配置或节点有未发布的改动，请重新构建并发布以更新订阅文件与 OpenClash。',
+		'The current draft cannot generate all selected formats. Check the configuration and compatibility before publishing.': '当前草稿无法导出全部所选格式，请先检查配置项与兼容性后再构建发布。',
 		'Component': '组件',
 		'Installed': '已安装',
 		'Not installed': '未安装',
@@ -462,7 +464,7 @@ registerLocale('zh-cn', {
 		'Disabled · ': '已停用 · ',
 		' nodes · ': ' 个节点 · ',
 		'Subscription URL': '订阅地址',
-		'Leave blank to keep the saved URL. For a new source, you may save an empty URL first and import a local file later. Saved URLs are never sent back to the browser.': '留空则保留原地址；新建订阅源可先留空保存，再手动导入本地文件。已保存的地址不会回传至浏览器。',
+		'Saved URLs are loaded when you edit this source. Use the visibility button to view the address. Leave blank to keep the saved URL; new sources may use a local file instead.': '打开编辑时会自动载入已保存的地址，可点击显示按钮查看明文。留空则保留原地址；若仅通过本地文件导入节点，可留空保存。',
 		'URL Saved': '已保存地址',
 		'Yes': '是',
 		'No': '否',
@@ -493,6 +495,19 @@ registerLocale('zh-cn', {
 		'Take Over OpenClash Subscription Updates': '接管 OpenClash 订阅更新',
 		'Applies only to sources imported from OpenClash. Disables OpenClash auto-updates for this source when applying a profile to prevent duplicate pulls.': '仅对从 OpenClash 导入的订阅源生效。应用配置时将停用 OpenClash 对该订阅的自动更新，避免重复拉取。',
 		'Update Subscription': '更新订阅',
+		'Initial cache': '首次缓存',
+		'Nodes unchanged': '节点无变化',
+		'Added %s · removed %s · modified %s': '新增 %s · 移除 %s · 修改 %s',
+		'Node order changed': '节点顺序变化',
+		'Node Update Result: ': '节点更新结果：',
+		'Nodes: %s → %s.': '节点数：%s → %s。',
+		'Node refresh updates only the cache. Published downloads and OpenClash are unchanged.': '本次操作仅更新本地节点缓存，已发布的订阅内容与 OpenClash 配置保持不变。',
+		'Profiles using this source:': '使用此订阅源的配置：',
+		'Open Overview to build and publish the profiles you want to update.': '请前往“状态概览”页面，重新构建并发布需要同步更新的配置。',
+		'No node changes were found; this refresh does not require rebuilding.': '节点内容未发生变化，本次刷新无需重新构建发布。',
+		'This source is not referenced by any profile yet.': '当前尚无订阅配置使用此订阅源。',
+		'Go to Overview': '前往状态概览',
+		'Done': '完成',
 		'Import File': '导入文件',
 		'Subconverter Compatibility Audit': '转换器兼容性比对',
 		'Missing': '缺失',
@@ -910,6 +925,7 @@ registerLocale('zh-cn', {
 		[/^(.+): Mihomo no-resolve has no equivalent sing-box rule flag; use a separate compatible rule$/, '$1：Mihomo 的 no-resolve 在 sing-box 中没有等价规则标记，请配置独立的兼容规则'],
 		[/^(.+): sing-box inline rule sets do not support GEOIP LAN; use explicit IP-CIDR ranges$/, '$1：sing-box 内联规则集不支持 GEOIP LAN，请使用明确的 IP-CIDR 网段'],
 		[/^(.+): sing-box IP matching does not automatically resolve destination domains; review the native DNS and resolve routing before relying on IP rules$/, '$1：sing-box 匹配 IP 规则时不会自动解析目标域名，请先检查 DNS 与域名解析分流设置'],
+		[/^Subscription request failed \(HTTP (\d{3})\); cached nodes were kept$/, '订阅请求失败（HTTP $1），已保留节点缓存'],
 		[/^Command failed \((.+)\)$/, '命令执行失败（$1）'],
 		[/^([a-z_]+) must be a list$/, '配置项 $1 必须为列表'],
 		[/^([a-z_]+) contains duplicate identifiers$/, '配置项 $1 存在重复的标识符'],
@@ -1021,7 +1037,7 @@ if (typeof window === 'object' && window && typeof window._ === 'function' && !w
 if (typeof _ !== 'undefined') _ = t;
 
 const fields = {
-	status: [], get_config: [], save_config: ['config', 'version'],
+	status: [], get_config: [], source_urls: ['source'], save_config: ['config', 'version', 'collections'],
 	refresh: ['source'], import_source: ['source', 'content'], import_openclash: [], compare_converter: ['source'],
 	refresh_quota: ['source'], region_defaults: [], preview_regions: ['config', 'sources'],
 	validate: ['profile'], preview: ['profile', 'format'], build: ['profile'],
@@ -1151,6 +1167,36 @@ function runJob(method, args, label) {
 	});
 }
 
+function sourceUpdateSummary(changes) {
+	if (!changes) return '';
+	const summary = changes.initial ? _('Initial cache') : !changes.changed ? _('Nodes unchanged') :
+		_('Added %s · removed %s · modified %s').format(changes.added, changes.removed, changes.updated);
+	return summary + (changes.order_changed ? ' · ' + _('Node order changed') : '');
+}
+
+function sourceUpdateResult(source, result) {
+	const changes = result.changes || {}, profiles = result.affected_profiles || [];
+	const content = [
+		E('p', {}, E('strong', {}, sourceUpdateSummary(result.changes))),
+		E('p', {}, _('Nodes: %s → %s.').format(changes.before_nodes == null ? '—' : changes.before_nodes, changes.after_nodes == null ? result.nodes : changes.after_nodes)),
+		E('p', {}, _('Node refresh updates only the cache. Published downloads and OpenClash are unchanged.'))
+	];
+	if (!profiles.length) {
+		content.push(E('p', {}, _('This source is not referenced by any profile yet.')));
+	} else if (changes.changed) {
+		content.push(E('p', {}, _('Profiles using this source:')),
+			E('ul', {}, profiles.map(function(profile) { return E('li', {}, profile.name || profile.id); })),
+			E('p', {}, _('Open Overview to build and publish the profiles you want to update.')));
+	} else {
+		content.push(E('p', {}, _('No node changes were found; this refresh does not require rebuilding.')));
+	}
+	content.push(E('div', { 'class': 'right' }, [
+		button(_('Done'), function() { ui.hideModal(); window.location.reload(); }), ' ',
+		E('a', { 'class': 'cbi-button cbi-button-action', href: L.url('admin', 'services', 'hybrid-subscription', 'overview') }, _('Go to Overview'))
+	]));
+	ui.showModal(_('Node Update Result: ') + (source.name || source.id), content);
+}
+
 function regionMatchSignature(regions) {
 	// Names and display order do not change which nodes enter generated groups.
 	return JSON.stringify((regions || []).map(function(region) {
@@ -1216,7 +1262,9 @@ function createMap(owner, payload, collections, title, description) {
 				sourceFlags[source.id] = { has_url: !!source.url || !!source.has_url || !!previous.has_url, has_quota_url: !source.clear_quota_url && (!!source.quota_url || !!source.has_quota_url || !!previous.has_quota_url) };
 				delete source.has_url; delete source.has_quota_url;
 			});
-			return api('save_config', { config: JSON.stringify(next), version: owner.version }).then(function(result) {
+			const changes = {};
+			collections.forEach(function(key) { changes[key] = next[key]; });
+			return api('save_config', { config: JSON.stringify(changes), version: owner.version, collections: collections }).then(function(result) {
 				(next.sources || []).forEach(function(source) {
 					Object.assign(source, sourceFlags[source.id], { url: '', quota_url: '', clear_quota_url: false });
 				});
@@ -1398,11 +1446,18 @@ function jsonValue(s, key, title, description, array) {
 	return o;
 }
 
-function rowAction(s, key, title, action) {
+function rowAction(s, key, title, action, available) {
 	const o = s.option(form.Button, key, title);
 	o.inputtitle = title; o.inputstyle = 'action'; o.editable = true; o.modalonly = false;
+	if (available) {
+		const renderWidget = o.renderWidget;
+		o.renderWidget = function(sid) {
+			return available(s.map.data.get('json', sid)) ? renderWidget.apply(this, arguments) : E('span');
+		};
+	}
 	o.onclick = function(ev, sid) {
 		const row = s.map.data.get('json', sid);
+		if (available && !available(row)) return Promise.resolve();
 		return Promise.resolve().then(function() { return action(row); }).catch(notify);
 	};
 	return o;
@@ -1422,9 +1477,7 @@ function importSource(source) {
 		file, E('p'), text,
 		E('div', { 'class': 'right' }, [button(_('Cancel'), ui.hideModal), ' ', button(_('Validate & Import'), function() {
 			if (new Blob([text.value]).size > 2 * 1024 * 1024) throw new Error(_('Content size must not exceed 2 MiB.'));
-			return api('import_source', { source: source.id, content: text.value }).then(function() {
-				ui.hideModal(); ui.addNotification(null, E('p', {}, _('Source node cache has been imported.')), 'info');
-			});
+			return api('import_source', { source: source.id, content: text.value }).then(function(result) { sourceUpdateResult(source, result); });
 		}, 'cbi-button-positive', true)])
 	]);
 }
@@ -1547,7 +1600,8 @@ function graph(config, profile) {
 
 return baseclass.extend({
 	api: api, notify: notify, button: button, time: time, table: table, report: report,
-	waitJob: waitJob, runJob: runJob, createMap: createMap, grid: grid, value: value,
+	waitJob: waitJob, runJob: runJob, sourceUpdateSummary: sourceUpdateSummary, sourceUpdateResult: sourceUpdateResult,
+	createMap: createMap, grid: grid, value: value,
 	choices: choices, references: references, jsonValue: jsonValue, rowAction: rowAction, importSource: importSource,
 	sectionTabs: sectionTabs, modalTabs: modalTabs, filterSection: filterSection, selectFilter: selectFilter, sectionActions: sectionActions,
 	download: download, graph: graph, clean: clean,

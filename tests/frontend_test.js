@@ -78,6 +78,8 @@ assert.equal(hs.translateMessage('shadowrocket: Example: unsupported VMess ciphe
 assert.equal(hs.translateMessage('shadowrocket: Example: reuse must be boolean'), 'Shadowrocket：节点 Example：reuse 必须为布尔值');
 assert.equal(hs.translateMessage('shadowrocket: Example: Reality requires enabled TLS'), 'Shadowrocket：节点 Example：Reality 需要启用 TLS');
 assert.equal(hs.translateMessage('Invalid identifier'), '标识符格式无效');
+assert.equal(hs.translateMessage('Subscription request failed (HTTP 404); cached nodes were kept'), '订阅请求失败（HTTP 404），已保留节点缓存');
+assert.equal(hs.translateMessage('Subscription request failed (HTTP 400); cached nodes were kept'), '订阅请求失败（HTTP 400），已保留节点缓存');
 assert.equal(hs.translateMessage('Group proxy has no members after filtering; Rule r1: invalid IP prefix'), '策略组 proxy 在筛选后无可用节点或成员；分流规则 r1：IP 网段（CIDR）格式无效');
 assert.equal(hs.translateMessage('Source alpha, node 2: missing password'), '订阅源 alpha 第 2 个节点：缺少必填字段 password');
 assert.equal(hs.translateMessage('Update compatible draft Surge (copy) from its saved source; preserve published releases and download links'), '根据来源配置更新兼容草稿“Surge”（copy）；保留已发布版本和订阅链接');
@@ -169,7 +171,132 @@ const japanNode = svg.children.find(n => n.attrs.id === japan.attrs.href.slice(1
 assert.equal(japanNode.focused, true);
 assert.equal(japanNode.scrolled, true);
 
+async function sourceActionChecks() {
+	const sourceRows = {
+		saved: { id: 'saved', url: '', has_url: true, quota_via_subscription: false },
+		header: { id: 'header', url: '', has_url: '1', quota_via_subscription: '1' },
+		file: { id: 'file', url: '', has_url: false, quota_via_subscription: true },
+		dedicated: { id: 'dedicated', url: '', has_url: false, quota_url: '', has_quota_url: true },
+		cleared: { id: 'cleared', url: '', quota_url: '', has_quota_url: true, clear_quota_url: '1' },
+		disabled: { id: 'disabled', url: '', has_url: true, quota_via_subscription: '0' },
+		local: { id: 'local', url: '', has_url: false },
+		metadata: { id: 'metadata', url: '', has_url: false },
+		newurl: { id: 'newurl', url: 'https://example.invalid/subscription', has_url: false, quota_via_subscription: true },
+		newquota: { id: 'newquota', url: '', quota_url: 'https://example.invalid/quota', clear_quota_url: '0' },
+		unset: { id: 'unset', url: '  ', has_url: 'false', quota_via_subscription: '0' }
+	};
+	const sourceMap = { data: { get: (_, sid, key) => key ? sourceRows[sid][key] : sourceRows[sid] }, render: () => sourceSection };
+	const sourceSection = {
+		map: sourceMap, children: [], tabs: {}, renderSectionAdd() { return node('div'); },
+		option(type, key, title) {
+			const option = { option: key, title, depends() {}, value() {}, renderWidget() { return node('button', { 'data-option': key }); } };
+			this.children.push(option); return option;
+		},
+		tab(key) { this.tabs[key] = { children: [] }; }
+	};
+	const sourceJobs = [], sourceResults = [];
+	const updateResult = { changes: { changed: true, added: 1, removed: 0, updated: 0 } };
+	let sourceSaves = 0, sourceReloads = 0;
+	const sourcePage = new Function('view', 'form', 'ui', 'hs', 'E', '_', 'window', fs.readFileSync(path.join(root, 'htdocs/luci-static/resources/view/hybrid-subscription/sources.js'), 'utf8'))(
+		{ extend: value => value }, { ...form, Flag: {}, DummyValue: {}, Value: {}, ListValue: {} }, ui,
+		{ ...hs, createMap: () => sourceMap, grid: () => sourceSection,
+			runJob: async (method, args) => { sourceJobs.push({ method, args }); return { result: updateResult }; },
+			sourceUpdateResult: (source, result) => { sourceResults.push({ source, result }); } }, node, value => value,
+		{ location: { reload() { sourceReloads++; } } }
+	);
+	sourcePage.handleSave = async () => { sourceSaves++; };
+	sourcePage.render([{}, { sources: [
+		{ id: 'saved', nodes: 3, cached_at: '2026-10-21T12:00:00Z', last_refresh: updateResult.changes, error: 'Subscription request failed (HTTP 400); cached nodes were kept', quota_status: { can_refresh: false, query_mode: 'cache_only' } },
+		{ id: 'file', quota_status: { can_refresh: true, query_mode: 'subscription' } },
+		{ id: 'cleared', quota_status: { can_refresh: true, query_mode: 'independent' } },
+		{ id: 'disabled', quota_status: { can_refresh: true, query_mode: 'subscription' } },
+		{ id: 'local', quota_status: { can_refresh: true, query_mode: 'cache_only' } },
+		{ id: 'metadata', quota_status: { available: true, can_refresh: false, query_mode: 'cache_only' } }
+	] }]);
+	const sourceOption = key => sourceSection.children.find(option => option.option === key);
+	const updateSource = sourceOption('_refresh'), refreshQuota = sourceOption('_refresh_quota');
+	assert.equal(sourceOption('has_url'), undefined, 'saved URL presence is internal state, not a source table or editor field');
+	assert.ok(sourceOption('has_quota_url'), 'the quota URL status remains available in the editor');
+	assert.match(sourceOption('_state').cfgvalue('saved'), /^3 nodes · .*Added 1 · removed 0 · modified 0 · Subscription request failed \(HTTP 400\)/, 'cache status retains node count, timestamp, last change summary and latest error');
+	for (const [sid, update, quota] of [
+		['saved', true, false], ['header', true, true], ['file', false, false], ['dedicated', false, true],
+		['cleared', false, false], ['disabled', true, false], ['local', false, true], ['metadata', false, false],
+		['newurl', true, true], ['newquota', false, true], ['unset', false, false]
+	]) {
+		assert.equal(updateSource.renderWidget(sid).tag === 'button', update, `${sid}: render Update Subscription only when a URL exists`);
+		assert.equal(refreshQuota.renderWidget(sid).tag === 'button', quota, `${sid}: render Refresh Quota only with a current query method or local adapter`);
+	}
+	assert.equal(sourceSaves, 0, 'drawing the source list does not save or refresh subscriptions');
+	assert.deepEqual(sourceJobs, []);
+	await updateSource.onclick({}, 'file'); await refreshQuota.onclick({}, 'cleared'); await refreshQuota.onclick({}, 'disabled');
+	assert.equal(sourceSaves, 0, 'unavailable actions remain inert if a stale handler is invoked');
+	sourceRows.dedicated.clear_quota_url = '1';
+	assert.equal(refreshQuota.renderWidget('dedicated').tag, 'span', 're-render uses the current edited row after removing a saved quota URL');
+	sourceRows.file.url = 'https://example.invalid/new-subscription';
+	assert.equal(updateSource.renderWidget('file').tag, 'button', 're-render reflects a newly entered subscription URL');
+	await updateSource.onclick({}, 'saved'); await refreshQuota.onclick({}, 'local');
+	assert.equal(sourceSaves, 2); assert.equal(sourceReloads, 1, 'subscription results stay visible; only the independent quota action reloads immediately');
+	assert.deepEqual(sourceResults, [{ source: sourceRows.saved, result: updateResult }], 'completed subscription jobs open the shared result dialog');
+	assert.deepEqual(sourceJobs, [{ method: 'refresh', args: { source: 'saved' } }, { method: 'refresh_quota', args: { source: 'local' } }]);
+}
+
+async function sourceUpdateResultChecks() {
+	let modal, reloads = 0, hidden = 0;
+	const requests = [], changes = { changed: true, initial: false, before_nodes: 3, after_nodes: 4, added: 2, removed: 1, updated: 1, order_changed: true };
+	const result = { nodes: 4, changes, affected_profiles: [{ id: 'profile', name: 'Hybrid' }] };
+	const resultUi = {
+		showModal(title, children) { modal = node('modal', { title }, children); },
+		hideModal() { hidden++; }
+	};
+	const feedback = new Function('baseclass', 'form', 'rpc', 'ui', 'poll', 'uqr', 'L', 'E', '_', 'document', 'window',
+		fs.readFileSync(path.join(root, 'htdocs/luci-static/resources/hybrid-subscription.js'), 'utf8'))(
+		{ extend: value => value }, {}, { declare: spec => (...args) => { requests.push({ method: spec.method, args }); return Promise.resolve({ ok: true, ...result }); } }, resultUi, {}, {},
+		{ env: { lang: 'en' }, hasViewPermission: () => true, url: (...segments) => '/cgi-bin/luci/' + segments.join('/') }, node, value => value, {},
+		{ location: { reload() { reloads++; } } }
+	);
+	const text = value => value == null ? '' : typeof value === 'object' ? value.children.map(text).join(' ') : String(value);
+	const buttons = () => descendants(modal).filter(value => value.tag === 'button');
+	const click = button => button.attrs.click({ preventDefault() {}, currentTarget: button });
+	assert.equal(feedback.sourceUpdateSummary(), '');
+	assert.equal(feedback.sourceUpdateSummary(changes), 'Added 2 · removed 1 · modified 1 · Node order changed');
+	feedback.sourceUpdateResult({ id: 'source', name: 'Test Source' }, { ...result, password: 'secret-must-not-render', url: 'https://secret.invalid' });
+	assert.equal(modal.attrs.title, 'Node Update Result: Test Source');
+	assert.match(text(modal), /Nodes: 3 → 4\./);
+	assert.match(text(modal), /Added 2 · removed 1 · modified 1 · Node order changed/);
+	assert.match(text(modal), /Profiles using this source: Hybrid/);
+	assert.match(text(modal), /Published downloads and OpenClash are unchanged/);
+	assert.doesNotMatch(text(modal), /secret-must-not-render|secret\.invalid/);
+	const overview = descendants(modal).find(value => value.tag === 'a');
+	assert.equal(overview.attrs.href, '/cgi-bin/luci/admin/services/hybrid-subscription/overview');
+	assert.equal(reloads, 0, 'successful updates do not reload before users read the result');
+	assert.deepEqual(requests, [], 'the result dialog never builds or publishes automatically');
+	await click(buttons().find(value => text(value) === 'Done'));
+	assert.equal(reloads, 1); assert.equal(hidden, 1);
+
+	feedback.sourceUpdateResult({ id: 'source' }, { nodes: 4, changes: { ...changes, changed: false, added: 0, removed: 0, updated: 0, order_changed: false }, affected_profiles: result.affected_profiles });
+	assert.match(text(modal), /Nodes unchanged/);
+	assert.match(text(modal), /this refresh does not require rebuilding/);
+	assert.doesNotMatch(text(modal), /Profiles using this source|Node order changed/);
+	feedback.sourceUpdateResult({ id: 'source' }, { nodes: 4, changes: { ...changes, initial: true, before_nodes: 0, order_changed: false }, affected_profiles: [] });
+	assert.match(text(modal), /Initial cache/);
+	assert.match(text(modal), /not referenced by any profile yet/);
+	assert.equal(reloads, 1);
+	feedback.setLocale('zh-cn');
+	assert.equal(feedback.sourceUpdateSummary(changes), '新增 2 · 移除 1 · 修改 1 · 节点顺序变化');
+	feedback.setLocale('en');
+
+	feedback.importSource({ id: 'source', name: 'Test Source' });
+	descendants(modal).find(value => value.tag === 'textarea').value = 'fixture node content';
+	await click(buttons().find(value => text(value) === 'Validate & Import'));
+	assert.deepEqual(requests, [{ method: 'import_source', args: ['source', 'fixture node content'] }]);
+	assert.equal(modal.attrs.title, 'Node Update Result: Test Source', 'local imports use the same node-diff result dialog');
+	assert.match(text(modal), /Added 2 · removed 1 · modified 1/);
+	assert.equal(reloads, 1, 'local imports also preserve the result until dismissed');
+}
+
 async function editorChecks() {
+	await sourceActionChecks();
+	await sourceUpdateResultChecks();
 	let downloadModal;
 	const downloads = new Function('baseclass', 'form', 'rpc', 'ui', 'poll', 'uqr', 'L', 'E', '_', 'document', 'window',
 		fs.readFileSync(path.join(root, 'htdocs/luci-static/resources/hybrid-subscription.js'), 'utf8'))(
@@ -280,6 +407,8 @@ async function editorChecks() {
 	const request = sent.filter(call => call.method === 'save_config').at(-1);
 	const body = JSON.parse(request.args[0]);
 	assert.equal(request.args[1], 'v1');
+	assert.deepEqual(request.args[2], ['sources', 'rules']);
+	assert.deepEqual(Object.keys(body).sort(), ['rules', 'sources']);
 	assert.deepEqual(body.rules.map(row => row.id), ['b', 'a']);
 	assert.equal(body.rules[0].enabled, false);
 	assert.equal(body.sources[0].url, 'private-input');
@@ -312,6 +441,8 @@ async function editorChecks() {
 	assertNotice(settingsNotice, 'a settings flag and materialized empty overrides do not require publication');
 	assert.equal(flags.owner.config.settings.openclash_auto_apply, true);
 	assert.equal(sent.at(-1).args[1], 'settings-v1');
+	assert.deepEqual(sent.at(-1).args[2], ['settings', 'regions']);
+	assert.deepEqual(Object.keys(JSON.parse(sent.at(-1).args[0])).sort(), ['regions', 'settings']);
 	await flags.owner.handleSave();
 	assertNotice(settingsNotice, 'repeated settings-only saves remain neutral');
 	assert.equal(sent.at(-1).args[1], 'v2', 'repeat save uses the returned configuration version');
@@ -340,6 +471,18 @@ async function editorChecks() {
 		assertNotice(publishNotice, `${reason} changes retain the publication reminder`);
 	}
 	const sourceOwner = {}, sourceMap = hs.createMap(sourceOwner, { config: { sources: [{ id: 'a', url: '', has_url: true }] }, version: 'source-v1' }, ['sources']);
+	const largeOwner = {}, largeConfig = {
+		schema: 1, sources: [{ id: 'source', url: '', has_url: true }],
+		rules: [{ id: 'large-rule', value: 'example'.repeat(12000) }], profiles: [], groups: []
+	};
+	hs.createMap(largeOwner, { config: largeConfig, version: 'large-v1' }, ['sources']);
+	assert(Buffer.byteLength(JSON.stringify(largeConfig)) > 65536);
+	await largeOwner.handleSave();
+	const partial = sent.filter(call => call.method === 'save_config').at(-1);
+	assert.deepEqual(partial.args[2], ['sources']);
+	assert.deepEqual(Object.keys(JSON.parse(partial.args[0])), ['sources']);
+	assert(Buffer.byteLength(JSON.stringify(partial.args)) < 4096, 'source actions do not send the large routing configuration through /ubus');
+	assert.equal(largeOwner.config.rules[0].value, largeConfig.rules[0].value, 'partial saves retain unrelated editor state');
 	sourceMap.data.get('json', 'sources_0').url = 'https://example.invalid/subscription';
 	await sourceOwner.handleSave();
 	assertNotice(publishNotice, 'source-only edits retain the publication reminder');

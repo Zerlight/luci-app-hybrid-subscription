@@ -159,7 +159,7 @@ See the [compatibility version baselines](docs/compatibility-versions.md#shadowr
 
 Quota parsing supports the standard `Subscription-Userinfo` response header (`upload; download; total; expire`) used by [OpenClash](https://github.com/vernesong/OpenClash/blob/master/luci-app-openclash/luasrc/controller/openclash.lua):
 
-- **Dedicated Quota URL (`quota_url`)**: Write-only endpoint queried first without following redirects or falling back to the main subscription URL.
+- **Dedicated Quota URL (`quota_url`)**: An independent endpoint queried first without following redirects or falling back to the main subscription URL.
 - **Subscription Header Opt-In (`quota_via_subscription`)**: Disabled by default. When enabled, clicking **Refresh Quota** sends a header-only `GET` request to the subscription URL. Keep this disabled for time-windowed or pull-limited subscriptions.
 - **Local Provider Reuse**: Automatically reads local Mihomo `proxy-providers` quota metadata when OpenClash is installed and shares the same subscription URL.
 
@@ -170,7 +170,7 @@ Under **Global Settings → Region Matching**, built-in templates match flag emo
 ### Access Control & Security
 
 - **Access Modes**: Choose between **LAN + Download Token** (default), **Download Token (All Reachable Networks)**, or **Authenticated LuCI Session Only**.
-- **Credential Protection**: State and artifacts live in `/etc/hybrid-subscription` (`0700` directories, `0600` files). Subscription and quota URLs are write-only in the UI, and previews redact server addresses, passwords, UUIDs, and query tokens.
+- **Credential Protection**: State and artifacts live in `/etc/hybrid-subscription` (`0700` directories, `0600` files). Subscription and quota URLs are omitted from general configuration reads and loaded on demand only when a user with edit permission opens a source for editing, where they remain masked in password fields until revealed. Previews redact server addresses, passwords, UUIDs, and query tokens.
 - **Clean Uninstallation**: Switch OpenClash away from any `HybridSubscriptions-*.yaml` profile and run `scripts/uninstall-router.sh`.
 
 ## Internationalization (i18n)

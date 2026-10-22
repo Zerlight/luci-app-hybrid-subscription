@@ -99,6 +99,8 @@ class OpenClashTest < Minitest::Test
     assert_equal 'manual', source['update_mode']
     assert_equal false, source['takeover']
     assert_equal 'cfg123', source['openclash_section']
+    assert_equal 'https://example.invalid/sub?token=private', source['url']
+    assert_equal 'client', source['user_agent']
     assert_equal @candidate['proxies'], result['caches'][source['id']]['nodes']
     assert_equal 'original uci', read('/etc/config/openclash')
     refute @calls.any? { |argv| argv.include?('set') || argv.include?('restart') || argv.first.include?('curl') }

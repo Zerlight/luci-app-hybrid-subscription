@@ -102,6 +102,18 @@ module HybridSubscription
         raw = args['config']
         raise Error, 'Configuration exceeds the 2 MiB size limit' unless raw.is_a?(String) && raw.bytesize <= MAX_BYTES
         c = JSON.parse(raw)
+        collections = args['collections']
+        collections = [] if collections.nil?
+        unless collections.is_a?(Array) && collections.all? { |key| (COLLECTIONS + ['settings']).include?(key) } && collections.uniq.length == collections.length
+          raise Error, 'Invalid configuration collections'
+        end
+        unless collections.empty?
+          raise Error, 'Partial configuration must be an object' unless c.is_a?(Hash)
+          raise Error, 'Partial configuration is missing a selected collection' unless collections.all? { |key| c.key?(key) }
+          changes = c
+          c = JSON.parse(JSON.generate(current))
+          collections.each { |key| c[key] = changes[key] }
+        end
         raise Error, 'Unsupported configuration schema version' unless c['schema'] == 1
         %w[rematches sub_rules regions].each { |key| c[key] ||= [] }
         COLLECTIONS.each do |key|
@@ -225,15 +237,26 @@ module HybridSubscription
       raise Error, 'Subscription contains no valid nodes; previous cache retained' unless nodes.is_a?(Array) && !nodes.empty?
       state = {'nodes'=>nodes, 'meta'=>{'generation'=>random, 'cached_at'=>now, 'attempt_at'=>now, 'sha256'=>Digest::SHA256.hexdigest(content), 'error'=>nil}}
       locked do
-        source(config, id)
+        current = config
+        source(current, id)
         raise Error, 'Source or cache was updated concurrently; discarding stale fetch result' if expected && !refresh_current?(id, expected)
-        old = read(source_path(id), {}).fetch('meta', {})
+        previous = read(source_path(id), {})
+        old_nodes = Array(previous['nodes'])
+        before, after = [old_nodes, nodes].map { |items| items.to_h { |node| [node['name'], node] } }
+        common = before.keys & after.keys
+        changes = {'changed'=>old_nodes != nodes, 'initial'=>old_nodes.empty?, 'before_nodes'=>old_nodes.length, 'after_nodes'=>nodes.length,
+                   'added'=>(after.keys-before.keys).length, 'removed'=>(before.keys-after.keys).length,
+                   'updated'=>common.count { |name| before[name] != after[name] }, 'order_changed'=>common != (after.keys & before.keys)}
+        state['nodes'] = old_nodes unless changes['changed']
+        state['meta']['last_refresh'] = changes
+        old = previous.fetch('meta', {})
         %w[quota quota_generation quota_updated_at quota_attempt_at quota_origin quota_error].each { |key| state['meta'][key] = old[key] if old.key?(key) }
         values = quota(headers)
         state['meta'].merge!('quota'=>values,'quota_generation'=>random,'quota_updated_at'=>now,'quota_attempt_at'=>now,'quota_origin'=>'subscription_header','quota_error'=>nil) if values
         atomic(source_path(id), state)
+        affected = current['profiles'].select { |p| Array(p['sources']).include?(id) }.map { |p| p.slice('id', 'name') }
+        {'source'=>id, 'nodes'=>nodes.length, 'cached_at'=>state['meta']['cached_at'], 'changes'=>changes, 'affected_profiles'=>affected}
       end
-      {'source'=>id, 'nodes'=>nodes.length, 'cached_at'=>state['meta']['cached_at']}
     end
     def refresh_source(id)
       s, expected = locked do
@@ -250,6 +273,15 @@ module HybridSubscription
       command(argv, seconds: 45)
       put_source(id, File.binread(body), s.fetch('format', 'auto'), File.read(headers), expected: expected)
     rescue StandardError => e
+      if e.message == 'Command failed (curl)' && headers && File.file?(headers)
+        begin
+          response_headers = File.binread(headers, 65536, [File.size(headers)-65536, 0].max)
+          http_status = response_headers.scan(/^HTTP\/\d+(?:\.\d+)?[ \t]+(\d{3})(?:[ \t]|\r?$)/).last
+          e = Error.new('Subscription request failed (HTTP %s); cached nodes were kept' % http_status.first) if http_status && http_status.first.to_i >= 400
+        rescue SystemCallError, IOError
+          # Preserve the original failure if curl did not leave readable headers.
+        end
+      end
       locked do
         if expected && refresh_current?(id, expected)
           state = read(source_path(id), {'nodes'=>[], 'meta'=>{}})
@@ -581,20 +613,40 @@ module HybridSubscription
     rescue StandardError
       {'available'=>false,'version'=>nil}
     end
+    def profile_draft_status(p, manifest, renderer)
+      return {'draft_status'=>'unpublished'} unless manifest
+      formats = p['formats']
+      return {'draft_status'=>'invalid'} unless formats.is_a?(Array) && !formats.empty?
+      previous_formats = Array(manifest['formats'])
+      changed = formats.sort != previous_formats.sort
+      formats.each do |format|
+        output = renderer.render(p['id'], format)
+        return {'draft_status'=>'invalid'} unless Array(output['errors']).empty? && output['content'].is_a?(String)
+        expected = manifest.fetch('sha256', {})[format]
+        if expected.nil? && previous_formats.include?(format)
+          expected = Digest::SHA256.file(File.join(release_path(manifest['id']), filename(format))).hexdigest
+        end
+        changed ||= expected != Digest::SHA256.hexdigest(output['content'])
+      end
+      {'draft_status'=>changed ? 'changed' : 'current'}
+    rescue StandardError
+      # Status must remain readable when a draft or an old release is invalid.
+      {'draft_status'=>'invalid'}
+    end
     def status
-      c=config; pub=published
+      c=config; pub=published; cache=caches(c); renderer=engine(c, cache)
       compatibility = Compatibility.new(c, {})
       local_quotas=@quota_adapter.local_states(c['sources'])
       matcher=Regions.new(c['regions'],source_ids:c['sources'].map { |s| s['id'] })
       {'config_version'=>version(c), 'sources'=>c['sources'].map do |s|
-        x=read(source_path(s['id']),{'nodes'=>[],'meta'=>{}})
+        x=cache[s['id']]
         values, details=quota_status(s,x.fetch('meta',{}),local_quotas[s['id']])
         counts=Hash.new(0)
         matcher.preview(s['id'],Array(x['nodes']).map { |node| node['name'].to_s }).each { |node| node['regions'].each { |region| counts[region] += 1 } } unless c['regions'].empty?
         x.fetch('meta',{}).merge('id'=>s['id'],'name'=>s['name'],'nodes'=>Array(x['nodes']).length,'update_mode'=>s['update_mode'],'enabled'=>s['enabled'],'regions'=>counts,'quota'=>values,'quota_status'=>details)
       end, 'profiles'=>c['profiles'].map do |p|
         rid=pub[p['id']]; m=rid ? release_meta(rid) : {}
-        {'id'=>p['id'],'name'=>p['name'],'published_release'=>rid,'formats'=>m['formats'] || [],'generated_at'=>m['created_at'], 'compatibility'=>compatibility.strategy_status(p['id'])}
+        {'id'=>p['id'],'name'=>p['name'],'published_release'=>rid,'formats'=>m['formats'] || [],'generated_at'=>m['created_at'], 'compatibility'=>compatibility.strategy_status(p['id'])}.merge(profile_draft_status(p, rid ? m : nil, renderer))
       end, 'releases'=>releases.map { |r| r.merge(read(path('publication-history.json'))[r['id']] || {}).merge('ever_published'=>read(path('publication-history.json')).key?(r['id']), 'published'=>pub[r['profile']]==r['id']) }, 'jobs'=>jobs, 'openclash'=>@adapter.status,'converter'=>converter_status}
     end
     def tick
@@ -613,6 +665,7 @@ module HybridSubscription
       result=case method
       when 'status'; status
       when 'get_config'; {'config'=>sanitized_config,'version'=>version}
+      when 'source_urls'; s=source(config,args['source']); {'url'=>s.fetch('url',''),'quota_url'=>s.fetch('quota_url','')}
       when 'save_config'; save_config(args)
       when 'refresh'; source(config,args['source']); {'job'=>enqueue('refresh',args['source'])}
       when 'refresh_quota'; source(config,args['source']); {'job'=>enqueue('refresh_quota',args['source'])}

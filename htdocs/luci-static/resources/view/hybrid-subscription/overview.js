@@ -100,6 +100,8 @@ return view.extend({
 				return E('div', { 'class': 'cbi-section' }, [
 					E('h4', {}, p.name || p.id),
 					E('p', {}, current.published_release ? _('Published · ') + (current.formats || []).join(' / ') + ' · ' + hs.time(current.generated_at) : _('Draft · Unpublished')),
+					current.draft_status === 'changed' ? E('p', { 'class': 'alert-message warning' }, _('The draft has unpublished changes. Build and publish to update downloads and OpenClash.')) :
+					current.draft_status === 'invalid' ? E('p', { 'class': 'alert-message warning' }, _('The current draft cannot generate all selected formats. Check the configuration and compatibility before publishing.')) : '',
 					compatibilityNotice(p, current),
 					E('p', {}, [link('profiles', _('Edit Profile'), p.id), ' ', link('compatibility', _('Compatibility'), p.id), ' ', hs.button(_('Build & Publish'), function() {
 						return hs.runJob('build', { profile: p.id }, _('Validate and Build Release')).then(function(job) {
@@ -113,7 +115,7 @@ return view.extend({
 			E('h3', {}, _('Subscription Source Status')),
 			hs.table([_('Source'), _('Node Cache'), _('Quota / Expiration'), _('Actions')], (data.sources || []).map(function(s) {
 				const names = Object.keys(s.regions || {});
-				return [E('strong', {}, s.name || s.id), E('div', {}, [E('div', {}, s.cached_at ? String(s.nodes || 0) + _(' nodes') : _('Not cached')), E('div', { 'class': 'cbi-section-descr' }, s.error ? trMsg(s.error) : hs.time(s.cached_at)), names.length ? E('div', { 'class': 'cbi-section-descr' }, String(names.length) + _(' regions matched')) : '']), quotaCell(s), E('div', {}, [
+				return [E('strong', {}, s.name || s.id), E('div', {}, [E('div', {}, s.cached_at ? String(s.nodes || 0) + _(' nodes') : _('Not cached')), E('div', { 'class': 'cbi-section-descr' }, s.error ? trMsg(s.error) : hs.time(s.cached_at)), s.last_refresh ? E('div', { 'class': 'cbi-section-descr' }, hs.sourceUpdateSummary(s.last_refresh)) : '', names.length ? E('div', { 'class': 'cbi-section-descr' }, String(names.length) + _(' regions matched')) : '']), quotaCell(s), E('div', {}, [
 					s.quota_status && s.quota_status.can_refresh ? hs.button(_('Refresh Quota'), function() { return hs.runJob('refresh_quota', { source: s.id }, _('Refresh Quota Status')).then(function() { window.location.reload(); }); }, null, true) : '', ' ', link('sources', _('Manage Sources'))
 				])];
 			})),
@@ -121,7 +123,7 @@ return view.extend({
 				['OpenClash', data.openclash && data.openclash.installed ? (data.openclash.active_config || _('Installed')) : _('Not installed')],
 				['subconverter', data.converter && data.converter.available ? (data.converter.version || _('Available')) : _('Unavailable')]
 			]), hs.table([_('Time'), _('Operation'), _('Status'), _('Details')], (data.jobs || []).slice(0, 8).map(function(j) {
-				return [hs.time(j.created_at), { refresh: _('Update Nodes'), refresh_quota: _('Refresh Quota'), build: _('Build Release'), apply: _('Apply to OpenClash'), compare: _('Compatibility Audit') }[j.kind] || j.kind, { queued: _('Queued'), running: _('Running'), completed: _('Completed'), failed: _('Failed') }[j.state] || j.state, trMsg(j.error || j.message) || '—'];
+				return [hs.time(j.created_at), { refresh: _('Update Nodes'), refresh_quota: _('Refresh Quota'), build: _('Build Release'), apply: _('Apply to OpenClash'), compare: _('Compatibility Audit') }[j.kind] || j.kind, { queued: _('Queued'), running: _('Running'), completed: _('Completed'), failed: _('Failed') }[j.state] || j.state, j.kind === 'refresh' && j.state === 'completed' && j.result && j.result.changes ? hs.sourceUpdateSummary(j.result.changes) : trMsg(j.error || j.message) || '—'];
 			}))])
 		]);
 	},

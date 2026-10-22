@@ -160,7 +160,7 @@ Shadowrocket 作为独立的导出目标（`shadowrocket`）按需启用，生�
 
 额度解析兼容 [OpenClash](https://github.com/vernesong/OpenClash/blob/master/luci-app-openclash/luasrc/controller/openclash.lua) 使用的 `Subscription-Userinfo` 响应头格式（`upload; download; total; expire`）：
 
-- **独立额度查询地址（`quota_url`）**：支持为每个订阅源设置独立的只写查询接口，刷新额度时优先调用，不跟随重定向，失败时不会回退请求原订阅地址。
+- **独立额度查询地址（`quota_url`）**：支持为每个订阅源设置独立查询接口，刷新额度时优先调用，不跟随重定向，失败时不会回退请求原订阅地址。
 - **订阅响应头查询开关（`quota_via_subscription`）**：默认关闭。普通订阅源开启后，手动点击**刷新额度**时会向订阅地址发送 `GET` 请求并仅读取响应头；限时或限次订阅请保持关闭。
 - **本地缓存复用**：若系统已安装 OpenClash，后台会自动读取相同订阅地址对应的 Mihomo `proxy-providers` 本地额度信息。
 
@@ -171,7 +171,7 @@ Shadowrocket 作为独立的导出目标（`shadowrocket`）按需启用，生�
 ### 访问控制与存储安全
 
 - **三种下载鉴权方式**：支持**局域网访问 + 下载令牌**（默认）、**仅校验下载令牌（所有可达网络）**与**仅限已登录的 LuCI 会话**。
-- **凭据隔离与脱敏**：后台配置与版本产物存储于权限受限的 `/etc/hybrid-subscription`（目录 `0700`，文件 `0600`）。订阅地址与额度查询地址不会回传浏览器，预览界面自动脱敏服务器地址、密码与私有令牌。
+- **凭据隔离与脱敏**：后台配置与版本文件存储于权限受限的 `/etc/hybrid-subscription`（目录 `0700`，文件 `0600`）。日常读取配置列表时不返回订阅地址与额度查询地址；仅当具备编辑权限的用户打开单个订阅源的编辑窗口时，才会按需载入该源已保存的地址（默认掩码隐藏，可点击显示按钮查看）。预览界面会自动脱敏服务器地址、密码与私有令牌。
 - **卸载方式**：将 OpenClash 切换至非 `HybridSubscriptions-*.yaml` 配置后，运行 `scripts/uninstall-router.sh` 即可卸载程序（`/etc/hybrid-subscription` 下的配置数据将保留以备恢复）。
 
 ## 国际化与开发测试

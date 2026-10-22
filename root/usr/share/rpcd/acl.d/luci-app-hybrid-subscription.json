@@ -21,6 +21,7 @@
       "ubus": {
         "luci.hybrid_subscription": [
           "save_config",
+          "source_urls",
           "compatibility_create",
           "compatibility_update",
           "refresh",

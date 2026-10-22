@@ -14,7 +14,7 @@ class BackendTest < Minitest::Test
     def converter_status; {'available'=>false}; end
   end
   class QueueApp < HybridSubscription::Backend
-    attr_accessor :spawn_error, :fetch_hook, :fetch_content
+    attr_accessor :spawn_error, :fetch_hook, :fetch_content, :fetch_headers, :fetch_error
     def spawn_worker(id)
       raise Errno::EAGAIN if spawn_error
       Process.pid
@@ -23,7 +23,8 @@ class BackendTest < Minitest::Test
       return super unless argv.first=='curl' && argv.include?('--output') && fetch_content
       fetch_hook.call if fetch_hook
       File.write(argv[argv.index('--output')+1],fetch_content)
-      File.write(argv[argv.index('--dump-header')+1],'')
+      File.write(argv[argv.index('--dump-header')+1],fetch_headers || '')
+      raise fetch_error if fetch_error
       ''
     end
   end
@@ -86,11 +87,99 @@ class BackendTest < Minitest::Test
     assert_equal 'follow',@b.config['rematches'][0]['id']
     assert_equal 'region',@b.config['sub_rules'][0]['id']
   end
-  def test_source_url_is_write_only_and_preserved
+  def test_default_config_hides_source_url_and_blank_save_preserves_it
     r=@b.call('get_config'); refute_includes JSON.generate(r),'https://invalid.example/secret'
     assert r['config']['sources'][0]['has_url']
     r2=@b.call('save_config','config'=>JSON.generate(r['config']),'version'=>r['version']);assert r2['ok']
     assert_equal @c['sources'][0]['url'],@b.config['sources'][0]['url']
+  end
+  def test_partial_source_save_preserves_other_collections_and_private_urls
+    c=@b.config
+    c['sources'][0]['quota_url']='https://status.invalid/query?token=quota-fixture'
+    c['profiles'][0]['mihomo_dns']={'nameserver'=>['https://resolver.invalid/dns-query']}
+    @b.atomic(@b.path('config.json'),c)
+    update=@b.sanitized_config['sources']
+    update[0]['name']='Edited Source'
+    result=@b.call('save_config','config'=>JSON.generate('sources'=>update),'collections'=>['sources'],'version'=>@b.version)
+    assert result['ok'],result.inspect
+    after=@b.config
+    assert_equal 'Edited Source',after['sources'][0]['name']
+    assert_equal c['sources'][0]['url'],after['sources'][0]['url']
+    assert_equal c['sources'][0]['quota_url'],after['sources'][0]['quota_url']
+    refute after['sources'][0].key?('has_url')
+    refute after['sources'][0].key?('has_quota_url')
+    (HybridSubscription::Backend::COLLECTIONS-['sources']+['settings']).each { |key| assert_equal c[key],after[key],key }
+    assert_equal @b.version,result['version']
+  end
+  def test_partial_group_save_preserves_source_secrets_and_conversion_strategy
+    create_tracked_profile
+    before=@b.config
+    groups=JSON.parse(JSON.generate(before['groups']))
+    groups[0]['name']='Edited Group'
+    result=@b.call('save_config','config'=>JSON.generate('groups'=>groups),'collections'=>['groups'],'version'=>@b.version)
+    assert result['ok'],result.inspect
+    after=@b.config
+    assert_equal 'Edited Group',after['groups'][0]['name']
+    (HybridSubscription::Backend::COLLECTIONS-['groups']+['settings']).each { |key| assert_equal before[key],after[key],key }
+  end
+  def test_partial_save_checks_version_and_full_configuration_validation
+    before=@b.config
+    stale=@b.version
+    changed=@b.sanitized_config['sources']
+    changed[0]['name']='New Name'
+    @b.save_config('config'=>JSON.generate('sources'=>changed),'collections'=>['sources'],'version'=>stale)
+    current=@b.config
+    result=@b.call('save_config','config'=>JSON.generate('sources'=>before['sources']),'collections'=>['sources'],'version'=>stale)
+    refute result['ok']
+    assert_match(/modified in another session/,result['error'])
+    assert_equal current,@b.config
+    changed[0]['url']='not-a-url'
+    result=@b.call('save_config','config'=>JSON.generate('sources'=>changed),'collections'=>['sources'],'version'=>@b.version)
+    refute result['ok']
+    assert_equal current,@b.config
+  end
+  def test_partial_save_rejects_invalid_or_missing_collections_without_mutation
+    before=@b.config
+    [false,'sources',{},['schema'],['unknown'],['sources','sources'],[nil],[1],['settings']].each do |collections|
+      result=@b.call('save_config','config'=>JSON.generate('sources'=>before['sources']),'collections'=>collections,'version'=>@b.version)
+      refute result['ok'],collections.inspect
+      assert_equal before,@b.config
+    end
+    result=@b.call('save_config','config'=>'[]','collections'=>['sources'],'version'=>@b.version)
+    refute result['ok']
+    assert_equal before,@b.config
+    [nil,[]].each do |collections|
+      result=@b.call('save_config','config'=>JSON.generate(@b.sanitized_config),'collections'=>collections,'version'=>@b.version)
+      assert result['ok'],result.inspect
+      assert_equal before,@b.config
+    end
+  end
+  def test_source_urls_are_requested_for_one_existing_source_only
+    c=@b.config
+    c['sources'][0]['quota_url']='https://status.invalid/query?token=quota-fixture'
+    c['sources'] << {'id'=>'other','url'=>'https://other.invalid/private-fixture','quota_url'=>''}
+    @b.atomic(@b.path('config.json'),c)
+    before=@b.version
+    result=@b.call('source_urls','source'=>'test')
+    assert_equal({'ok'=>true,'url'=>c['sources'][0]['url'],'quota_url'=>c['sources'][0]['quota_url']},result)
+    refute_includes JSON.generate(result),'private-fixture'
+    assert_equal before,@b.version
+    assert_nil @b.enqueued
+    assert_equal({'ok'=>true,'url'=>c['sources'][1]['url'],'quota_url'=>''},@b.call('source_urls','source'=>'other'))
+    %w[missing ../test].each do |id|
+      result=@b.call('source_urls','source'=>id)
+      refute result['ok']
+      refute_includes JSON.generate(result),c['sources'][0]['url']
+      refute_includes JSON.generate(result),'quota-fixture'
+    end
+    acl=JSON.parse(File.read(File.expand_path('../root/usr/share/rpcd/acl.d/luci-app-hybrid-subscription.json',__dir__)))['luci-app-hybrid-subscription']
+    refute_includes acl['read']['ubus']['luci.hybrid_subscription'],'source_urls'
+    assert_includes acl['write']['ubus']['luci.hybrid_subscription'],'source_urls'
+    output,status=Open3.capture2(RbConfig.ruby,File.expand_path('../root/usr/share/hybrid-subscription/cli.rb',__dir__),'list')
+    assert status.success?
+    declared=JSON.parse(output)
+    assert_equal({'source'=>''},declared['source_urls'])
+    assert_equal({'config'=>'','version'=>'','collections'=>[]},declared['save_config'])
   end
   def create_tracked_profile
     @b.put_source('test', YAML.dump('proxies'=>[@node.merge('type'=>'trojan')]), 'mihomo')
@@ -278,7 +367,7 @@ class BackendTest < Minitest::Test
     assert_raises(HybridSubscription::Error) { b.refresh_quota('file-only') }
     assert_nil b.status_requests
   end
-  def test_quota_url_is_write_only_preserved_and_explicitly_clearable
+  def test_default_config_hides_quota_url_preserves_it_and_allows_explicit_clear
     b=quota_app;configure_quota(b)
     result=b.call('get_config')
     assert result['config']['sources'][0]['has_quota_url']
@@ -450,6 +539,131 @@ class BackendTest < Minitest::Test
     r=@b.build_profile('main');@node['password']='new-value';@b.put_source('test',YAML.dump('proxies'=>[@node]),'mihomo')
     assert_raises(HybridSubscription::Error) { @b.publish({'release'=>r['release'],'accepted_warnings'=>r['warnings'].map { |w| w['code'] }}) }
   end
+  def test_source_refresh_summary_covers_initial_import_and_direct_profile_references
+    expected={'changed'=>true,'initial'=>true,'before_nodes'=>0,'after_nodes'=>1,'added'=>1,'removed'=>0,'updated'=>0,'order_changed'=>false}
+    assert_equal expected,@b.caches['test']['meta']['last_refresh']
+    c=@b.config
+    c['profiles'] << c['profiles'][0].merge('id'=>'copy','name'=>'Copy')
+    c['profiles'] << c['profiles'][0].merge('id'=>'unrelated','sources'=>[])
+    @b.atomic(@b.path('config.json'),c)
+    result=@b.put_source('test',YAML.dump('proxies'=>[@node]),'mihomo')
+    assert_equal [{'id'=>'main','name'=>'Main'},{'id'=>'copy','name'=>'Copy'}],result['affected_profiles']
+    assert_equal result['changes'],@b.status['sources'][0]['last_refresh']
+    refute @b.caches['test']['meta']['last_refresh'].key?('affected_profiles')
+    refute_includes JSON.generate(result),@node['password']
+  end
+  def test_identical_refresh_ignores_formatting_and_hash_order_and_keeps_candidate_publishable
+    built=@b.build_profile('main')
+    before=@b.caches['test']
+    reordered=@node.to_a.reverse.to_h
+    content="# Provider notice changed\n"+YAML.dump('proxies'=>[reordered])
+    result=@b.put_source('test',content,'mihomo',"Subscription-Userinfo: total=456\n")
+    expected={'changed'=>false,'initial'=>false,'before_nodes'=>1,'after_nodes'=>1,'added'=>0,'removed'=>0,'updated'=>0,'order_changed'=>false}
+    assert_equal expected,result['changes']
+    after=@b.caches['test']
+    assert_equal expected,after['meta']['last_refresh']
+    assert_equal JSON.generate(before['nodes']),JSON.generate(after['nodes'])
+    refute_equal before['meta']['generation'],after['meta']['generation']
+    refute_equal before['meta']['sha256'],after['meta']['sha256']
+    assert_equal 456,after['meta']['quota']['total']
+    @b.publish('release'=>built['release'],'accepted_warnings'=>built['warnings'].map { |w| w['code'] })
+    assert_equal 'current',@b.status['profiles'][0]['draft_status']
+  end
+  def test_source_refresh_counts_added_removed_updated_and_common_node_order
+    first=@node.merge('name'=>'First');second=@node.merge('name'=>'Second');removed=@node.merge('name'=>'Removed')
+    @b.put_source('test',YAML.dump('proxies'=>[first,second,removed]),'mihomo')
+    result=@b.put_source('test',YAML.dump('proxies'=>[second.merge('password'=>'changed-secret'),first,@node.merge('name'=>'Added')]),'mihomo')
+    assert_equal({'changed'=>true,'initial'=>false,'before_nodes'=>3,'after_nodes'=>3,'added'=>1,'removed'=>1,'updated'=>1,'order_changed'=>true},result['changes'])
+    assert_equal result['changes'],@b.caches['test']['meta']['last_refresh']
+    refute_includes JSON.generate(result),'changed-secret'
+    result=@b.put_source('test',YAML.dump('proxies'=>[first,second.merge('password'=>'changed-secret'),@node.merge('name'=>'Added')]),'mihomo')
+    assert_equal({'changed'=>true,'initial'=>false,'before_nodes'=>3,'after_nodes'=>3,'added'=>0,'removed'=>0,'updated'=>0,'order_changed'=>true},result['changes'])
+  end
+  def test_node_additions_and_removals_do_not_count_as_common_node_reordering
+    first=@node.merge('name'=>'First');second=@node.merge('name'=>'Second');added=@node.merge('name'=>'Added')
+    @b.put_source('test',YAML.dump('proxies'=>[first,second]),'mihomo')
+    result=@b.put_source('test',YAML.dump('proxies'=>[added,first,second]),'mihomo')
+    assert_equal 1,result['changes']['added'];refute result['changes']['order_changed']
+    result=@b.put_source('test',YAML.dump('proxies'=>[first,second]),'mihomo')
+    assert_equal 1,result['changes']['removed'];refute result['changes']['order_changed']
+  end
+  def test_refresh_job_keeps_change_summary_and_does_not_publish_or_create_release
+    b=queue_app
+    b.fetch_content=YAML.dump('proxies'=>[@node,@node.merge('name'=>'New Node')])
+    id=b.enqueue('refresh','test');b.run_job(id)
+    job=b.job_status(id)
+    assert_equal 'completed',job['state']
+    assert_equal 1,job['result']['changes']['added']
+    assert_equal [{'id'=>'main','name'=>'Main'}],job['result']['affected_profiles']
+    assert_equal job['result']['changes'],b.caches['test']['meta']['last_refresh']
+    assert_empty b.releases;assert_empty b.published
+    assert_equal({'draft_status'=>'unpublished'},b.profile_draft_status(b.config['profiles'][0],nil,b.engine))
+  end
+  def test_profile_draft_status_compares_exports_without_unrelated_or_runtime_changes
+    published=publish_build(@b)
+    assert_equal 'current',@b.status['profiles'][0]['draft_status']
+    c=@b.config
+    c['settings']['base_url']='https://downloads.invalid'
+    c['settings']['openclash_auto_apply']=true
+    c['sources'][0]['update_mode']='scheduled'
+    c['sources'] << {'id'=>'unused','name'=>'Unused','enabled'=>true,'url'=>'','format'=>'mihomo'}
+    @b.atomic(@b.path('config.json'),c)
+    unused=@b.put_source('unused',YAML.dump('proxies'=>[@node.merge('name'=>'Unrelated','password'=>'other-password')]),'mihomo')
+    assert_empty unused['affected_profiles']
+    state=@b.caches['test'];state['meta'].merge!('quota'=>{'total'=>123},'quota_updated_at'=>@b.now,'attempt_at'=>@b.now,'error'=>'Previous fetch failed')
+    @b.atomic(@b.source_path('test'),state)
+    files=Dir.glob(@b.path('**','*')).select { |file| File.file?(file) }.to_h { |file| [file,Digest::SHA256.file(file).hexdigest] }
+    assert_equal 'current',@b.status['profiles'][0]['draft_status']
+    assert_equal files,files.keys.to_h { |file| [file,Digest::SHA256.file(file).hexdigest] }
+    assert_equal published['release'],@b.published['main']
+    @b.put_source('test',YAML.dump('proxies'=>[@node.merge('password'=>'new-password')]),'mihomo')
+    assert_equal 'changed',@b.status['profiles'][0]['draft_status']
+    assert_equal published['release'],@b.published['main']
+  end
+  def test_profile_draft_status_detects_profile_and_format_changes_and_invalid_drafts
+    publish_build(@b)
+    c=@b.config;c['profiles'][0]['formats'].reverse!
+    @b.atomic(@b.path('config.json'),c)
+    assert_equal 'current',@b.status['profiles'][0]['draft_status']
+    c['groups'][0]['name']='Renamed Group';@b.atomic(@b.path('config.json'),c)
+    assert_equal 'changed',@b.status['profiles'][0]['draft_status']
+    c['groups'][0]['name']='Proxy'
+    c['profiles'][0]['formats']=['mihomo'];@b.atomic(@b.path('config.json'),c)
+    assert_equal 'changed',@b.status['profiles'][0]['draft_status']
+    c['profiles'][0]['formats']=[];@b.atomic(@b.path('config.json'),c)
+    assert_equal 'invalid',@b.status['profiles'][0]['draft_status']
+    c['profiles'][0]['formats']=['mihomo'];c['profiles'][0]['final_policy']='missing'
+    @b.atomic(@b.path('config.json'),c)
+    assert_equal 'invalid',@b.status['profiles'][0]['draft_status']
+    renderer=Object.new
+    def renderer.render(*); {'errors'=>['private-render-error'],'content'=>''}; end
+    assert_equal({'draft_status'=>'invalid'},@b.profile_draft_status(c['profiles'][0],{},renderer))
+    def renderer.render(*); raise 'https://private.invalid/credential-secret'; end
+    assert_equal({'draft_status'=>'invalid'},@b.profile_draft_status(c['profiles'][0],{},renderer))
+    assert_equal({'draft_status'=>'unpublished'},@b.profile_draft_status(c['profiles'][0],nil,renderer))
+  end
+  def test_filtered_information_node_changes_do_not_mark_published_output_stale
+    c=@b.config;c['sources'][0]['exclude_filter']='^Info'
+    @b.atomic(@b.path('config.json'),c)
+    @b.put_source('test',YAML.dump('proxies'=>[@node,@node.merge('name'=>'Info Old')]),'mihomo')
+    publish_build(@b)
+    result=@b.put_source('test',YAML.dump('proxies'=>[@node.merge('name'=>'Info New','password'=>'new-information-value'),@node]),'mihomo')
+    assert result['changes']['changed']
+    assert_equal 1,result['changes']['added']
+    assert_equal 1,result['changes']['removed']
+    assert_equal 'current',@b.status['profiles'][0]['draft_status']
+  end
+  def test_profile_draft_status_supports_existing_manifests_without_new_metadata
+    published=publish_build(@b)
+    manifest=@b.release_meta(published['release'])
+    refute manifest.key?('draft_status');refute manifest.key?('last_refresh')
+    assert_equal 'current',@b.status['profiles'][0]['draft_status']
+    manifest.delete('sha256')
+    @b.atomic(File.join(@b.release_path(published['release']),'manifest.json'),manifest)
+    assert_equal 'current',@b.status['profiles'][0]['draft_status']
+    @b.put_source('test',YAML.dump('proxies'=>[@node.merge('port'=>8443)]),'mihomo')
+    assert_equal 'changed',@b.status['profiles'][0]['draft_status']
+  end
   def test_download_does_not_fetch_and_old_tokens_revoke
     r=@b.build_profile('main');@b.publish({'release'=>r['release'],'accepted_warnings'=>r['warnings'].map { |w| w['code'] }})
     info=@b.download_info('main');d=HybridSubscription::Download.new(@b)
@@ -574,6 +788,46 @@ class BackendTest < Minitest::Test
     b.fetch_hook=proc { c=b.config;c['sources'][0]['url']='https://new.invalid/sub';b.atomic(b.path('config.json'),c) }
     assert_raises(HybridSubscription::Error) { b.refresh_source('test') }
     assert_equal before,b.caches['test']
+  end
+  def test_subscription_http_failure_reports_final_status_without_exposing_response_or_changing_nodes
+    b=queue_app
+    b.fetch_content='private-response-body-with-token'
+    b.fetch_error=HybridSubscription::Error.new('Command failed (curl)')
+    [
+      ["HTTP/2 404\r\nX-Private: private-header-token\r\n\r\n",404],
+      ["HTTP/1.1 200 Connection established\r\n\r\nHTTP/1.1 302 Found\r\nLocation: https://invalid.example/private-redirect-token\r\n\r\nHTTP/2 400 Bad Request\r\n\r\n",400],
+      ["HTTP/1.1 503 Unavailable\r\nX-Padding: #{'x'*70000}\r\n\r\nHTTP/2 404\r\n\r\n",404]
+    ].each do |headers,status|
+      before=b.caches['test']
+      b.fetch_headers=headers
+      error=assert_raises(HybridSubscription::Error) { b.refresh_source('test') }
+      assert_equal "Subscription request failed (HTTP #{status}); cached nodes were kept",error.message
+      after=b.caches['test']
+      assert_equal before['nodes'],after['nodes']
+      %w[generation cached_at sha256].each { |key| assert_equal before['meta'][key],after['meta'][key] }
+      assert_equal error.message,after['meta']['error']
+      refute_match(/private|https?:\/\//,after['meta']['error'])
+      assert_empty Dir.glob(File.join(@tmp,'run','fetch-*'))
+    end
+    b.fetch_headers="HTTP/1.1 404 Not Found\r\n\r\nHTTP/2 200\r\n\r\n"
+    error=assert_raises(HybridSubscription::Error) { b.refresh_source('test') }
+    assert_equal 'Command failed (curl)',error.message
+    b.fetch_headers="HTTP/2 400\r\n\r\n"
+    b.fetch_error=HybridSubscription::Error.new('Operation timed out; existing cache and published releases remain unchanged')
+    error=assert_raises(HybridSubscription::Error) { b.refresh_source('test') }
+    assert_equal b.fetch_error.message,error.message
+  end
+  def test_subscription_http_failure_does_not_overwrite_a_concurrent_import
+    b=queue_app
+    b.fetch_content='private-response-body'
+    b.fetch_headers="HTTP/2 404\r\n\r\n"
+    b.fetch_error=HybridSubscription::Error.new('Command failed (curl)')
+    imported=nil
+    b.fetch_hook=proc { b.put_source('test',YAML.dump('proxies'=>[@node.merge('name'=>'Imported')]),'mihomo');imported=b.caches['test'] }
+    error=assert_raises(HybridSubscription::Error) { b.refresh_source('test') }
+    assert_match(/HTTP 404/,error.message)
+    assert_equal imported,b.caches['test']
+    assert_nil b.caches['test']['meta']['error']
   end
   def test_manual_import_wins_over_inflight_refresh_even_with_same_nodes
     b=queue_app;b.fetch_content=YAML.dump('proxies'=>[@node.merge('password'=>'stale-download')])
