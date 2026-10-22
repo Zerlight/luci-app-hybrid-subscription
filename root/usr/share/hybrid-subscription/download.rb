@@ -50,8 +50,23 @@ module HybridSubscription
       file=File.join(@b.release_path(rid),@b.filename(fmt))
       content=File.binread(file)
       return [503,{},'Published file verification failed'] unless Digest::SHA256.hexdigest(content)==meta['sha256'][fmt]
+      update=meta.fetch('client_update',{})
+      headers={}
+      if update['enabled']==true && mode!='session'
+        if fmt=='surge'
+          begin
+            url=@b.client_update_url(c['settings'],id,fmt,token)
+          rescue HybridSubscription::Error
+            return [503,{},'Client update URL is not configured or invalid']
+          end
+          content="#!MANAGED-CONFIG #{url} interval=#{update.fetch('interval')*3600} strict=false\n"+content
+        elsif fmt=='mihomo'
+          headers['Profile-Update-Interval']=update.fetch('interval').to_s
+        end
+      end
       type={'mihomo'=>'application/yaml; charset=utf-8','surge'=>'text/plain; charset=utf-8','singbox'=>'application/json; charset=utf-8','shadowrocket'=>'application/yaml; charset=utf-8'}[fmt]
-      [200,{'Content-Type'=>type,'Content-Disposition'=>"attachment; filename=\"#{id}-#{@b.filename(fmt)}\"",'Content-Length'=>content.bytesize.to_s,'ETag'=>'"'+meta['sha256'][fmt]+'"'},method=='HEAD' ? '' : content]
+      headers.merge!('Content-Type'=>type,'Content-Disposition'=>"attachment; filename=\"#{id}-#{@b.filename(fmt)}\"",'Content-Length'=>content.bytesize.to_s,'ETag'=>'"'+Digest::SHA256.hexdigest(content)+'"')
+      [200,headers,method=='HEAD' ? '' : content]
     rescue StandardError
       [400,{},'Invalid request']
     end

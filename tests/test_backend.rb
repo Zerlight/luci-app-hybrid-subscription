@@ -676,6 +676,54 @@ class BackendTest < Minitest::Test
     @b.rotate_token('main');assert_equal 403,d.response(env)[0]
     assert_nil @b.enqueued
   end
+  def test_client_update_transport_setup_is_checked_by_validation_and_build
+    c=@b.config; c['profiles'][0]['client_update_enabled']=true
+    @b.save_config('config'=>JSON.generate(c),'version'=>@b.version)
+    assert_includes @b.call('validate','profile'=>'main')['errors'],'Client update URL is not configured or invalid'
+    assert_raises(HybridSubscription::Error) { @b.build_profile('main') }
+    assert_empty @b.releases
+    c=@b.config; c['settings']['base_url']='https://router.example.test';c['settings']['access_mode']='session'
+    @b.save_config('config'=>JSON.generate(c),'version'=>@b.version)
+    assert_includes @b.call('validate','profile'=>'main')['errors'],'Client updates require token-based download access'
+    assert_raises(HybridSubscription::Error) { @b.build_profile('main') }
+    assert_empty @b.releases
+  end
+  def test_client_update_options_follow_publication_and_rollback
+    original=publish_build(@b)
+    c=@b.config;c['settings']['base_url']='https://router.example.test'
+    c['profiles'][0].merge!('client_update_enabled'=>true,'client_update_interval'=>48)
+    @b.save_config('config'=>JSON.generate(c),'version'=>@b.version)
+    assert_equal 'changed',@b.status['profiles'][0]['draft_status']
+    assert_equal({'enabled'=>false,'interval'=>24},@b.download_info('main')['client_update'])
+    candidate=@b.build_profile('main')
+    assert_equal({'enabled'=>true,'interval'=>48},@b.release_meta(candidate['release'])['client_update'])
+    assert_equal({'enabled'=>false,'interval'=>24},@b.download_info('main')['client_update'])
+    @b.publish({'release'=>candidate['release'],'accepted_warnings'=>candidate['warnings'].map { |w| w['code'] }})
+    assert_equal 'current',@b.status['profiles'][0]['draft_status']
+    assert_equal({'enabled'=>true,'interval'=>48},@b.download_info('main')['client_update'])
+    @b.publish({'release'=>original['release']},rollback:true)
+    assert_equal({'enabled'=>false,'interval'=>24},@b.download_info('main')['client_update'])
+    assert_equal 'changed',@b.status['profiles'][0]['draft_status']
+  end
+  def test_rollback_cannot_restore_unusable_managed_downloads
+    c=@b.config;c['settings']['base_url']='https://router.example.test'
+    c['profiles'][0]['client_update_enabled']=true
+    @b.save_config('config'=>JSON.generate(c),'version'=>@b.version)
+    managed=publish_build(@b)
+    c=@b.config;c['profiles'][0]['client_update_enabled']=false
+    @b.save_config('config'=>JSON.generate(c),'version'=>@b.version)
+    current=publish_build(@b)
+    ['', 'session'].each do |setting|
+      c=@b.config
+      c['settings']['base_url']=setting.empty? ? '' : 'https://router.example.test'
+      c['settings']['access_mode']=setting.empty? ? 'lan_token' : 'session'
+      @b.save_config('config'=>JSON.generate(c),'version'=>@b.version)
+      tokens=@b.read(@b.path('tokens.json'))
+      assert_raises(HybridSubscription::Error) { @b.publish({'release'=>managed['release']},rollback:true) }
+      assert_equal current['release'],@b.published['main']
+      assert_equal tokens,@b.read(@b.path('tokens.json'))
+    end
+  end
   def test_download_detects_tampering
     r=@b.build_profile('main');@b.publish({'release'=>r['release'],'accepted_warnings'=>r['warnings'].map { |w| w['code'] }})
     File.write(File.join(@b.release_path(r['release']),'mihomo.yaml'),'tampered')

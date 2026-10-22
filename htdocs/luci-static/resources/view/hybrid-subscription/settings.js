@@ -40,7 +40,7 @@ return view.extend({
 		hs.choices(o, [['lan_token', _('LAN + Download Token')], ['token', _('Download Token (All Reachable Networks)')], ['session', _('Authenticated LuCI Session Only')]]);
 		o.default = 'lan_token'; o.rmempty = false;
 		o.description = _('Changing the access mode does not open firewall ports. Session-only mode does not provide QR codes for third-party clients. Rotate tokens under "Release Management" on the Overview page.');
-		o = s.taboption('access', form.Value, 'base_url', _('Subscription Base URL'), _('Leave empty to use the current router origin.')); o.rmempty = false; o.optional = true;
+		o = s.taboption('access', form.Value, 'base_url', _('Subscription Base URL'), _('Use a stable HTTP(S) address reachable by your clients. Surge client updates require this field. Leave empty to use the current router origin for ordinary download links.')); o.rmempty = false; o.optional = true;
 		o.remove = function(sid) { return this.write(sid, ''); };
 		o = s.taboption('integration', form.Flag, 'openclash_auto_apply', _('Auto-Apply to OpenClash on Publish'), _('Applies only to the profile selected below (disabled by default). When enabled, publishing or rolling back will reload OpenClash.')); o.default = '0'; o.rmempty = false;
 		o = s.taboption('integration', form.ListValue, 'openclash_profile', _('Linked OpenClash Profile')); o.value('', _('None')); hs.references(o, this.config, 'profiles'); o.rmempty = false; o.optional = true;

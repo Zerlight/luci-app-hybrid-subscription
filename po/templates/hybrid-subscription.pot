@@ -3095,3 +3095,83 @@ msgstr ""
 #: htdocs/luci-static/resources/hybrid-subscription.js
 msgid "The current draft cannot generate all selected formats. Check the configuration and compatibility before publishing."
 msgstr ""
+
+#: htdocs/luci-static/resources/hybrid-subscription.js
+msgid "Client Updates"
+msgstr ""
+
+#: htdocs/luci-static/resources/hybrid-subscription.js
+msgid "Enable Client Updates"
+msgstr ""
+
+#: htdocs/luci-static/resources/hybrid-subscription.js
+msgid "Let supported clients request the latest published configuration. This does not refresh subscription sources, build drafts, or publish changes."
+msgstr ""
+
+#: htdocs/luci-static/resources/hybrid-subscription.js
+msgid "Suggested Update Interval (hours)"
+msgstr ""
+
+#: htdocs/luci-static/resources/hybrid-subscription.js
+msgid "Use 1–720 whole hours; 24 hours is recommended. Clients control when updates run. Build and publish to apply these settings."
+msgstr ""
+
+#: htdocs/luci-static/resources/hybrid-subscription.js
+msgid "Client Requirements"
+msgstr ""
+
+#: htdocs/luci-static/resources/hybrid-subscription.js
+msgid "Update Behavior & Offline Use"
+msgstr ""
+
+#: htdocs/luci-static/resources/hybrid-subscription.js
+msgid "Clients need a reachable download address and token-based access. LuCI session-only downloads cannot update automatically. A home LAN address is unavailable while away unless a route home is available."
+msgstr ""
+
+#: htdocs/luci-static/resources/hybrid-subscription.js
+msgid "Surge: set a stable Subscription Base URL in Global Settings. Managed profiles use strict=false so failed updates do not expire the saved configuration. Updates depend on the main app running."
+msgstr ""
+
+#: htdocs/luci-static/resources/hybrid-subscription.js
+msgid "Clash Verge Rev: an existing local interval takes precedence over the server suggestion. Clash Meta Android 2.11.36: the suggestion is adopted only on initial import without a local interval; after a failed update, manually update once when connected to restore scheduling."
+msgstr ""
+
+#: htdocs/luci-static/resources/hybrid-subscription.js
+msgid "Shadowrocket: import the full Clash YAML URL from the Configuration page. Automatic updates and interval handling for full configurations have not been verified; check and update this configuration in the app."
+msgstr ""
+
+#: htdocs/luci-static/resources/hybrid-subscription.js
+msgid "Update intervals are suggestions, not exact schedules. Before a long trip, download the configuration and its remote rule sets. Cached configurations cannot guarantee that old node addresses or credentials will remain valid."
+msgstr ""
+
+#: htdocs/luci-static/resources/hybrid-subscription.js
+msgid "Published suggested update interval: %s hours. Clients request only the latest published configuration."
+msgstr ""
+
+#: htdocs/luci-static/resources/hybrid-subscription.js
+msgid "Client update metadata is disabled in the published version. Enable Client Updates in Subscription Profiles, then build and publish."
+msgstr ""
+
+#: htdocs/luci-static/resources/hybrid-subscription.js
+msgid "LAN + Download Token permits updates only from allowed local addresses. Keeping the token does not make the router reachable away from home."
+msgstr ""
+
+#: htdocs/luci-static/resources/hybrid-subscription.js
+msgid "Use a stable HTTP(S) address reachable by your clients. Surge client updates require this field. Leave empty to use the current router origin for ordinary download links."
+msgstr ""
+
+#: htdocs/luci-static/resources/hybrid-subscription.js
+msgid "Client update option must be a boolean"
+msgstr ""
+
+#: htdocs/luci-static/resources/hybrid-subscription.js
+msgid "Client update interval must be a whole number of hours from 1 to 720"
+msgstr ""
+
+#: htdocs/luci-static/resources/hybrid-subscription.js
+msgid "Client update URL is not configured or invalid"
+msgstr ""
+
+#: htdocs/luci-static/resources/hybrid-subscription.js
+msgid "Client updates require token-based download access"
+msgstr ""

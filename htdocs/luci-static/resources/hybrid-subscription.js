@@ -315,6 +315,26 @@ registerLocale('zh-cn', {
 		'Manage hybrid subscription sources, profiles, and releases': '管理混合订阅源、配置草稿与发布版本',
 
 		// Common & Shared UI (hybrid-subscription.js)
+		"Client Updates": "客户端更新",
+		"Enable Client Updates": "允许客户端自动更新",
+		"Let supported clients request the latest published configuration. This does not refresh subscription sources, build drafts, or publish changes.": "向支持的客户端下发自动更新参数，由客户端定期拉取最新已发布配置。此功能不会自动拉取上游订阅源，也不会自动构建或发布草稿。",
+		"Suggested Update Interval (hours)": "建议更新间隔（小时）",
+		"Use 1–720 whole hours; 24 hours is recommended. Clients control when updates run. Build and publish to apply these settings.": "请填写 1–720 的整数小时，推荐 24 小时。实际更新时机由客户端自行调度；修改后需重新构建并发布方才生效。",
+		"Client Requirements": "客户端使用说明",
+		"Update Behavior & Offline Use": "更新行为与离线使用",
+		"Clients need a reachable download address and token-based access. LuCI session-only downloads cannot update automatically. A home LAN address is unavailable while away unless a route home is available.": "客户端自动更新需使用可访问的下载链接与下载令牌。若设为“仅限已登录的 LuCI 会话”，客户端将无法后台更新；内网地址在离家后需配合回家 VPN 或组网工具才能访问。",
+		"Surge: set a stable Subscription Base URL in Global Settings. Managed profiles use strict=false so failed updates do not expire the saved configuration. Updates depend on the main app running.": "Surge：需在“全局设置”中填写固定的订阅链接基础地址。导出的托管配置采用 strict=false，更新失败时本地已保存配置仍可正常使用；自动更新需保持 Surge 主程序运行。",
+		"Clash Verge Rev: an existing local interval takes precedence over the server suggestion. Clash Meta Android 2.11.36: the suggestion is adopted only on initial import without a local interval; after a failed update, manually update once when connected to restore scheduling.": "Clash Verge Rev：客户端本地已设置的更新间隔优先于响应头建议值。Clash Meta Android（2.11.36）：仅在首次导入且未设置本地间隔时读取响应头；若后台更新失败，恢复联网后请手动更新一次以重新激活定时调度。",
+		"Shadowrocket: import the full Clash YAML URL from the Configuration page. Automatic updates and interval handling for full configurations have not been verified; check and update this configuration in the app.": "Shadowrocket：请在“配置”页面导入完整 Clash YAML 订阅链接。由于完整配置的自动更新机制尚未完成真机验证，请在客户端内手动或按客户端设置更新配置。",
+		"Update intervals are suggestions, not exact schedules. Before a long trip, download the configuration and its remote rule sets. Cached configurations cannot guarantee that old node addresses or credentials will remain valid.": "更新间隔仅供客户端调度参考，不保证准点执行。长期外出前建议提前更新配置及远程规则集；本地缓存配置无法避免上游节点地址或密码本身失效。",
+		"Published suggested update interval: %s hours. Clients request only the latest published configuration.": "当前已发布版本的建议更新间隔为 %s 小时；客户端每次仅拉取最新已发布的配置。",
+		"Client update metadata is disabled in the published version. Enable Client Updates in Subscription Profiles, then build and publish.": "当前已发布版本未开启客户端自动更新。如需启用，请前往“订阅配置 → 客户端更新”开启后重新构建并发布。",
+		"LAN + Download Token permits updates only from allowed local addresses. Keeping the token does not make the router reachable away from home.": "当前访问方式为“局域网访问 + 下载令牌”，仅允许局域网设备拉取更新；离家后若未连回内网，仅凭令牌无法直接访问路由器。",
+		"Use a stable HTTP(S) address reachable by your clients. Surge client updates require this field. Leave empty to use the current router origin for ordinary download links.": "填写客户端可访问的固定 HTTP(S) 地址。Surge 客户端更新必须填写此项；普通下载链接可留空，使用当前访问路由器的协议、主机名与端口。",
+		"Client update option must be a boolean": "客户端更新开关必须为布尔值",
+		"Client update interval must be a whole number of hours from 1 to 720": "客户端更新间隔必须为 1–720 的整数小时",
+		"Client update URL is not configured or invalid": "客户端更新地址未配置或无效，请检查“全局设置”中的订阅链接基础地址",
+		"Client updates require token-based download access": "客户端更新需要使用下载令牌，请在“全局设置”中修改下载访问方式",
 		'The router did not return a valid response. Please check the backend service and permissions.': '路由器未返回有效响应，请检查后台服务状态与账户权限。',
 		'Unknown': '未知',
 		'No records': '暂无记录',
@@ -1054,8 +1074,8 @@ const calls = {};
 Object.keys(fields).forEach(function(method) {
 	calls[method] = rpc.declare({ object: 'luci.hybrid_subscription', method: method, params: fields[method], expect: { '': {} } });
 });
-const booleanFields = ['enabled', 'takeover', 'hidden', 'no_resolve', 'lazy', 'openclash_auto_apply', 'clear_quota_url', 'quota_via_subscription'];
-const numberFields = ['interval', 'tolerance', 'quota_max_age'];
+const booleanFields = ['enabled', 'takeover', 'hidden', 'no_resolve', 'lazy', 'openclash_auto_apply', 'clear_quota_url', 'quota_via_subscription', 'client_update_enabled'];
+const numberFields = ['interval', 'tolerance', 'quota_max_age', 'client_update_interval'];
 const listFields = ['sources', 'formats', 'members'];
 
 function clean(row) {
@@ -1482,12 +1502,30 @@ function importSource(source) {
 	]);
 }
 
+function clientUpdateHelp(formats) {
+	formats = formats || ['surge', 'mihomo', 'shadowrocket'];
+	const notes = [E('summary', {}, _('Update Behavior & Offline Use')),
+		E('p', {}, _('Clients need a reachable download address and token-based access. LuCI session-only downloads cannot update automatically. A home LAN address is unavailable while away unless a route home is available.'))];
+	if (formats.indexOf('surge') >= 0) notes.push(E('p', {}, _('Surge: set a stable Subscription Base URL in Global Settings. Managed profiles use strict=false so failed updates do not expire the saved configuration. Updates depend on the main app running.')));
+	if (formats.indexOf('mihomo') >= 0) notes.push(E('p', {}, _('Clash Verge Rev: an existing local interval takes precedence over the server suggestion. Clash Meta Android 2.11.36: the suggestion is adopted only on initial import without a local interval; after a failed update, manually update once when connected to restore scheduling.')));
+	if (formats.indexOf('shadowrocket') >= 0) notes.push(E('p', {}, _('Shadowrocket: import the full Clash YAML URL from the Configuration page. Automatic updates and interval handling for full configurations have not been verified; check and update this configuration in the app.')));
+	notes.push(E('p', {}, _('Update intervals are suggestions, not exact schedules. Before a long trip, download the configuration and its remote rule sets. Cached configurations cannot guarantee that old node addresses or credentials will remain valid.')));
+	return E('details', {}, notes);
+}
+
 function download(profile) {
 	return api('download_info', { profile: profile }).then(function(info) {
-		const base = (info.base_url || window.location.origin).replace(/\/$/, '');
+		const base = (info.base_url || window.location.origin).replace(/\/+$/, '');
 		const formats = info.formats || [];
 		const session = info.access_mode === 'session';
 		const items = [E('p', {}, session ? _('Download access is restricted to authenticated LuCI sessions. Third-party clients cannot pull via URL or QR code; please download the file and import it manually.') : _('Anyone with the download link can access the node credentials in this subscription. Share only with your own trusted devices.'))];
+		if (formats.length) {
+			const update = info.client_update || {};
+			if (formats.indexOf('surge') >= 0 || formats.indexOf('mihomo') >= 0) items.push(E('h4', {}, _('Client Updates')), E('p', {}, update.enabled ? _('Published suggested update interval: %s hours. Clients request only the latest published configuration.').format(update.interval) : _('Client update metadata is disabled in the published version. Enable Client Updates in Subscription Profiles, then build and publish.')));
+			if (info.client_update_error) items.push(E('p', { 'class': 'alert-message warning' }, translateMessage(info.client_update_error)));
+			if (info.access_mode === 'lan_token') items.push(E('p', {}, _('LAN + Download Token permits updates only from allowed local addresses. Keeping the token does not make the router reachable away from home.')));
+			items.push(clientUpdateHelp(formats));
+		}
 		formats.forEach(function(format) {
 			const url = base + '/cgi-bin/hybrid-subscription?profile=' + encodeURIComponent(profile) + '&format=' + encodeURIComponent(format) + (session ? '' : '&token=' + encodeURIComponent(info.token));
 			items.push(E('h4', {}, ({ mihomo: 'Mihomo', surge: 'Surge', singbox: 'sing-box', shadowrocket: _('Shadowrocket (Clash YAML)') })[format] || format), E('p', {}, E('a', { href: url, target: '_blank', rel: 'noopener noreferrer', download: '' }, _('Download File'))));
@@ -1604,6 +1642,6 @@ return baseclass.extend({
 	createMap: createMap, grid: grid, value: value,
 	choices: choices, references: references, jsonValue: jsonValue, rowAction: rowAction, importSource: importSource,
 	sectionTabs: sectionTabs, modalTabs: modalTabs, filterSection: filterSection, selectFilter: selectFilter, sectionActions: sectionActions,
-	download: download, graph: graph, clean: clean,
+	download: download, clientUpdateHelp: clientUpdateHelp, graph: graph, clean: clean,
 	t: t, translateMessage: translateMessage, registerLocale: registerLocale, getLocale: getLocale, setLocale: setLocale, locales: locales
 });

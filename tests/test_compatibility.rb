@@ -688,6 +688,41 @@ class CompatibilityTest < Minitest::Test
     assert_equal before, JSON.generate(changed)
   end
 
+  def test_client_update_preferences_stay_independent_of_routing_review_and_reapply
+    create
+    @config = @backend.config
+    @config['profiles'].first.merge!('client_update_enabled'=>false, 'client_update_interval'=>48)
+    @config['profiles'].last.merge!('client_update_enabled'=>true, 'client_update_interval'=>72)
+    save
+    refute strategy['source_changed']
+    refute strategy['target_changed']
+    refute strategy['needs_review']
+
+    @config['rules'].find { |rule| rule['profile'] == 'main' }['value'] = 'updated.example.test'
+    save
+    assert strategy['source_changed']
+    refute strategy['target_changed']
+    plan = preview(reapply)
+    assert plan['ready'], plan['errors'].inspect
+    refute_includes plan['changes'].map { |change| change['code'] }, 'replace-target'
+    @backend.compatibility_plan(reapply.merge('version'=>plan['version'], 'plan_token'=>plan['plan_token'], 'accepted_changes'=>plan['changes'].map { |change| change['code'] }), update:true)
+    target = @backend.config['profiles'].find { |row| row['id'] == 'compatible' }
+    assert_equal true, target['client_update_enabled']
+    assert_equal 72, target['client_update_interval']
+    assert_equal 'updated.example.test', @backend.config['rules'].find { |rule| rule['profile'] == 'compatible' }['value']
+    refute strategy['needs_review']
+  end
+
+  def test_new_compatible_profile_copies_client_update_preferences
+    @config['profiles'].first.merge!('client_update_enabled'=>true, 'client_update_interval'=>48)
+    save
+    create
+    target = @backend.config['profiles'].find { |row| row['id'] == 'compatible' }
+    assert_equal true, target['client_update_enabled']
+    assert_equal 48, target['client_update_interval']
+    refute strategy['needs_review']
+  end
+
   def test_strategy_tracks_relevant_regions_sources_nested_sets_and_dns_dependencies
     @config['regions'] = [{'id'=>'jp', 'name'=>'Japan', 'pattern'=>'Node', 'source_patterns'=>{}}]
     @config['groups'][0]['region'] = 'jp'

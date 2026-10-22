@@ -3099,3 +3099,83 @@ msgstr "当前配置或节点有未发布的改动，请重新构建并发布以
 #: htdocs/luci-static/resources/hybrid-subscription.js
 msgid "The current draft cannot generate all selected formats. Check the configuration and compatibility before publishing."
 msgstr "当前草稿无法导出全部所选格式，请先检查配置项与兼容性后再构建发布。"
+
+#: htdocs/luci-static/resources/hybrid-subscription.js
+msgid "Client Updates"
+msgstr "客户端更新"
+
+#: htdocs/luci-static/resources/hybrid-subscription.js
+msgid "Enable Client Updates"
+msgstr "允许客户端自动更新"
+
+#: htdocs/luci-static/resources/hybrid-subscription.js
+msgid "Let supported clients request the latest published configuration. This does not refresh subscription sources, build drafts, or publish changes."
+msgstr "向支持的客户端下发自动更新参数，由客户端定期拉取最新已发布配置。此功能不会自动拉取上游订阅源，也不会自动构建或发布草稿。"
+
+#: htdocs/luci-static/resources/hybrid-subscription.js
+msgid "Suggested Update Interval (hours)"
+msgstr "建议更新间隔（小时）"
+
+#: htdocs/luci-static/resources/hybrid-subscription.js
+msgid "Use 1–720 whole hours; 24 hours is recommended. Clients control when updates run. Build and publish to apply these settings."
+msgstr "请填写 1–720 的整数小时，推荐 24 小时。实际更新时机由客户端自行调度；修改后需重新构建并发布方才生效。"
+
+#: htdocs/luci-static/resources/hybrid-subscription.js
+msgid "Client Requirements"
+msgstr "客户端使用说明"
+
+#: htdocs/luci-static/resources/hybrid-subscription.js
+msgid "Update Behavior & Offline Use"
+msgstr "更新行为与离线使用"
+
+#: htdocs/luci-static/resources/hybrid-subscription.js
+msgid "Clients need a reachable download address and token-based access. LuCI session-only downloads cannot update automatically. A home LAN address is unavailable while away unless a route home is available."
+msgstr "客户端自动更新需使用可访问的下载链接与下载令牌。若设为“仅限已登录的 LuCI 会话”，客户端将无法后台更新；内网地址在离家后需配合回家 VPN 或组网工具才能访问。"
+
+#: htdocs/luci-static/resources/hybrid-subscription.js
+msgid "Surge: set a stable Subscription Base URL in Global Settings. Managed profiles use strict=false so failed updates do not expire the saved configuration. Updates depend on the main app running."
+msgstr "Surge：需在“全局设置”中填写固定的订阅链接基础地址。导出的托管配置采用 strict=false，更新失败时本地已保存配置仍可正常使用；自动更新需保持 Surge 主程序运行。"
+
+#: htdocs/luci-static/resources/hybrid-subscription.js
+msgid "Clash Verge Rev: an existing local interval takes precedence over the server suggestion. Clash Meta Android 2.11.36: the suggestion is adopted only on initial import without a local interval; after a failed update, manually update once when connected to restore scheduling."
+msgstr "Clash Verge Rev：客户端本地已设置的更新间隔优先于响应头建议值。Clash Meta Android（2.11.36）：仅在首次导入且未设置本地间隔时读取响应头；若后台更新失败，恢复联网后请手动更新一次以重新激活定时调度。"
+
+#: htdocs/luci-static/resources/hybrid-subscription.js
+msgid "Shadowrocket: import the full Clash YAML URL from the Configuration page. Automatic updates and interval handling for full configurations have not been verified; check and update this configuration in the app."
+msgstr "Shadowrocket：请在“配置”页面导入完整 Clash YAML 订阅链接。由于完整配置的自动更新机制尚未完成真机验证，请在客户端内手动或按客户端设置更新配置。"
+
+#: htdocs/luci-static/resources/hybrid-subscription.js
+msgid "Update intervals are suggestions, not exact schedules. Before a long trip, download the configuration and its remote rule sets. Cached configurations cannot guarantee that old node addresses or credentials will remain valid."
+msgstr "更新间隔仅供客户端调度参考，不保证准点执行。长期外出前建议提前更新配置及远程规则集；本地缓存配置无法避免上游节点地址或密码本身失效。"
+
+#: htdocs/luci-static/resources/hybrid-subscription.js
+msgid "Published suggested update interval: %s hours. Clients request only the latest published configuration."
+msgstr "当前已发布版本的建议更新间隔为 %s 小时；客户端每次仅拉取最新已发布的配置。"
+
+#: htdocs/luci-static/resources/hybrid-subscription.js
+msgid "Client update metadata is disabled in the published version. Enable Client Updates in Subscription Profiles, then build and publish."
+msgstr "当前已发布版本未开启客户端自动更新。如需启用，请前往“订阅配置 → 客户端更新”开启后重新构建并发布。"
+
+#: htdocs/luci-static/resources/hybrid-subscription.js
+msgid "LAN + Download Token permits updates only from allowed local addresses. Keeping the token does not make the router reachable away from home."
+msgstr "当前访问方式为“局域网访问 + 下载令牌”，仅允许局域网设备拉取更新；离家后若未连回内网，仅凭令牌无法直接访问路由器。"
+
+#: htdocs/luci-static/resources/hybrid-subscription.js
+msgid "Use a stable HTTP(S) address reachable by your clients. Surge client updates require this field. Leave empty to use the current router origin for ordinary download links."
+msgstr "填写客户端可访问的固定 HTTP(S) 地址。Surge 客户端更新必须填写此项；普通下载链接可留空，使用当前访问路由器的协议、主机名与端口。"
+
+#: htdocs/luci-static/resources/hybrid-subscription.js
+msgid "Client update option must be a boolean"
+msgstr "客户端更新开关必须为布尔值"
+
+#: htdocs/luci-static/resources/hybrid-subscription.js
+msgid "Client update interval must be a whole number of hours from 1 to 720"
+msgstr "客户端更新间隔必须为 1–720 的整数小时"
+
+#: htdocs/luci-static/resources/hybrid-subscription.js
+msgid "Client update URL is not configured or invalid"
+msgstr "客户端更新地址未配置或无效，请检查“全局设置”中的订阅链接基础地址"
+
+#: htdocs/luci-static/resources/hybrid-subscription.js
+msgid "Client updates require token-based download access"
+msgstr "客户端更新需要使用下载令牌，请在“全局设置”中修改下载访问方式"

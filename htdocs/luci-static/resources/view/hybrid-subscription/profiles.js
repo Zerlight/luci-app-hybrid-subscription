@@ -25,6 +25,10 @@ return view.extend({
 		hs.choices(hs.value(s, form.ListValue, 'mihomo_core', _('Mihomo Core Variant'), _('The Smart core variant is required when using Smart policy groups.'), 'standard'), [['standard', _('Standard Mihomo')], ['smart', _('Mihomo Smart')]]);
 		hs.choices(hs.value(s, form.ListValue, 'surge_version', _('Surge Target'), null, 'modern'), [['modern', _('Surge (Modern)')]]);
 		hs.choices(hs.value(s, form.ListValue, 'singbox_version', _('sing-box Target'), null, '1.12'), [['1.12', 'sing-box 1.12+']]);
+		o = hs.value(s, form.Flag, 'client_update_enabled', _('Enable Client Updates'), _('Let supported clients request the latest published configuration. This does not refresh subscription sources, build drafts, or publish changes.'), '0'); o.rmempty = false;
+		o = hs.value(s, form.Value, 'client_update_interval', _('Suggested Update Interval (hours)'), _('Use 1–720 whole hours; 24 hours is recommended. Clients control when updates run. Build and publish to apply these settings.'), 24); o.datatype = 'and(uinteger,range(1,720))'; o.rmempty = false; o.depends('client_update_enabled', '1');
+		o = hs.value(s, form.DummyValue, '_client_update_help', _('Client Requirements'));
+		o.renderWidget = function() { return hs.clientUpdateHelp(); };
 		hs.jsonValue(s, 'mihomo_dns', _('Mihomo DNS Policy (JSON)'), _('Configure Mihomo DNS routing options. Listener addresses and controller secrets are managed by the router and not permitted here. Leave empty to use defaults.'));
 		hs.jsonValue(s, 'mihomo_policy', _('Mihomo Advanced Policy (JSON)'), _('Configure domain sniffing, connection behavior, and GeoIP/GeoSite database options. Controller, listener, TUN, and network interface bindings are not permitted.'));
 		hs.rowAction(s, '_graph', _('Dependency Graph'), function(row) {
@@ -39,7 +43,7 @@ return view.extend({
 		hs.rowAction(s, '_compatibility', _('Save & Check Compatibility'), function(row) {
 			return self.handleSave().then(function() { window.location.href = L.url('admin/services/hybrid-subscription/compatibility') + '?profile=' + encodeURIComponent(row.id); });
 		});
-		hs.modalTabs(s, [{ id: 'general', title: _('General') }, { id: 'clients', title: _('Target Clients'), options: ['mihomo_core', 'surge_version', 'singbox_version'] }, { id: 'advanced', title: _('Advanced Policy'), options: ['mihomo_dns', 'mihomo_policy'] }]);
+		hs.modalTabs(s, [{ id: 'general', title: _('General') }, { id: 'clients', title: _('Target Clients'), options: ['mihomo_core', 'surge_version', 'singbox_version'] }, { id: 'updates', title: _('Client Updates'), options: ['client_update_enabled', 'client_update_interval', '_client_update_help'] }, { id: 'advanced', title: _('Advanced Policy'), options: ['mihomo_dns', 'mihomo_policy'] }]);
 
 		s = hs.grid(m, 'groups', _('Policy Groups'));
 		hs.filterSection(s, inProfile, defaults);
@@ -107,7 +111,7 @@ return view.extend({
 						const p = hs.clean(dialog.data.get('json', 'profile'));
 						if (m.data.sections('json', 'profiles').some(function(row) { return row.id === p.id; })) throw new Error(_('Profile identifier already exists.'));
 						return m.parse().then(function() {
-							const profile = Object.assign(p, { formats: ['mihomo', 'surge', 'singbox'], final_policy: p.id + '_proxy', mihomo_core: 'standard', surge_version: 'modern', singbox_version: '1.12' });
+							const profile = Object.assign(p, { formats: ['mihomo', 'surge', 'singbox'], final_policy: p.id + '_proxy', mihomo_core: 'standard', surge_version: 'modern', singbox_version: '1.12', client_update_enabled: false, client_update_interval: 24 });
 							const group = { id: p.id + '_proxy', profile: p.id, name: _('Proxy'), sources: p.sources, members: [], region: '', filter: '', exclude_filter: '', mihomo_type: 'select', surge_type: 'select', singbox_type: 'selector', shadowrocket_type: 'select', url: 'https://www.gstatic.com/generate_204', interval: 300, tolerance: 50, hidden: false };
 							[['profiles', profile], ['groups', group]].forEach(function(entry) {
 								const sid = m.data.add('json', entry[0]);

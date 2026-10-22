@@ -95,6 +95,34 @@ module HybridSubscription
       end
       c
     end
+    def client_update_options(profile)
+      enabled = profile.fetch('client_update_enabled', false)
+      raise Error, 'Client update option must be a boolean' unless [true, false].include?(enabled)
+      interval = profile.fetch('client_update_interval', 24)
+      unless interval.is_a?(Integer) || (interval.is_a?(String) && interval.match?(/\A[0-9]+\z/))
+        raise Error, 'Client update interval must be a whole number of hours from 1 to 720'
+      end
+      interval = interval.to_i
+      raise Error, 'Client update interval must be a whole number of hours from 1 to 720' unless interval.between?(1, 720)
+      {'enabled'=>enabled, 'interval'=>interval}
+    end
+    def client_update_url(settings, id, format, token)
+      base = settings.fetch('base_url', '')
+      uri = url!(base)
+      raise Error, 'Invalid subscription base URL' if uri.userinfo || uri.query || uri.fragment
+      check_id(id); filename(format)
+      base.sub(%r{/+\z}, '') + '/cgi-bin/hybrid-subscription?' + URI.encode_www_form('profile'=>id, 'format'=>format, 'token'=>token)
+    rescue Error, ArgumentError, TypeError
+      raise Error, 'Client update URL is not configured or invalid'
+    end
+    def client_update_error(options, formats, settings)
+      return unless options['enabled'] && (formats & %w[mihomo surge]).any?
+      return 'Client updates require token-based download access' if settings['access_mode'] == 'session'
+      client_update_url(settings, 'check', 'surge', 'check') if formats.include?('surge')
+      nil
+    rescue Error => e
+      e.message
+    end
     def save_config(args)
       locked do
         current = config
@@ -153,6 +181,8 @@ module HybridSubscription
         url!(settings.fetch('converter_url', 'http://127.0.0.1:25500'), loopback: true)
         c['profiles'].each do |p|
           raise Error, 'Invalid export format' unless p['formats'].is_a?(Array) && (p['formats'] - FORMATS).empty?
+          updates = client_update_options(p)
+          p['client_update_interval'] = updates['interval'] if p.key?('client_update_interval')
           # Editor saves cannot reset the server-owned review baseline.
           previous = current['profiles'].find { |row| row['id'] == p['id'] }
           p.delete('compatibility')
@@ -390,6 +420,9 @@ module HybridSubscription
     end
     def build_profile(id)
       c = config; p = profile(c, id); cache = caches(c); e = engine(c, cache)
+      updates = client_update_options(p)
+      update_error = client_update_error(updates, p['formats'], c['settings'])
+      raise Error, update_error if update_error
       check = e.validate(id)
       raise Error, Array(check['errors']).join('; ') unless Array(check['errors']).empty?
       output = {}; warnings = Array(check['warnings'])
@@ -406,7 +439,7 @@ module HybridSubscription
       rid = 'r' + Time.now.utc.strftime('%Y%m%d%H%M%S') + '-' + random[0,12]
       dest = release_path(rid); FileUtils.mkdir_p(dest, mode: 0700)
       output.each { |fmt, text| atomic(File.join(dest, filename(fmt)), text, json: false) }
-      manifest = {'id'=>rid, 'profile'=>id, 'created_at'=>now, 'formats'=>output.keys, 'warnings'=>warnings.uniq { |w| w['code'] }, 'checks'=>checks, 'input_digest'=>digest_inputs(c, cache), 'sha256'=>output.transform_values { |x| Digest::SHA256.hexdigest(x) }}
+      manifest = {'id'=>rid, 'profile'=>id, 'created_at'=>now, 'formats'=>output.keys, 'warnings'=>warnings.uniq { |w| w['code'] }, 'checks'=>checks, 'client_update'=>updates, 'input_digest'=>digest_inputs(c, cache), 'sha256'=>output.transform_values { |x| Digest::SHA256.hexdigest(x) }}
       atomic(File.join(dest, 'config.json'), c)
       atomic(File.join(dest, 'manifest.json'), manifest)
       {'release'=>rid, 'warnings'=>manifest['warnings'], 'formats'=>manifest['formats']}
@@ -424,6 +457,8 @@ module HybridSubscription
       out = {'release'=>manifest['id'], 'profile'=>id}
       locked do
         c = config; profile(c, id)
+        update_error = client_update_error(manifest.fetch('client_update', {'enabled'=>false, 'interval'=>24}), manifest['formats'], c['settings'])
+        raise Error, update_error if update_error
         history = read(path('publication-history.json'))
         raise Error, 'Rollback is only allowed for previously published releases' if rollback && !history.key?(manifest['id'])
         unless rollback
@@ -464,7 +499,8 @@ module HybridSubscription
       c = config; profile(c,id); pub = published[id]
       raise Error, 'Build and publish this profile first' unless pub
       meta = release_meta(pub)
-      {'profile'=>id, 'token'=>read(path('tokens.json'))[id], 'formats'=>meta['formats'], 'published_release'=>pub, 'access_mode'=>c['settings']['access_mode'], 'base_url'=>c['settings']['base_url']}
+      updates = meta.fetch('client_update', {'enabled'=>false, 'interval'=>24})
+      {'profile'=>id, 'token'=>read(path('tokens.json'))[id], 'formats'=>meta['formats'], 'published_release'=>pub, 'access_mode'=>c['settings']['access_mode'], 'base_url'=>c['settings']['base_url'], 'client_update'=>updates, 'client_update_error'=>client_update_error(updates, meta['formats'], c['settings'])}
     end
     def job_file(id)
       raise Error, 'Invalid job identifier' unless id.to_s.match?(/\Aj[a-f0-9]{24}\z/)
@@ -618,7 +654,8 @@ module HybridSubscription
       formats = p['formats']
       return {'draft_status'=>'invalid'} unless formats.is_a?(Array) && !formats.empty?
       previous_formats = Array(manifest['formats'])
-      changed = formats.sort != previous_formats.sort
+      updates = client_update_options(p)
+      changed = formats.sort != previous_formats.sort || updates != manifest.fetch('client_update', {'enabled'=>false, 'interval'=>24})
       formats.each do |format|
         output = renderer.render(p['id'], format)
         return {'draft_status'=>'invalid'} unless Array(output['errors']).empty? && output['content'].is_a?(String)
@@ -674,7 +711,11 @@ module HybridSubscription
       when 'compare_converter'; source(config,args['source']); {'job'=>enqueue('compare',args['source'])}
       when 'import_source'; s=source(config,args['source']); put_source(s['id'],args.fetch('content'),s.fetch('format','auto'))
       when 'import_openclash'; import_openclash
-      when 'validate'; engine.validate(args['profile'])
+      when 'validate'
+        c=config; p=profile(c,args['profile']); result=engine(c).validate(args['profile'])
+        error=client_update_error(client_update_options(p), p['formats'], c['settings'])
+        result['errors'] << error if error
+        result
       when 'preview'; engine.render(args['profile'],args['format'],redact:true)
       when 'compatibility'; compatibility(args)
       when 'compatibility_plan'; compatibility_plan(args)

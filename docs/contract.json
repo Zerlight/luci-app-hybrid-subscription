@@ -41,7 +41,9 @@
       "final_policy": "proxy",
       "mihomo_core": "standard",
       "surge_version": "modern",
-      "singbox_version": "1.12"
+      "singbox_version": "1.12",
+      "client_update_enabled": false,
+      "client_update_interval": 24
     }
   ],
   "groups": [

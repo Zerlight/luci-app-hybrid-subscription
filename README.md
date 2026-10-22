@@ -22,6 +22,7 @@ This application focuses on configuration compilation and distribution. Runtime 
 - **Native LuCI Rule Engine & Dependency Graph**: Edit policy groups, ordered routing rules, shared remote/inline rule sets, and Mihomo rematch/sub-rule trees using standard LuCI forms. Inspect group and sub-rule references with an in-browser SVG dependency graph.
 - **Multi-Client Conversion & Compatibility Wizard**: Import node subscriptions from Mihomo, Surge, sing-box, or Shadowrocket and export configurations tailored to each target client. A native LuCI **Compatibility** tab inspects all four targets and helps you spin off client-specific profiles—adapting policy group modes, replacing Mihomo rematch entries, or disabling incompatible rules with explicit confirmation before saving. Unsupported protocols and rule semantics block output, while field differences require confirmation before publication.
 - **Immutable Releases & Instant Rollback**: Validate drafts, preview redacted outputs, build immutable releases, publish, or roll back to any previously published release.
+- **Client Subscription Updates**: Opt in per profile to Surge `#!MANAGED-CONFIG` headers and Clash `Profile-Update-Interval` response headers. Clients always fetch the latest published release without triggering upstream source refreshes or publishing drafts.
 - **Safe OpenClash Integration**: Import existing OpenClash subscription definitions and local caches in one click. Apply a published Mihomo release to OpenClash manually or automatically, guarded by isolated `clash_meta -t` syntax checks and an automatic rollback watchdog.
 - **Zero-Daemon Lightweight Architecture**: Built with native LuCI JavaScript and on-demand Ruby CGI/RPCD workers—no persistent Node.js, Docker, or web server process required on the router.
 
@@ -39,7 +40,7 @@ Many OpenWrt routers run with tight RAM, CPU, and flash constraints. Because thi
 | **Flash / Disk (Packages)** | **~350 KiB** (app + `zh-cn` i18n) / **~5–6.5 MiB** (with Ruby stdlib dependencies) | Total uncompressed size on OverlayFS when Ruby is not already installed. |
 | **Flash / Disk (Data)** | **~50–300 KiB** per cached source / **~100–800 KiB** per published release | Stored under `/etc/hybrid-subscription` (Depends on node count and enabled target formats). |
 | **RAM (Idle)** | **< 1 MiB** | Only the `/bin/sh` timer loop remains resident; **0 MB** of resident Ruby memory when idle. |
-| **RAM (Client Download)** | **~10–14 MiB** transient (< 30 ms) | Authenticates the token, verifies the SHA-256 digest, and streams the static file. |
+| **RAM (Client Download)** | **~10–14 MiB** transient (< 30 ms) | Authenticates the token, verifies the stored SHA-256 digest, and delivers the published configuration. |
 | **RAM (Build & Validation)** | **~16–28 MiB** (100–300 nodes) / **~35–65 MiB** (1,000–4,000 nodes) | Peak RSS of the temporary worker process while compiling Mihomo, Surge, and sing-box outputs. |
 | **RAM (OpenClash Pre-Check)** | **+50–120 MiB** transient (only if OpenClash is installed) | Invokes `clash_meta -t` to validate Mihomo syntax and GeoIP/GeoSite databases before release/apply. |
 | **CPU Time (3-Format Build)** | **~0.1–0.4 s** (100–300 nodes on ARM Cortex-A53) / **~10–90 ms** (on x86_64) | 1,000 nodes across all 3 formats takes ~0.5–1.5 s on typical dual-core ARM routers and ~90 ms on x86_64. |
@@ -154,6 +155,23 @@ Policy groups support manual selection, URL tests, fallback, and load balancing.
 Clash YAML support in Shadowrocket does not cover Mihomo-only extensions: `rematch`, sub-rules, `GEOSITE`, `REMATCH-NAME`, and native Mihomo DNS must still be adapted or omitted in a compatible copy, and `smart` groups must switch to a supported mode. Removing native Mihomo DNS falls back to Shadowrocket's default DNS handling, and behavioral differences such as default selections, empty-group fallback, and lazy health checks are flagged for confirmation before publishing. Strategy tracking and source-change reviews work the same way as for other targets. Native `.conf` export has been removed, while basic SS, Trojan, VMess, and VLESS native node lines remain supported on import (requiring explicit `udp=0/1` without unverified quoting or escaping). When importing an unmarked native node list that cannot be distinguished from Surge automatically, select the Shadowrocket format explicitly.
 
 See the [compatibility version baselines](docs/compatibility-versions.md#shadowrocket-release-evidence) for Shadowrocket release notes and pinned [Sub-Store](https://github.com/sub-store-org/Sub-Store/blob/1f0318bc6feb46fbe204836f32ca7acab37ea67e/backend/src/core/proxy-utils/producers/shadowrocket.js) and [clash-skk](https://github.com/Paxxs/clash-skk/blob/cdb419f7d446c55b715261a8f5ff4b80f84fccbd/README.md) references. Automated tests verify field mapping and publication workflows, while on-device import, rule matching, and live connectivity in Shadowrocket have not yet been tested.
+
+### Client Subscription Updates
+
+**Client Updates** is disabled by default. When enabled on a profile, configure an update interval in whole hours (default **24**, range **1–720**), then build and publish. Client downloads read the update settings recorded in the active published release, so editing a draft does not affect live subscriptions until published.
+
+For unattended background updates, configure a stable **Subscription Base URL** under **Global Settings** and use token-based download access. A LAN-only address is unreachable away from home unless you connect through a home VPN or overlay network—changing the access mode alone does not expose the router to the internet. **Authenticated LuCI Session Only** requires an active browser login and cannot be used for scheduled client updates.
+
+| Client | Setup & Behavior |
+| :--- | :--- |
+| Surge Mac / iOS | Prepends a `#!MANAGED-CONFIG` header with `strict=false`, keeping the local profile usable if an update fails. Building with client updates enabled requires a configured base URL and token-based access. Updates run only while the main Surge app is active and are not guaranteed to fire at the exact interval. |
+| Clash Verge Rev | Import the **Mihomo** subscription URL; the response includes `Profile-Update-Interval` (in hours). Any interval already saved in the client takes precedence, so check the profile's update settings in the client after changing this value. |
+| Clash Meta Android | Import the **Mihomo** subscription URL. The reviewed version (`v2.11.36`) reads `Profile-Update-Interval` only during initial import when no local interval is set; existing profiles must be updated in the app. If a scheduled update fails while offline, trigger one manual update after reconnecting to resume background scheduling. |
+| Shadowrocket | Import the **Shadowrocket YAML** URL under **Config** and use the app's built-in configuration update controls. Because unattended update headers for full Clash YAML configs have not been verified on device, no automatic-update declaration is injected. |
+
+If you change the **Subscription Base URL** or rotate a download token, re-import the new URL on your clients. If the base URL is cleared or becomes invalid after publication, token-authenticated Surge downloads return an error rather than silently stripping the `#!MANAGED-CONFIG` header and converting a managed profile into a static one. Browser downloads authenticated via a LuCI session remain plain files without auto-update headers, and the download dialog highlights any transport configuration issues.
+
+Client pulls never refresh upstream sources or publish drafts; updated source caches reach clients only after you build and publish a new release. Actual refresh timing depends on client scheduling and OS background restrictions, and retaining a cached profile locally does not prevent upstream node credentials or external rule sets from expiring. See the [client-update baselines](docs/compatibility-versions.md#client-subscription-update-baselines) for reviewed versions and scheduling details.
 
 ### Quota & Expiration Queries
 

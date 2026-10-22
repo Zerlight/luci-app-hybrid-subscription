@@ -379,7 +379,8 @@ module HybridSubscription
         rule['enabled'] = false
         changes << {'code'=>"disable-rule:#{id}", 'message'=>"Disable rule #{id} (#{rule['type']}) in the new profile; matching traffic will follow later rules or the final policy"}
       end
-      copy = Engine.copy(without_strategy(original)).merge('id'=>new_id, 'name'=>name, 'formats'=>[format])
+      copy = Engine.copy(routing_profile(original)).merge('id'=>new_id, 'name'=>name, 'formats'=>[format])
+      copy.merge!((operation == 'reapply' ? profile(new_id) : original).slice('client_update_enabled', 'client_update_interval'))
       copy['final_policy'] = policy_map.fetch(copy['final_policy'], copy['final_policy'])
       %w[dns mihomo_policy].each do |key|
         field = key == 'dns' ? 'mihomo_dns' : key

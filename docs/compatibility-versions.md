@@ -1,5 +1,5 @@
 # Compatibility Version Baselines
-Last reviewed: **2026-10-19**.
+Last reviewed: **2026-10-22** (client subscription updates; protocol mappings remain at their recorded checkpoints).
 
 This document records the protocol specifications, client release checkpoints, and upstream commits referenced by the subscription conversion engine. Recording exact revisions here provides a stable baseline when reviewing future upstream changes. Supported conversion behavior is defined by the [implementation contract](implementation-contract.md#shadowrocket-mapping-boundary) and [conversion engine](../root/usr/share/hybrid-subscription/engine.rb).
 
@@ -34,6 +34,21 @@ The releases below mark the documentation and source checkpoints reviewed for ea
 | Shadowrocket | **2.2.80** (with historical milestones below). | Based on public release notes and the pinned Sub-Store mapping reference below; on-device YAML import, rule evaluation, and live connectivity remain untested. |
 
 Because the Surge manual and Shadowrocket release channel are publisher-updated pages rather than immutable Git commits, both the version numbers and review date are recorded alongside their links.
+
+## Client Subscription Update Baselines
+
+The checkpoints below cover full-profile subscription updates (distinct from node health checks, remote rule-set refreshes, and upstream source polling). Review date: **2026-10-22**. The application exposes a **1–720 hour** interval range (default **24 hours**) as an application validation rule rather than a uniform client limit.
+
+| Client | Reference Checkpoint | Scheduling & Failure Behavior |
+| :--- | :--- | :--- |
+| Surge Mac / iOS | [Official managed-profile manual](https://manual.nssurge.com/profile/managed-profile.html), reviewed 2026-10-22. | `#!MANAGED-CONFIG` takes an interval in seconds (upstream default `86400`) without a documented numeric minimum or maximum. Updates run only while the main app is active, treating the interval as an eligibility threshold. Exported configurations set `strict=false` so failed updates do not block use of the last saved profile. |
+| Clash Verge Rev | **v2.5.8**, commit [`3fee9e8747c88580b67d28eff892ffc3418c07d4`](https://github.com/clash-verge-rev/clash-verge-rev/tree/3fee9e8747c88580b67d28eff892ffc3418c07d4). | [`Profile-Update-Interval`](https://github.com/clash-verge-rev/clash-verge-rev/blob/3fee9e8747c88580b67d28eff892ffc3418c07d4/src-tauri/src/config/prfitem.rs) is parsed as integer hours, though any existing local interval on the profile takes precedence. The UI suggests 24+ hours without enforcing a hard minimum. The [timer](https://github.com/clash-verge-rev/clash-verge-rev/blob/3fee9e8747c88580b67d28eff892ffc3418c07d4/src-tauri/src/core/timer.rs) keeps periodic retry scheduling active across failures while retaining the previous configuration. |
+| Clash Meta Android | **v2.11.36**, commit [`043a6072225405b285a73e3d7b7e53431ccfc04c`](https://github.com/MetaCubeX/ClashMetaForAndroid/tree/043a6072225405b285a73e3d7b7e53431ccfc04c). | [`ProfileProcessor.kt`](https://github.com/MetaCubeX/ClashMetaForAndroid/blob/043a6072225405b285a73e3d7b7e53431ccfc04c/service/src/main/java/com/github/kr328/clash/service/ProfileProcessor.kt) applies `Profile-Update-Interval` (integer hours) only on initial import when no local interval is set (`0` disables updates; non-zero values clamp to at least 15 minutes). [`ProfileWorker.kt`](https://github.com/MetaCubeX/ClashMetaForAndroid/blob/043a6072225405b285a73e3d7b7e53431ccfc04c/service/src/main/java/com/github/kr328/clash/service/ProfileWorker.kt) preserves the prior configuration on failure, but because each run is scheduled as a one-shot job, a failed update does not re-arm the next timer until a manual update succeeds or scheduling is reinitialized. |
+| Shadowrocket | **2.2.92** ([App Store](https://apps.apple.com/us/app/shadowrocket/id932747118)); **2.1.42** ([release note](https://t.me/ShadowrocketNews/297)). | Release notes document background updates for node subscriptions, but do not specify unattended scheduling or `Profile-Update-Interval` behavior for full Clash YAML configurations. No auto-update declaration is emitted for `shadowrocket.yaml`; use the app's native configuration update controls. |
+
+Surge managed downloads require a configured base URL and token-based access. The `#!MANAGED-CONFIG` line is prepended at download time after verifying the stored artifact's SHA-256 digest and remains present on subsequent updates. A LAN-only URL cannot serve updates while away from home, and cached profiles remain subject to upstream credential or external rule-set expiration.
+
+Unattended background refresh, extended offline recovery, sleep/wake transitions, and app restart behavior have not been verified on live devices; the table above reflects upstream source and documentation review.
 
 ## Upstream Reference Pins
 
@@ -78,3 +93,4 @@ These release notes do not imply support for Mihomo-specific `rematch`, sub-rule
 | Review Date | Summary | Verification |
 | :--- | :--- | :--- |
 | 2026-10-19 | Recorded initial baselines for all seven canonical protocols, four client targets, and Shadowrocket reference mappings. | Upstream source review and existing local regression coverage. |
+| 2026-10-22 | Added complete-profile update baselines for Surge, Clash Verge Rev 2.5.8, Clash Meta Android 2.11.36, and Shadowrocket 2.2.92; existing protocol and conversion pins are unchanged. | Official documentation and pinned scheduling-source review; client runtime behavior remains untested. |

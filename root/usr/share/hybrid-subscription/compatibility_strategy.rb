@@ -15,8 +15,8 @@ module HybridSubscription
       Digest::SHA256.hexdigest(JSON.generate(canonical(value)))
     end
 
-    def without_strategy(value)
-      value.reject { |key, _| key == 'compatibility' }
+    def routing_profile(value)
+      value.reject { |key, _| %w[compatibility client_update_enabled client_update_interval].include?(key) }
     end
 
     def set_ids(rule_rows, profile_row)
@@ -65,11 +65,11 @@ module HybridSubscription
       sources = source_dependencies(Array(p['sources']))
       regions = region_dependencies(scoped['groups'])
       sets = dependency_rows('rule_sets', set_ids(scoped['rules'], p))
-      fingerprint(scoped.merge('profile'=>without_strategy(p), 'sources'=>sources, 'rule_sets'=>sets, 'regions'=>regions))
+      fingerprint(scoped.merge('profile'=>routing_profile(p), 'sources'=>sources, 'rule_sets'=>sets, 'regions'=>regions))
     end
 
     def owned_state(id, managed_sets = [])
-      self.class::SCOPED.to_h { |key| [key, rows(key, id)] }.merge('profile'=>without_strategy(profile(id)), 'rule_sets'=>dependency_rows('rule_sets', managed_sets))
+      self.class::SCOPED.to_h { |key| [key, rows(key, id)] }.merge('profile'=>routing_profile(profile(id)), 'rule_sets'=>dependency_rows('rule_sets', managed_sets))
     end
 
     def policy_dependencies(id, policy)

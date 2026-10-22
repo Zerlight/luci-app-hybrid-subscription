@@ -80,6 +80,8 @@ assert.equal(hs.translateMessage('shadowrocket: Example: Reality requires enable
 assert.equal(hs.translateMessage('Invalid identifier'), '标识符格式无效');
 assert.equal(hs.translateMessage('Subscription request failed (HTTP 404); cached nodes were kept'), '订阅请求失败（HTTP 404），已保留节点缓存');
 assert.equal(hs.translateMessage('Subscription request failed (HTTP 400); cached nodes were kept'), '订阅请求失败（HTTP 400），已保留节点缓存');
+assert.equal(hs.t('Client Updates'), '客户端更新');
+assert.equal(hs.translateMessage('Client update URL is not configured or invalid'), '客户端更新地址未配置或无效，请检查“全局设置”中的订阅链接基础地址');
 assert.equal(hs.translateMessage('Group proxy has no members after filtering; Rule r1: invalid IP prefix'), '策略组 proxy 在筛选后无可用节点或成员；分流规则 r1：IP 网段（CIDR）格式无效');
 assert.equal(hs.translateMessage('Source alpha, node 2: missing password'), '订阅源 alpha 第 2 个节点：缺少必填字段 password');
 assert.equal(hs.translateMessage('Update compatible draft Surge (copy) from its saved source; preserve published releases and download links'), '根据来源配置更新兼容草稿“Surge”（copy）；保留已发布版本和订阅链接');
@@ -105,6 +107,8 @@ assert.equal(logical.conditions[0].type, 'NETWORK');
 const leaf = hs.clean({ '.type': 'rules', type: 'DOMAIN', value: 'example.com', conditions: [{ type: 'NETWORK', value: 'UDP' }] });
 assert.equal(leaf.conditions, undefined);
 assert.equal(leaf.value, 'example.com');
+assert.deepEqual(hs.clean({ client_update_enabled: '1', client_update_interval: '24' }), { client_update_enabled: true, client_update_interval: 24 });
+assert.equal(hs.clean({ client_update_enabled: '0' }).client_update_enabled, false);
 
 const owner = {}, config = {
 	schema: 1, settings: {}, profiles: [], groups: [], rule_sets: [],
@@ -155,6 +159,7 @@ assert.notEqual(dns.validate('row', '[]'), true);
 
 const diagram = hs.graph({ profiles: [{ id: 'p', name: 'Hybrid', sources: ['s'], final_policy: 'shared' }], sources: [{ id: 's', name: 'Source' }], groups: [{ id: 'shared', profile: 'p', sources: ['s'], members: ['region'] }, { id: 'jp', profile: 'p', sources: ['s'], members: [] }], rematches: [{ id: 'region', profile: 'p', name: 'Japan', target_sub_rule: 'choose' }], sub_rules: [{ id: 'choose', profile: 'p', name: 'Choose', final_policy: 'REJECT' }], rules: [{ profile: 'p', sub_rule: 'choose', type: 'REMATCH-NAME', value: 'Source A', policy: 'jp' }] }, 'p');
 function descendants(n) { return n && typeof n === 'object' ? [n, ...n.children.flatMap(descendants)] : []; }
+function text(value) { return value == null ? '' : typeof value === 'object' ? value.children.map(text).join(' ') : String(value); }
 const all = descendants(diagram), svg = all.find(n => n.tag === 'svg');
 assert.ok(svg.children.filter(child => child.tag === 'path' && child.attrs['marker-end']).length >= 6, 'graph must include rematch/sub-rule and rule-policy edges');
 assert.ok(svg.children.some(child => child.tag === 'g' && child.children.some(item => item.textContent === 'Japan')));
@@ -254,7 +259,6 @@ async function sourceUpdateResultChecks() {
 		{ env: { lang: 'en' }, hasViewPermission: () => true, url: (...segments) => '/cgi-bin/luci/' + segments.join('/') }, node, value => value, {},
 		{ location: { reload() { reloads++; } } }
 	);
-	const text = value => value == null ? '' : typeof value === 'object' ? value.children.map(text).join(' ') : String(value);
 	const buttons = () => descendants(modal).filter(value => value.tag === 'button');
 	const click = button => button.attrs.click({ preventDefault() {}, currentTarget: button });
 	assert.equal(feedback.sourceUpdateSummary(), '');
@@ -294,25 +298,103 @@ async function sourceUpdateResultChecks() {
 	assert.equal(reloads, 1, 'local imports also preserve the result until dismissed');
 }
 
-async function editorChecks() {
-	await sourceActionChecks();
-	await sourceUpdateResultChecks();
+async function clientUpdateChecks() {
+	const profileForm = { ...form, Flag: {}, Value: {}, ListValue: {}, DummyValue: {}, GridSection: {} };
+	const profilePage = new Function('view', 'form', 'ui', 'hs', 'E', '_', 'window', fs.readFileSync(path.join(root, 'htdocs/luci-static/resources/view/hybrid-subscription/profiles.js'), 'utf8'))(
+		{ extend: value => value }, profileForm, ui, { ...hs, createMap(owner, payload, collections) {
+			const map = hs.createMap(owner, payload, collections);
+			map.children = [];
+			map.render = () => map;
+			map.section = function(type, sectiontype) {
+				const section = { sectiontype, map, children: [], tabs: {}, renderSectionAdd() { return node('div'); },
+					option(type, key, title, description) {
+						const option = { type, option: key, title, description, map,
+							depends(...args) { this.dependency = args; }, value() {} };
+						this.children.push(option); return option;
+					}, tab(key) { this.tabs[key] = { children: [] }; }
+				};
+				map.children.push(section); return section;
+			};
+			return map;
+		} }, node, value => value, { location: { search: '' } }
+	);
+	const profileMap = profilePage.render({ config: { profiles: [{ id: 'p', client_update_enabled: true, client_update_interval: 24 }], groups: [], sources: [] } });
+	const options = profileMap.children[0].children;
+	const enabled = options.find(option => option.option === 'client_update_enabled');
+	const interval = options.find(option => option.option === 'client_update_interval');
+	assert.equal(enabled.type, profileForm.Flag);
+	assert.equal(enabled.default, '0', 'existing profiles opt in explicitly');
+	assert.equal(enabled.tab, 'updates', 'client updates use a native modal tab');
+	assert.equal(interval.tab, 'updates');
+	assert.equal(interval.default, 24);
+	assert.equal(interval.datatype, 'and(uinteger,range(1,720))');
+	assert.deepEqual(interval.dependency, ['client_update_enabled', '1']);
+	assert.equal(profileMap.data.sections('json', 'profiles')[0].client_update_enabled, '1', 'saved boolean values load into the LuCI flag');
+	assert.equal(options.find(option => option.option === '_client_update_help').renderWidget().tag, 'details', 'client caveats use one native disclosure');
+
 	let downloadModal;
+	let downloadInfo = { ok: true, formats: ['shadowrocket'], access_mode: 'lan_token', token: 'local-test-token', base_url: 'http://router.test' };
 	const downloads = new Function('baseclass', 'form', 'rpc', 'ui', 'poll', 'uqr', 'L', 'E', '_', 'document', 'window',
 		fs.readFileSync(path.join(root, 'htdocs/luci-static/resources/hybrid-subscription.js'), 'utf8'))(
 		{ extend: value => value }, {}, { declare: spec => (...args) => {
 			assert.equal(spec.method, 'download_info'); assert.deepEqual(args, ['rocket']);
-			return Promise.resolve({ ok: true, formats: ['shadowrocket'], access_mode: 'lan_token', token: 'local-test-token', base_url: 'http://router.test' });
+			return Promise.resolve(downloadInfo);
 		} }, { showModal: (title, children) => { downloadModal = node('modal', { title }, children); } }, {}, { renderSVG: url => url },
 		{ env: { lang: 'en' } }, node, value => value, {}, { location: { origin: 'http://router.test' } }
 	);
 	await downloads.download('rocket');
 	const downloadNodes = descendants(downloadModal);
-	assert.equal(downloadNodes.find(item => item.tag === 'h4').children[0], 'Shadowrocket (Clash YAML)');
+	assert.ok(downloadNodes.some(item => item.tag === 'h4' && item.children[0] === 'Shadowrocket (Clash YAML)'));
 	const downloadLink = downloadNodes.find(item => item.tag === 'a');
 	assert.equal(downloadLink.attrs.href, 'http://router.test/cgi-bin/hybrid-subscription?profile=rocket&format=shadowrocket&token=local-test-token');
 	assert.equal(downloadLink.attrs.download, '', 'use the native download link and server-provided filename');
 	assert.equal(downloadNodes.filter(item => item.tag === 'a').length, 1, 'do not invent an unverified import URL scheme');
+	assert.doesNotMatch(text(downloadModal), /Enable Client Updates|Published suggested update interval/, 'Shadowrocket-only exports do not claim support for update metadata');
+	assert.match(text(downloadModal), /from the Configuration page/);
+	assert.match(text(downloadModal), /have not been verified/);
+	assert.match(text(downloadModal), /only from allowed local addresses/);
+	assert.doesNotMatch(text(downloadModal), /Clash Meta Android|strict=false/, 'format-specific guidance is not repeated for other formats');
+
+	downloadInfo = { ...downloadInfo, formats: ['singbox'], client_update: { enabled: true, interval: 48 } };
+	await downloads.download('rocket');
+	assert.doesNotMatch(text(downloadModal), /Enable Client Updates|Published suggested update interval/, 'sing-box-only exports do not claim support for update metadata');
+	downloadInfo = { ...downloadInfo, formats: ['mihomo'], client_update: { enabled: false, interval: 24 } };
+	await downloads.download('rocket');
+	assert.match(text(downloadModal), /metadata is disabled in the published version/);
+
+	downloadInfo = { ...downloadInfo, formats: ['surge', 'mihomo'], client_update: { enabled: true, interval: 48 } };
+	await downloads.download('rocket');
+	assert.match(text(downloadModal), /Published suggested update interval: 48 hours/);
+	assert.match(text(downloadModal), /strict=false/);
+	assert.match(text(downloadModal), /existing local interval takes precedence/);
+	assert.match(text(downloadModal), /manually update once when connected to restore scheduling/);
+	assert.equal(descendants(downloadModal).filter(item => item.tag === 'details').length, 1, 'all client guidance uses one disclosure');
+	assert.ok(descendants(downloadModal).some(item => item.tag === 'a' && item.attrs.href.startsWith('surge:///install-config?url=')));
+
+	downloadInfo = { ...downloadInfo, base_url: '', client_update_error: 'Client update URL is not configured or invalid' };
+	await downloads.download('rocket');
+	assert.match(text(downloadModal), /Client update URL is not configured or invalid/);
+	assert.ok(descendants(downloadModal).some(item => item.attrs.class === 'alert-message warning'));
+	assert.match(descendants(downloadModal).find(item => item.tag === 'a').attrs.href, /^http:\/\/router\.test\//, 'ordinary links retain the current-origin fallback');
+
+	downloadInfo = { ...downloadInfo, access_mode: 'session', client_update_error: 'Client updates require token-based download access' };
+	await downloads.download('rocket');
+	assert.match(text(downloadModal), /authenticated LuCI sessions/);
+	assert.match(text(downloadModal), /Client updates require token-based download access/);
+	assert.equal(descendants(downloadModal).filter(item => item.tag === 'input').length, 0, 'session-only mode exposes no third-party update URL or QR code');
+	assert.equal(descendants(downloadModal).filter(item => item.tag === 'a').length, 2, 'session-only mode retains manual file downloads without client import schemes');
+	assert.ok(descendants(downloadModal).filter(item => item.tag === 'a').every(item => !item.attrs.href.includes('token=')));
+
+	downloadInfo = { ...downloadInfo, formats: [], client_update: { enabled: false, interval: 24 } };
+	await downloads.download('rocket');
+	assert.match(text(downloadModal), /No published artifacts are available/);
+	assert.doesNotMatch(text(downloadModal), /Published suggested update interval/);
+}
+
+async function editorChecks() {
+	await sourceActionChecks();
+	await sourceUpdateResultChecks();
+	await clientUpdateChecks();
 	const publishNotice = 'Draft saved. Build and publish from the Overview page to update downloads or OpenClash.';
 	const settingsNotice = 'Global settings saved.';
 	function assertNotice(expected, reason) {
