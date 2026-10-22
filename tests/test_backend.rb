@@ -566,7 +566,7 @@ class BackendTest < Minitest::Test
     refute_equal before['meta']['generation'],after['meta']['generation']
     refute_equal before['meta']['sha256'],after['meta']['sha256']
     assert_equal 456,after['meta']['quota']['total']
-    @b.publish('release'=>built['release'],'accepted_warnings'=>built['warnings'].map { |w| w['code'] })
+    @b.publish({'release'=>built['release'],'accepted_warnings'=>built['warnings'].map { |w| w['code'] }})
     assert_equal 'current',@b.status['profiles'][0]['draft_status']
   end
   def test_source_refresh_counts_added_removed_updated_and_common_node_order
