@@ -179,8 +179,10 @@ Shadowrocket 作为独立的导出目标（`shadowrocket`）按需启用，生�
 - **标准 LuCI i18n**：源码默认使用英文 `msgid`，提供 `po/templates/hybrid-subscription.pot` 模板与 `po/zh_Hans/hybrid-subscription.po` 简体中文翻译，并在 `hybrid-subscription.js` 中内置 `hs.registerLocale` 运行时语言注册表，支持对后端动态参数化校验报错进行本地化转换。
 - **运行完整测试套件**：
 
+项目开发环境提供 Ruby 3.4、Minitest、Node.js 24 和 gettext。安装 [devenv](https://devenv.sh/) 后运行：
+
 ```sh
-sh scripts/test.sh
+devenv shell -- sh scripts/test.sh
 ```
 
 `scripts/test.sh` 会依次执行全部 `tests/test_*.rb` Ruby 单元测试（包括格式转换矩阵、Shadowrocket 映射与兼容性方案测试）、JavaScript 前端与工作台测试、`msgfmt` 翻译格式检查及 Shell 脚本语法校验。GitHub Actions 在每次推送、Pull Request 及推送 `v*` 版本标签时均会自动执行测试并构建 OpenWrt 24.10 (`.ipk`) 与 25.12 (`.apk`) 安装包。

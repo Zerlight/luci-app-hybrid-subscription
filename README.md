@@ -180,8 +180,10 @@ Under **Global Settings → Region Matching**, built-in templates match flag emo
 
 ## Testing & CI
 
+The project development shell provides Ruby 3.4 with Minitest, Node.js 24, and gettext. With [devenv](https://devenv.sh/) installed, run:
+
 ```sh
-sh scripts/test.sh
+devenv shell -- sh scripts/test.sh
 ```
 
 `scripts/test.sh` runs all `tests/test_*.rb` Ruby suites, including subscription conversion matrices, Shadowrocket mapping tests, and compatibility planning tests, JavaScript view/workbench tests, gettext `.po`/`.pot` format validation, and shell syntax checks. GitHub Actions runs this suite and builds `.ipk` (OpenWrt 24.10) and `.apk` (OpenWrt 25.12) packages on every push, pull request, and `v*` release tag.
