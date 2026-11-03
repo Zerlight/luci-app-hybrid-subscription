@@ -415,6 +415,20 @@ module HybridSubscription
     end
     def release_meta(id); read(File.join(release_path(id), 'manifest.json')); end
     def published; read(path('published.json')); end
+    def reusable_warnings(manifest)
+      previous_id = published[manifest['profile']]
+      return [] unless previous_id && read(path('publication-history.json')).key?(previous_id)
+      previous = release_meta(previous_id)
+      return [] unless previous['profile'] == manifest['profile'] && Array(previous['formats']).sort == Array(manifest['formats']).sort
+      templates = [previous_id, manifest['id']].map do |id|
+        Compatibility.new(read(File.join(release_path(id), 'config.json')), {}).source_fingerprint(manifest['profile'])
+      end
+      return [] unless templates.uniq.length == 1
+      Array(manifest['warnings']).select { |warning| Array(previous['warnings']).include?(warning) }.map { |warning| warning['code'] }
+    rescue Error, KeyError
+      # Older incomplete release snapshots require a fresh confirmation.
+      []
+    end
     def releases
       Dir.glob(path('releases', '*', 'manifest.json')).sort.reverse.map { |p| read(p) }.reject(&:empty?)
     end
@@ -442,7 +456,7 @@ module HybridSubscription
       manifest = {'id'=>rid, 'profile'=>id, 'created_at'=>now, 'formats'=>output.keys, 'warnings'=>warnings.uniq { |w| w['code'] }, 'checks'=>checks, 'client_update'=>updates, 'input_digest'=>digest_inputs(c, cache), 'sha256'=>output.transform_values { |x| Digest::SHA256.hexdigest(x) }}
       atomic(File.join(dest, 'config.json'), c)
       atomic(File.join(dest, 'manifest.json'), manifest)
-      {'release'=>rid, 'warnings'=>manifest['warnings'], 'formats'=>manifest['formats']}
+      {'release'=>rid, 'warnings'=>manifest['warnings'], 'formats'=>manifest['formats'], 'reused_warnings'=>reusable_warnings(manifest)}
     rescue StandardError
       FileUtils.rm_rf(dest) if dest && File.directory?(dest) && !File.file?(File.join(dest, 'manifest.json'))
       raise
@@ -464,7 +478,7 @@ module HybridSubscription
         unless rollback
           raise Error, 'Draft configuration or source cache has changed; please rebuild before publishing' unless manifest['input_digest'] == digest_inputs(c, caches(c))
           expected = manifest['warnings'].map { |w| w['code'] }
-          raise Error, 'Please confirm all compatibility differences before publishing' unless (expected - Array(args['accepted_warnings'])).empty?
+          raise Error, 'Please confirm all compatibility differences before publishing' unless (expected - Array(args['accepted_warnings']) - reusable_warnings(manifest)).empty?
         end
         manifest['formats'].each do |fmt|
           actual = Digest::SHA256.file(File.join(release_path(manifest['id']), filename(fmt))).hexdigest
@@ -684,7 +698,7 @@ module HybridSubscription
       end, 'profiles'=>c['profiles'].map do |p|
         rid=pub[p['id']]; m=rid ? release_meta(rid) : {}
         {'id'=>p['id'],'name'=>p['name'],'published_release'=>rid,'formats'=>m['formats'] || [],'generated_at'=>m['created_at'], 'compatibility'=>compatibility.strategy_status(p['id'])}.merge(profile_draft_status(p, rid ? m : nil, renderer))
-      end, 'releases'=>releases.map { |r| r.merge(read(path('publication-history.json'))[r['id']] || {}).merge('ever_published'=>read(path('publication-history.json')).key?(r['id']), 'published'=>pub[r['profile']]==r['id']) }, 'jobs'=>jobs, 'openclash'=>@adapter.status,'converter'=>converter_status}
+      end, 'releases'=>releases.map { |r| r.merge(read(path('publication-history.json'))[r['id']] || {}).merge('reused_warnings'=>reusable_warnings(r), 'ever_published'=>read(path('publication-history.json')).key?(r['id']), 'published'=>pub[r['profile']]==r['id']) }, 'jobs'=>jobs, 'openclash'=>@adapter.status,'converter'=>converter_status}
     end
     def tick
       c=config

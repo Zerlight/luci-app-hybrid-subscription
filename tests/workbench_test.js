@@ -32,7 +32,7 @@ assert.match(renderQuota({upload:0,download:0,expire:0}), /Never expires/);
 assert.match(renderQuota({upload:0,download:0}), /Not provided by upstream/);
 assert.match(renderQuota(null), /No quota data/);
 let workbench = JSON.stringify(page.statusContent.call({config:{profiles:[{id:'p',name:'Profile',formats:['mihomo']}]}},{profiles:[{id:'p',published_release:'r1',formats:['mihomo']}]}));
-for (const action of ['Edit Profile','Build & Publish','Download / QR Code','Release Management']) assert.ok(workbench.includes(action));
+for (const action of ['Edit Profile','Build & Export','Download / QR Code','Release Management']) assert.ok(workbench.includes(action));
 
 // Pending changes remain visible after refresh/reload without hiding the published download.
 for (const [draft_status, message] of [
@@ -44,7 +44,7 @@ for (const [draft_status, message] of [
  }));
  assert.ok(content.includes(message));
  assert.match(content, /Download \/ QR Code/);
- assert.match(content, /Build & Publish/);
+ assert.match(content, /Build & Export/);
 }
 for (const draft_status of ['current', 'unpublished', undefined]) {
  const content = JSON.stringify(page.statusContent.call({config:{profiles:[{id:'p',name:'Profile'}]}}, {
@@ -90,7 +90,7 @@ for (const [flags, message] of [
  assert.equal(review.children, 'Review Conversion');
  assert.equal(review.attrs.href, '/admin/services/hybrid-subscription/compatibility?profile=compatible_copy&review=1', 'review selects the existing target, even if its source is missing');
  assert.match(content, /Download \/ QR Code/, 'the notice does not hide the published download');
- assert.match(content, /Build & Publish/, 'the notice does not silently replace existing publish actions');
+ assert.match(content, /Build & Export/, 'the notice does not silently replace existing publish actions');
 }
 
 // Verify Simplified Chinese (zh-cn / zh_Hans) output
@@ -102,6 +102,6 @@ assert.match(renderQuota({upload:0,download:0,expire:0}), /长期有效/);
 assert.match(renderQuota({upload:0,download:0}), /上游未提供/);
 assert.match(renderQuota(null), /暂无流量数据/);
 workbench = JSON.stringify(page.statusContent.call({config:{profiles:[{id:'p',name:'Profile',formats:['mihomo']}]}},{profiles:[{id:'p',published_release:'r1',formats:['mihomo']}]}));
-for (const action of ['编辑配置','构建并发布','下载 / 二维码','版本管理']) assert.ok(workbench.includes(action));
+for (const action of ['编辑配置','一键构建并导出','下载 / 二维码','版本管理']) assert.ok(workbench.includes(action));
 
 console.log('Workbench actions, conversion drift notices, review links and partial quota/expiry display pass.');

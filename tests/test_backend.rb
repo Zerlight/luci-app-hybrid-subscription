@@ -539,6 +539,49 @@ class BackendTest < Minitest::Test
     r=@b.build_profile('main');@node['password']='new-value';@b.put_source('test',YAML.dump('proxies'=>[@node]),'mihomo')
     assert_raises(HybridSubscription::Error) { @b.publish({'release'=>r['release'],'accepted_warnings'=>r['warnings'].map { |w| w['code'] }}) }
   end
+  def test_published_warning_confirmation_survives_node_refresh_for_the_same_template
+    first = publish_build(@b)
+    @node['password'] = 'updated-password'
+    @b.put_source('test', YAML.dump('proxies'=>[@node]), 'mihomo')
+    build = @b.build_profile('main')
+    assert_equal @b.release_meta(first['release'])['warnings'].map { |w| w['code'] }, build['reused_warnings']
+    assert_equal build['reused_warnings'], @b.status['releases'].find { |r| r['id'] == build['release'] }['reused_warnings']
+    @b.publish({'release'=>build['release'], 'accepted_warnings'=>[]})
+    assert_equal build['release'], @b.published['main']
+  end
+  def test_new_or_changed_warnings_still_require_confirmation
+    publish_build(@b)
+    @node['unsupported-option'] = true
+    @b.put_source('test', YAML.dump('proxies'=>[@node]), 'mihomo')
+    build = @b.build_profile('main')
+    new_codes = build['warnings'].map { |w| w['code'] } - build['reused_warnings']
+    refute_empty build['reused_warnings']
+    refute_empty new_codes
+    assert_raises(HybridSubscription::Error) { @b.publish({'release'=>build['release']}) }
+    manifest = @b.release_meta(build['release'])
+    old_code = build['reused_warnings'].first
+    manifest['warnings'].find { |w| w['code'] == old_code }['message'] += ' Changed behavior.'
+    @b.atomic(File.join(@b.release_path(build['release']), 'manifest.json'), manifest)
+    refute_includes @b.reusable_warnings(manifest), old_code
+    assert_raises(HybridSubscription::Error) { @b.publish({'release'=>build['release'], 'accepted_warnings'=>new_codes}) }
+    @b.publish({'release'=>build['release'], 'accepted_warnings'=>new_codes + [old_code]})
+  end
+  def test_warning_reuse_requires_a_published_matching_template
+    unpublished = @b.build_profile('main')
+    assert_empty unpublished['reused_warnings']
+    assert_empty @b.build_profile('main')['reused_warnings']
+    publish_build(@b)
+    c = @b.config
+    c['groups'][0]['interval'] = 120
+    @b.save_config('config'=>JSON.generate(c), 'version'=>@b.version)
+    changed = @b.build_profile('main')
+    assert_empty changed['reused_warnings']
+    assert_raises(HybridSubscription::Error) { @b.publish({'release'=>changed['release']}) }
+    foreign = @b.release_meta(changed['release']).merge('profile'=>'other')
+    assert_empty @b.reusable_warnings(foreign)
+    @b.unpublish('main')
+    assert_empty @b.reusable_warnings(@b.release_meta(unpublished['release']))
+  end
   def test_source_refresh_summary_covers_initial_import_and_direct_profile_references
     expected={'changed'=>true,'initial'=>true,'before_nodes'=>0,'after_nodes'=>1,'added'=>1,'removed'=>0,'updated'=>0,'order_changed'=>false}
     assert_equal expected,@b.caches['test']['meta']['last_refresh']

@@ -3175,3 +3175,31 @@ msgstr ""
 #: htdocs/luci-static/resources/hybrid-subscription.js
 msgid "Client updates require token-based download access"
 msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/overview.js
+msgid "Build & Export"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/overview.js
+msgid "Review the compatibility differences below. You can confirm them individually or accept all and continue."
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/overview.js
+msgid "Unchanged differences from the last published version of this template are already confirmed."
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/overview.js
+msgid "Show %s More Differences"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/overview.js
+msgid "Confirm & Export"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/overview.js
+msgid "Accept All & Export"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/overview.js
+msgid "Accept All & Publish"
+msgstr ""

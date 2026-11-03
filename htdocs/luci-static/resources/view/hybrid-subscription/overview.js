@@ -22,22 +22,31 @@ function compatibilityNotice(profile, current) {
 		href: L.url('admin/services/hybrid-subscription/compatibility') + '?profile=' + encodeURIComponent(profile.id) + '&review=1'
 	}, _('Review Conversion'))]);
 }
-function confirmPublish(release, done) {
-	const checks = (release.warnings || []).map(function(w) { return { warning: w, field: new ui.Checkbox('0') }; });
+function confirmPublish(release, done, exporting) {
+	const reused = release.reused_warnings || [];
+	const checks = (release.warnings || []).map(function(w) { return { warning: w, reused: reused.indexOf(w.code) >= 0, field: new ui.Checkbox(reused.indexOf(w.code) >= 0 ? '1' : '0') }; });
+	function publish(all, automatic) {
+		if (!automatic && !all && checks.some(function(c) { return !c.field.isChecked(); })) throw new Error(_('Please confirm all compatibility differences, or return to modify the configuration.'));
+		return hs.api('publish', { release: release.id, accepted_warnings: automatic ? [] : checks.map(function(c) { return c.warning.code; }) }).then(function(result) {
+			ui.hideModal();
+			return result.job ? hs.waitJob(result.job, _('Apply to OpenClash')) : result;
+		}).then(done);
+	}
+	if (exporting && checks.every(function(c) { return c.reused; })) return publish(false, true);
+	checks.sort(function(a, b) { return Number(a.reused) - Number(b.reused); });
+	const rows = checks.map(function(item) {
+		const field = item.field.render(), input = field.querySelector('input[type="checkbox"]');
+		return E('p', {}, [field, ' ', E('label', { 'for': input.id }, '[' + (item.warning.target || item.warning.code) + '] ' + trMsg(item.warning.message))]);
+	});
 	ui.showModal(_('Confirm Publication'), [
 		E('p', {}, _('Validation and build succeeded. Publishing makes this release available via the download link without re-fetching upstream sources.')),
-		E('p', {}, checks.length ? _('The following compatibility differences may affect client behavior. Please review and confirm each item:') : _('No compatibility differences require confirmation.')),
-		E('div', {}, checks.map(function(item) {
-			const field = item.field.render(), input = field.querySelector('input[type="checkbox"]');
-			return E('p', {}, [field, ' ', E('label', { 'for': input.id }, '[' + (item.warning.target || item.warning.code) + '] ' + trMsg(item.warning.message))]);
-		})),
-		E('div', { 'class': 'right' }, [hs.button(_('Not Now'), ui.hideModal), ' ', hs.button(_('Confirm Publication'), function() {
-			if (checks.some(function(c) { return !c.field.isChecked(); })) throw new Error(_('Please confirm all compatibility differences, or return to modify the configuration.'));
-			return hs.api('publish', { release: release.id, accepted_warnings: checks.map(function(c) { return c.warning.code; }) }).then(function(result) {
-				ui.hideModal();
-				return result.job ? hs.waitJob(result.job, _('Apply to OpenClash')) : result;
-			}).then(done);
-		}, 'cbi-button-positive', true)])
+		E('p', {}, checks.length ? _('Review the compatibility differences below. You can confirm them individually or accept all and continue.') : _('No compatibility differences require confirmation.')),
+		checks.some(function(c) { return c.reused; }) ? E('p', { 'class': 'cbi-section-descr' }, _('Unchanged differences from the last published version of this template are already confirmed.')) : '',
+		E('div', {}, rows.slice(0, 10)),
+		rows.length > 10 ? E('details', {}, [E('summary', {}, _('Show %s More Differences').format(rows.length - 10))].concat(rows.slice(10))) : '',
+		E('div', { 'class': 'right' }, [hs.button(_('Not Now'), ui.hideModal), ' ',
+			hs.button(exporting ? _('Confirm & Export') : _('Confirm Publication'), function() { return publish(false); }, 'cbi-button-positive', true), ' ',
+			checks.length ? hs.button(exporting ? _('Accept All & Export') : _('Accept All & Publish'), function() { return publish(true); }, 'cbi-button-positive', true) : ''])
 	]);
 }
 function quotaCell(s) {
@@ -103,11 +112,11 @@ return view.extend({
 					current.draft_status === 'changed' ? E('p', { 'class': 'alert-message warning' }, _('The draft has unpublished changes. Build and publish to update downloads and OpenClash.')) :
 					current.draft_status === 'invalid' ? E('p', { 'class': 'alert-message warning' }, _('The current draft cannot generate all selected formats. Check the configuration and compatibility before publishing.')) : '',
 					compatibilityNotice(p, current),
-					E('p', {}, [link('profiles', _('Edit Profile'), p.id), ' ', link('compatibility', _('Compatibility'), p.id), ' ', hs.button(_('Build & Publish'), function() {
+					E('p', {}, [link('profiles', _('Edit Profile'), p.id), ' ', link('compatibility', _('Compatibility'), p.id), ' ', hs.button(_('Build & Export'), function() {
 						return hs.runJob('build', { profile: p.id }, _('Validate and Build Release')).then(function(job) {
 							const result = job.result || {};
 							if (!result.release) throw new Error(_('No release ID was returned. Please check the job status.'));
-							confirmPublish({ id: result.release, warnings: result.warnings || [] }, function() { window.location.reload(); });
+							return confirmPublish({ id: result.release, warnings: result.warnings || [], reused_warnings: result.reused_warnings || [] }, function() { return hs.download(p.id); }, true);
 						});
 					}, 'cbi-button-positive', true), ' ', current.published_release ? hs.button(_('Download / QR Code'), function() { return hs.download(p.id); }) : '', ' ', hs.button(_('Release Management'), function() { self.manage(p, current, data); })])
 				]);

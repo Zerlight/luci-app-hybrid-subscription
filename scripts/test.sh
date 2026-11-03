@@ -9,6 +9,7 @@ node tests/frontend_test.js
 node tests/source_urls_test.js
 node tests/workbench_test.js
 node tests/compatibility_test.js
+node tests/overview_test.js
 for catalog in po/*/*.po po/templates/*.pot; do
  msgfmt --check-format -o /dev/null "$catalog"
 done

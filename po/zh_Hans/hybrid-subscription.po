@@ -3179,3 +3179,31 @@ msgstr "客户端更新地址未配置或无效，请检查“全局设置”中
 #: htdocs/luci-static/resources/hybrid-subscription.js
 msgid "Client updates require token-based download access"
 msgstr "客户端更新需要使用下载令牌，请在“全局设置”中修改下载访问方式"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/overview.js
+msgid "Build & Export"
+msgstr "一键构建并导出"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/overview.js
+msgid "Review the compatibility differences below. You can confirm them individually or accept all and continue."
+msgstr "请检查以下兼容性差异，可逐项确认或一键全部确认并继续。"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/overview.js
+msgid "Unchanged differences from the last published version of this template are already confirmed."
+msgstr "已自动沿用此模板上次发布时确认过且未变化的兼容性差异。"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/overview.js
+msgid "Show %s More Differences"
+msgstr "展开其余 %s 条差异"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/overview.js
+msgid "Confirm & Export"
+msgstr "确认并导出"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/overview.js
+msgid "Accept All & Export"
+msgstr "全部确认并导出"
+
+#: htdocs/luci-static/resources/view/hybrid-subscription/overview.js
+msgid "Accept All & Publish"
+msgstr "全部确认并发布"
